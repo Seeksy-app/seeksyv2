@@ -942,18 +942,24 @@ export default function BoardMeetingNotes() {
     );
   }
 
+  // Check if we're in focus mode (active meeting)
+  const isFocusMode = selectedNote?.status === 'active';
+
   return (
-    <div className="space-y-6">
-      <BoardPageHeader 
-        title="Meeting Notes" 
-        subtitle="Board meeting agendas, memos, and decisions"
-        actions={
-          <Button onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            New Meeting Notes
-          </Button>
-        }
-      />
+    <div className={isFocusMode ? "space-y-2" : "space-y-6"}>
+      {/* Hide header during active meetings for more video space */}
+      {!isFocusMode && (
+        <BoardPageHeader 
+          title="Meeting Notes" 
+          subtitle="Board meeting agendas, memos, and decisions"
+          actions={
+            <Button onClick={() => setIsCreateModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              New Meeting Notes
+            </Button>
+          }
+        />
+      )}
 
       {/* Create Meeting Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
