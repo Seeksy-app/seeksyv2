@@ -24,22 +24,55 @@ serve(async (req) => {
 
     console.log('Guest join request for token:', guestToken.substring(0, 8) + '...');
 
-    // Use service role to look up meeting by guest token
+    // Use service role to look up meeting by invite token
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Find meeting by guest token
+    // First, try to find invite by invite_token (board_meeting_invites table)
+    const { data: invite, error: inviteError } = await supabase
+      .from('board_meeting_invites')
+      .select('meeting_id, invitee_email, invitee_name')
+      .eq('invite_token', guestToken)
+      .maybeSingle();
+
+    let meetingId: string;
+    let guestDisplayName = guestName.trim();
+
+    if (invite) {
+      // Found via invite token
+      meetingId = invite.meeting_id;
+      if (!guestDisplayName && invite.invitee_name) {
+        guestDisplayName = invite.invitee_name;
+      }
+      console.log('Found meeting via invite_token:', meetingId);
+    } else {
+      // Fallback: try legacy guest_token on board_meeting_notes
+      const { data: meetingByToken, error: legacyError } = await supabase
+        .from('board_meeting_notes')
+        .select('id')
+        .eq('guest_token', guestToken)
+        .maybeSingle();
+
+      if (legacyError || !meetingByToken) {
+        console.error('Meeting lookup error:', inviteError, legacyError);
+        throw new Error('Invalid or expired guest link');
+      }
+      meetingId = meetingByToken.id;
+      console.log('Found meeting via legacy guest_token:', meetingId);
+    }
+
+    // Get meeting details
     const { data: meetingNote, error: meetingError } = await supabase
       .from('board_meeting_notes')
       .select('id, title, room_name, room_url')
-      .eq('guest_token', guestToken)
+      .eq('id', meetingId)
       .single();
 
     if (meetingError || !meetingNote) {
-      console.error('Meeting lookup error:', meetingError);
-      throw new Error('Invalid or expired guest link');
+      console.error('Meeting details error:', meetingError);
+      throw new Error('Meeting not found');
     }
 
     // Check if room exists
@@ -52,7 +85,7 @@ serve(async (req) => {
       throw new Error('DAILY_API_KEY not configured');
     }
 
-    console.log('Creating guest token for:', guestName.trim());
+    console.log('Creating guest token for:', guestDisplayName);
 
     // Create guest participant token (not owner)
     const tokenResponse = await fetch('https://api.daily.co/v1/meeting-tokens', {
@@ -66,7 +99,7 @@ serve(async (req) => {
           room_name: meetingNote.room_name,
           is_owner: false,
           user_id: `guest-${Date.now()}`,
-          user_name: guestName.trim(),
+          user_name: guestDisplayName,
           exp: Math.floor(Date.now() / 1000) + (4 * 60 * 60), // 4 hour expiry for guests
         },
       }),
