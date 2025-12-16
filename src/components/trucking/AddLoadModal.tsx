@@ -180,29 +180,37 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[900px] max-h-[85vh] p-0 gap-0 rounded-2xl overflow-hidden">
+      <DialogContent className="max-w-[900px] max-h-[85vh] p-0 gap-0 rounded-2xl overflow-hidden border-2 border-primary/20">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 bg-background border-b px-6 py-4">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-primary/10 via-primary/5 to-background border-b-2 border-primary/20 px-6 py-5">
           <DialogHeader className="space-y-1">
-            <DialogTitle className="text-xl font-semibold">
-              {editingLoad ? "Edit Load" : "Add New Load"}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-muted-foreground">
-              Enter the lane, timing, equipment, and rate.
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/15 flex items-center justify-center">
+                <Truck className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  {editingLoad ? "Edit Load" : "Add New Load"}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  Enter the lane, timing, equipment, and rate.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
         </div>
 
         {/* Scrollable Body */}
-        <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-4 space-y-6" style={{ maxHeight: 'calc(85vh - 140px)' }}>
+        <form onSubmit={handleSubmit} className="overflow-y-auto px-6 py-5 space-y-5 bg-muted/30" style={{ maxHeight: 'calc(85vh - 140px)' }}>
           {/* Section: Basics */}
-          <Section icon={<FileText className="h-4 w-4" />} title="Basics">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Section icon={<FileText className="h-4 w-4" />} title="Basics" color="blue">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Load Number" required>
                 <Input
                   value={formData.load_number}
                   onChange={(e) => setFormData({ ...formData, load_number: e.target.value })}
                   placeholder="e.g., LD-12345"
+                  className="border-2 border-border hover:border-primary/50 focus:border-primary transition-colors bg-background"
                 />
               </FormField>
               <FormField label="Pickup Date" required>
@@ -210,14 +218,15 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   type="date"
                   value={formData.pickup_date}
                   onChange={(e) => setFormData({ ...formData, pickup_date: e.target.value })}
+                  className="border-2 border-border hover:border-primary/50 focus:border-primary transition-colors bg-background"
                 />
               </FormField>
             </div>
           </Section>
 
           {/* Section: Lane */}
-          <Section icon={<MapPin className="h-4 w-4" />} title="Lane">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Section icon={<MapPin className="h-4 w-4" />} title="Lane" color="green">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Origin" required>
                 <div className="flex gap-2">
                   <SelectWithRecent
@@ -225,13 +234,13 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                     onChange={(val) => setFormData({ ...formData, origin_city: val })}
                     placeholder="City"
                     recentValues={getRecentValues("pickup_city")}
-                    className="flex-1"
+                    className="flex-1 border-2 border-border hover:border-emerald-500/50 focus-within:border-emerald-500 transition-colors"
                   />
                   <Select
                     value={formData.origin_state}
                     onValueChange={(val) => setFormData({ ...formData, origin_state: val })}
                   >
-                    <SelectTrigger className="w-20">
+                    <SelectTrigger className="w-20 border-2 border-border hover:border-emerald-500/50 focus:border-emerald-500 transition-colors bg-background">
                       <SelectValue placeholder="ST" />
                     </SelectTrigger>
                     <SelectContent>
@@ -249,13 +258,13 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                     onChange={(val) => setFormData({ ...formData, destination_city: val })}
                     placeholder="City"
                     recentValues={getRecentValues("delivery_city")}
-                    className="flex-1"
+                    className="flex-1 border-2 border-border hover:border-emerald-500/50 focus-within:border-emerald-500 transition-colors"
                   />
                   <Select
                     value={formData.destination_state}
                     onValueChange={(val) => setFormData({ ...formData, destination_state: val })}
                   >
-                    <SelectTrigger className="w-20">
+                    <SelectTrigger className="w-20 border-2 border-border hover:border-emerald-500/50 focus:border-emerald-500 transition-colors bg-background">
                       <SelectValue placeholder="ST" />
                     </SelectTrigger>
                     <SelectContent>
@@ -271,6 +280,7 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   value={formData.origin_zip}
                   onChange={(e) => setFormData({ ...formData, origin_zip: e.target.value })}
                   placeholder="ZIP Code"
+                  className="border-2 border-border hover:border-emerald-500/50 focus:border-emerald-500 transition-colors bg-background"
                 />
               </FormField>
               <FormField label="Destination ZIP (optional)">
@@ -278,19 +288,21 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   value={formData.destination_zip}
                   onChange={(e) => setFormData({ ...formData, destination_zip: e.target.value })}
                   placeholder="ZIP Code"
+                  className="border-2 border-border hover:border-emerald-500/50 focus:border-emerald-500 transition-colors bg-background"
                 />
               </FormField>
             </div>
           </Section>
 
           {/* Section: Pickup Window */}
-          <Section icon={<Clock className="h-4 w-4" />} title="Pickup Window" helper="If unknown, leave blank.">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Section icon={<Clock className="h-4 w-4" />} title="Pickup Window" helper="If unknown, leave blank." color="amber">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Window Start">
                 <Input
                   type="time"
                   value={formData.pickup_window_start}
                   onChange={(e) => setFormData({ ...formData, pickup_window_start: e.target.value })}
+                  className="border-2 border-border hover:border-amber-500/50 focus:border-amber-500 transition-colors bg-background"
                 />
               </FormField>
               <FormField label="Window End">
@@ -298,20 +310,21 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   type="time"
                   value={formData.pickup_window_end}
                   onChange={(e) => setFormData({ ...formData, pickup_window_end: e.target.value })}
+                  className="border-2 border-border hover:border-amber-500/50 focus:border-amber-500 transition-colors bg-background"
                 />
               </FormField>
             </div>
           </Section>
 
           {/* Section: Equipment */}
-          <Section icon={<Truck className="h-4 w-4" />} title="Equipment">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Section icon={<Truck className="h-4 w-4" />} title="Equipment" color="purple">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField label="Equipment Type" required>
                 <Select
                   value={formData.equipment_type}
                   onValueChange={(val) => setFormData({ ...formData, equipment_type: val })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-border hover:border-purple-500/50 focus:border-purple-500 transition-colors bg-background">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -326,7 +339,7 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   value={formData.truck_size}
                   onValueChange={(val) => setFormData({ ...formData, truck_size: val })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-border hover:border-purple-500/50 focus:border-purple-500 transition-colors bg-background">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -342,6 +355,7 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   value={formData.weight_lbs}
                   onChange={(e) => setFormData({ ...formData, weight_lbs: e.target.value })}
                   placeholder="e.g., 40000"
+                  className="border-2 border-border hover:border-purple-500/50 focus:border-purple-500 transition-colors bg-background"
                 />
               </FormField>
               <FormField label="Miles">
@@ -351,7 +365,7 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                     value={formData.miles}
                     onChange={(e) => setFormData({ ...formData, miles: e.target.value })}
                     placeholder="e.g., 500"
-                    className="flex-1"
+                    className="flex-1 border-2 border-border hover:border-purple-500/50 focus:border-purple-500 transition-colors bg-background"
                   />
                   <Button
                     type="button"
@@ -360,43 +374,46 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                     onClick={estimateMiles}
                     disabled={estimatingMiles || !formData.origin_city || !formData.destination_city}
                     title="Estimate miles"
+                    className="border-2 hover:border-purple-500/50"
                   >
                     {estimatingMiles ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calculator className="h-4 w-4" />}
                   </Button>
                 </div>
               </FormField>
             </div>
-            <FormField label="Commodity" className="mt-3">
+            <FormField label="Commodity" className="mt-4">
               <Input
                 value={formData.commodity}
                 onChange={(e) => setFormData({ ...formData, commodity: e.target.value })}
                 placeholder="e.g., General Freight"
+                className="border-2 border-border hover:border-purple-500/50 focus:border-purple-500 transition-colors bg-background"
               />
             </FormField>
-            <div className="flex items-center gap-6 mt-3">
+            <div className="flex items-center gap-6 mt-4 p-3 rounded-lg bg-muted/50 border border-border">
               <div className="flex items-center gap-2">
                 <Switch
                   checked={formData.hazmat}
                   onCheckedChange={(checked) => setFormData({ ...formData, hazmat: checked })}
                 />
-                <Label className="text-sm">HAZMAT</Label>
+                <Label className="text-sm font-medium">HAZMAT</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Switch
                   checked={formData.temp_required}
                   onCheckedChange={(checked) => setFormData({ ...formData, temp_required: checked })}
                 />
-                <Label className="text-sm">Temperature Controlled</Label>
+                <Label className="text-sm font-medium">Temperature Controlled</Label>
               </div>
             </div>
             {formData.temp_required && (
-              <div className="grid grid-cols-2 gap-3 mt-3">
+              <div className="grid grid-cols-2 gap-4 mt-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
                 <FormField label="Min Temp (°F)">
                   <Input
                     type="number"
                     value={formData.temp_min_f}
                     onChange={(e) => setFormData({ ...formData, temp_min_f: e.target.value })}
                     placeholder="34"
+                    className="border-2 border-blue-200 dark:border-blue-700 bg-background"
                   />
                 </FormField>
                 <FormField label="Max Temp (°F)">
@@ -405,6 +422,7 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                     value={formData.temp_max_f}
                     onChange={(e) => setFormData({ ...formData, temp_max_f: e.target.value })}
                     placeholder="38"
+                    className="border-2 border-blue-200 dark:border-blue-700 bg-background"
                   />
                 </FormField>
               </div>
@@ -412,16 +430,16 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
           </Section>
 
           {/* Section: Rate */}
-          <Section icon={<DollarSign className="h-4 w-4" />} title="Rate">
+          <Section icon={<DollarSign className="h-4 w-4" />} title="Rate" color="rose">
             {/* Segmented Control */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1 mb-4">
+            <div className="flex items-center gap-1 bg-background rounded-xl p-1 mb-4 border-2 border-rose-200/50 dark:border-rose-800/50">
               <button
                 type="button"
                 className={cn(
-                  "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all",
+                  "flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all",
                   formData.rate_type === "flat"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-rose-500 text-white shadow-md"
+                    : "text-muted-foreground hover:text-foreground hover:bg-rose-50 dark:hover:bg-rose-950/30"
                 )}
                 onClick={() => setFormData({ ...formData, rate_type: "flat" })}
               >
@@ -430,10 +448,10 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
               <button
                 type="button"
                 className={cn(
-                  "flex-1 px-4 py-2 text-sm font-medium rounded-md transition-all",
+                  "flex-1 px-4 py-2.5 text-sm font-semibold rounded-lg transition-all",
                   formData.rate_type === "per_ton"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "bg-rose-500 text-white shadow-md"
+                    : "text-muted-foreground hover:text-foreground hover:bg-rose-50 dark:hover:bg-rose-950/30"
                 )}
                 onClick={() => setFormData({ ...formData, rate_type: "per_ton" })}
               >
@@ -443,101 +461,105 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
 
             {/* Rate Fields based on type */}
             {formData.rate_type === "flat" ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField label="Target Rate ($)" required helper="What we want to pay">
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-500 font-semibold">$</span>
                     <Input
                       type="number"
                       step="1"
                       value={formData.target_rate}
                       onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
                       placeholder="2500"
-                      className="pl-7"
+                      className="pl-8 border-2 border-border hover:border-rose-500/50 focus:border-rose-500 transition-colors bg-background font-medium"
                     />
                   </div>
                 </FormField>
                 <FormField label="Ceiling Rate ($)" required helper="Max we can pay">
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-500 font-semibold">$</span>
                     <Input
                       type="number"
                       step="1"
                       value={formData.floor_rate}
                       onChange={(e) => setFormData({ ...formData, floor_rate: e.target.value })}
                       placeholder="2700"
-                      className="pl-7"
+                      className="pl-8 border-2 border-border hover:border-rose-500/50 focus:border-rose-500 transition-colors bg-background font-medium"
                     />
                   </div>
                 </FormField>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField label="Desired Rate ($/ton)" required helper="What we want to pay">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-500 font-semibold">$</span>
                       <Input
                         type="number"
                         step="0.01"
                         value={formData.desired_rate_per_ton}
                         onChange={(e) => setFormData({ ...formData, desired_rate_per_ton: e.target.value })}
                         placeholder="75"
-                        className="pl-7"
+                        className="pl-8 border-2 border-border hover:border-rose-500/50 focus:border-rose-500 transition-colors bg-background font-medium"
                       />
                     </div>
                   </FormField>
                   <FormField label="Ceiling Rate ($/ton)" required helper="Max we can pay">
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-rose-500 font-semibold">$</span>
                       <Input
                         type="number"
                         step="0.01"
                         value={formData.floor_rate_per_ton}
                         onChange={(e) => setFormData({ ...formData, floor_rate_per_ton: e.target.value })}
                         placeholder="85"
-                        className="pl-7"
+                        className="pl-8 border-2 border-border hover:border-rose-500/50 focus:border-rose-500 transition-colors bg-background font-medium"
                       />
                     </div>
                   </FormField>
                 </div>
-                <FormField label="Tons" className="mt-3" helper="Auto-calculated from weight">
+                <FormField label="Tons" className="mt-4" helper="Auto-calculated from weight">
                   <Input
                     type="number"
                     step="0.01"
                     value={formData.tons || calculatedTons}
                     onChange={(e) => setFormData({ ...formData, tons: e.target.value })}
                     placeholder={calculatedTons || "Enter tons"}
-                    className="bg-muted/50"
+                    className="border-2 border-border bg-muted/30"
                   />
                 </FormField>
                 {formData.desired_rate_per_ton && (formData.tons || calculatedTons) && (
-                  <div className="p-3 bg-muted/50 rounded-lg text-sm mt-3">
-                    Est. Total: <span className="font-semibold">${(parseFloat(formData.desired_rate_per_ton) * parseFloat(formData.tons || calculatedTons)).toLocaleString()}</span>
+                  <div className="p-4 bg-rose-100/50 dark:bg-rose-950/30 rounded-xl text-sm mt-4 border border-rose-200/50 dark:border-rose-800/50">
+                    <span className="text-muted-foreground">Est. Total:</span>{" "}
+                    <span className="font-bold text-rose-600 dark:text-rose-400 text-lg">
+                      ${(parseFloat(formData.desired_rate_per_ton) * parseFloat(formData.tons || calculatedTons)).toLocaleString()}
+                    </span>
                   </div>
                 )}
               </>
             )}
 
-            <p className="text-xs text-muted-foreground mt-3">
-              Target/Desired = what we want to pay. Ceiling = max we can pay.
+            <p className="text-xs text-muted-foreground mt-4 p-2 bg-muted/30 rounded-lg">
+              💡 Target/Desired = what we want to pay. Ceiling = max we can pay.
             </p>
           </Section>
 
           {/* Section: Special Instructions */}
-          <Section icon={<FileText className="h-4 w-4" />} title="Special Instructions">
+          <Section icon={<FileText className="h-4 w-4" />} title="Special Instructions" color="blue">
             <Textarea
               value={formData.special_instructions}
               onChange={(e) => setFormData({ ...formData, special_instructions: e.target.value })}
               placeholder="Any special requirements or notes..."
               rows={3}
+              className="border-2 border-border hover:border-primary/50 focus:border-primary transition-colors bg-background resize-none"
             />
           </Section>
         </form>
 
         {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-10 bg-background border-t px-6 py-4 flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+        <div className="sticky bottom-0 z-10 bg-gradient-to-r from-background via-background to-muted/30 border-t-2 border-primary/20 px-6 py-4 flex justify-end gap-3">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="border-2">
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={!isValid || submitting}>
@@ -551,25 +573,77 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
 }
 
 // Helper Components
-function Section({ icon, title, helper, children }: { icon: React.ReactNode; title: string; helper?: string; children: React.ReactNode }) {
+type SectionColor = 'blue' | 'green' | 'amber' | 'purple' | 'rose';
+
+const sectionColors: Record<SectionColor, { bg: string; border: string; icon: string; header: string }> = {
+  blue: {
+    bg: 'bg-blue-50/50 dark:bg-blue-950/20',
+    border: 'border-blue-200/50 dark:border-blue-800/50',
+    icon: 'text-blue-600 dark:text-blue-400',
+    header: 'bg-blue-100/50 dark:bg-blue-900/30'
+  },
+  green: {
+    bg: 'bg-emerald-50/50 dark:bg-emerald-950/20',
+    border: 'border-emerald-200/50 dark:border-emerald-800/50',
+    icon: 'text-emerald-600 dark:text-emerald-400',
+    header: 'bg-emerald-100/50 dark:bg-emerald-900/30'
+  },
+  amber: {
+    bg: 'bg-amber-50/50 dark:bg-amber-950/20',
+    border: 'border-amber-200/50 dark:border-amber-800/50',
+    icon: 'text-amber-600 dark:text-amber-400',
+    header: 'bg-amber-100/50 dark:bg-amber-900/30'
+  },
+  purple: {
+    bg: 'bg-purple-50/50 dark:bg-purple-950/20',
+    border: 'border-purple-200/50 dark:border-purple-800/50',
+    icon: 'text-purple-600 dark:text-purple-400',
+    header: 'bg-purple-100/50 dark:bg-purple-900/30'
+  },
+  rose: {
+    bg: 'bg-rose-50/50 dark:bg-rose-950/20',
+    border: 'border-rose-200/50 dark:border-rose-800/50',
+    icon: 'text-rose-600 dark:text-rose-400',
+    header: 'bg-rose-100/50 dark:bg-rose-900/30'
+  }
+};
+
+function Section({ icon, title, helper, color = 'blue', children }: { 
+  icon: React.ReactNode; 
+  title: string; 
+  helper?: string; 
+  color?: SectionColor;
+  children: React.ReactNode 
+}) {
+  const colors = sectionColors[color];
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">{icon}</span>
+    <div className={cn(
+      "rounded-xl border-2 overflow-hidden",
+      colors.bg,
+      colors.border
+    )}>
+      <div className={cn(
+        "flex items-center gap-2 px-4 py-3 border-b",
+        colors.header,
+        colors.border
+      )}>
+        <span className={cn("p-1.5 rounded-lg", colors.bg, colors.icon)}>{icon}</span>
         <h3 className="font-semibold text-sm">{title}</h3>
         {helper && <span className="text-xs text-muted-foreground ml-auto">{helper}</span>}
       </div>
-      {children}
+      <div className="p-4">
+        {children}
+      </div>
     </div>
   );
 }
 
 function FormField({ label, required, helper, className, children }: { label: string; required?: boolean; helper?: string; className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("space-y-1.5", className)}>
-      <Label className="text-sm font-medium">
+    <div className={cn("space-y-2", className)}>
+      <Label className="text-sm font-semibold text-foreground/80">
         {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
+        {required && <span className="text-rose-500 ml-0.5">*</span>}
       </Label>
       {children}
       {helper && <p className="text-xs text-muted-foreground">{helper}</p>}
