@@ -1504,7 +1504,7 @@ export default function BoardMeetingNotes() {
                     <CollapsibleTrigger asChild>
                       <CardHeader className="cursor-pointer hover:bg-muted/50">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-lg">1-Page Board Memo</CardTitle>
+                          <CardTitle className="text-lg">Meeting Agenda</CardTitle>
                           {memoOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                         </div>
                       </CardHeader>
@@ -1513,8 +1513,14 @@ export default function BoardMeetingNotes() {
                       <CardContent className="space-y-4">
                         {selectedNote.memo.purpose && (
                           <div>
-                            <h4 className="font-medium text-sm text-foreground mb-1">Purpose</h4>
+                            <h4 className="font-medium text-sm text-foreground mb-1">Summary</h4>
                             <p className="text-sm text-muted-foreground">{selectedNote.memo.purpose}</p>
+                          </div>
+                        )}
+                        {selectedNote.memo.objective && (
+                          <div>
+                            <h4 className="font-medium text-sm text-foreground mb-1">Objective</h4>
+                            <p className="text-sm text-muted-foreground">{selectedNote.memo.objective}</p>
                           </div>
                         )}
                         {selectedNote.memo.current_state && selectedNote.memo.current_state.length > 0 && (
@@ -1535,12 +1541,6 @@ export default function BoardMeetingNotes() {
                                 <li key={i} className="text-sm text-muted-foreground">{item}</li>
                               ))}
                             </ul>
-                          </div>
-                        )}
-                        {selectedNote.memo.objective && (
-                          <div>
-                            <h4 className="font-medium text-sm text-foreground mb-1">Objective</h4>
-                            <p className="text-sm text-muted-foreground">{selectedNote.memo.objective}</p>
                           </div>
                         )}
                       </CardContent>
