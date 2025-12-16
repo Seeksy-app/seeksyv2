@@ -23,6 +23,7 @@ interface UseUserRolesReturn {
   isAgency: boolean;
   isSubscriber: boolean;
   isBoardMember: boolean;
+  isBoardAdmin: boolean;
 }
 
 export function useUserRoles(): UseUserRolesReturn {
@@ -97,5 +98,6 @@ export function useUserRoles(): UseUserRolesReturn {
     isAgency: roles.includes('agency'),
     isSubscriber: roles.includes('subscriber'),
     isBoardMember: roles.includes('board_member' as UserRole),
+    isBoardAdmin: roles.includes('board_admin' as UserRole),
   };
 }
