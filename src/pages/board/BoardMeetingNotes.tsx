@@ -1726,7 +1726,7 @@ export default function BoardMeetingNotes() {
                         />
                       </div>
                     )}
-                    {selectedNote.audio_file_url && !selectedNote.recording_url && (
+                    {selectedNote.audio_file_url && (
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Audio Recording</p>
                         <audio 

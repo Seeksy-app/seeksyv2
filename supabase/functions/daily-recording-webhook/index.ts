@@ -32,7 +32,38 @@ serve(async (req) => {
         download_link,
       });
 
-      // Find the meeting by room name
+      // First check board_meeting_notes (priority for board meetings)
+      const { data: boardMeeting, error: boardError } = await supabaseClient
+        .from('board_meeting_notes')
+        .select('id')
+        .eq('room_name', room_name)
+        .single();
+
+      if (boardMeeting) {
+        console.log('Found board meeting:', boardMeeting.id);
+        
+        // Update board_meeting_notes with recording URL
+        const { error: updateError } = await supabaseClient
+          .from('board_meeting_notes')
+          .update({
+            recording_url: download_link,
+            recording_status: 'completed',
+          })
+          .eq('id', boardMeeting.id);
+
+        if (updateError) {
+          console.error('Error updating board meeting recording:', updateError);
+        } else {
+          console.log('Recording URL saved to board meeting:', boardMeeting.id);
+        }
+
+        return new Response(
+          JSON.stringify({ success: true, type: 'board_meeting' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Fallback: Find regular meeting by room name
       const { data: meeting, error: meetingError } = await supabaseClient
         .from('meetings')
         .select('id')
@@ -91,6 +122,25 @@ serve(async (req) => {
       const { room_name, error: recordingError } = payload.payload || {};
       console.error('Recording error for room:', room_name, recordingError);
 
+      // Check board meetings first
+      const { data: boardMeeting } = await supabaseClient
+        .from('board_meeting_notes')
+        .select('id')
+        .eq('room_name', room_name)
+        .single();
+
+      if (boardMeeting) {
+        await supabaseClient
+          .from('board_meeting_notes')
+          .update({ recording_status: 'failed' })
+          .eq('id', boardMeeting.id);
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Fallback to regular meetings
       const { data: meeting } = await supabaseClient
         .from('meetings')
         .select('id')

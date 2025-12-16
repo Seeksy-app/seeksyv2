@@ -70,7 +70,7 @@ serve(async (req) => {
 
     console.log('Creating Daily board room:', roomName);
 
-    // Create Daily room (local recording only - cloud recording requires paid plan)
+    // Create Daily room with cloud recording enabled
     const roomResponse = await fetch('https://api.daily.co/v1/rooms', {
       method: 'POST',
       headers: {
@@ -83,6 +83,7 @@ serve(async (req) => {
           enable_chat: true,
           enable_screenshare: true,
           enable_knocking: false,
+          enable_recording: 'cloud', // Enable cloud recording
           max_participants: 15,
           exp: Math.floor(Date.now() / 1000) + (8 * 60 * 60),
           start_video_off: false,
