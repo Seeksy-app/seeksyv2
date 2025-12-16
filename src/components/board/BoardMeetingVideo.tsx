@@ -849,6 +849,21 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             </>
           )}
 
+          {/* AI Notes Status Indicator - Always visible when AI is active */}
+          {isCapturingAudio && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 ml-2">
+                  <Sparkles className="h-4 w-4 text-emerald-500 animate-pulse" />
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">AI Notes Active</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>AI is actively capturing notes, decisions, and action items in real time.</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
+
           {/* Generate Notes Button - only shows when AI is listening */}
           {isCapturingAudio && (
             <Button
