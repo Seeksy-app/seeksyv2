@@ -54,6 +54,23 @@ serve(async (req) => {
       action 
     });
 
+    // Use contact_number or phone from ElevenLabs
+    const phoneValue = contact_number || phone;
+
+    // CRITICAL: Phone number is REQUIRED
+    // If MC is missing, phone becomes mandatory for lead creation
+    if (!phoneValue) {
+      console.error('Phone number is REQUIRED for lead creation');
+      return new Response(JSON.stringify({
+        success: false,
+        requires_phone: true,
+        message: "I need a callback number to proceed. What's the best number to reach you at?"
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     // Use load_id from ElevenLabs (this is actually the load_number string)
     const searchLoadNumber = load_id || load_number;
     
@@ -82,34 +99,45 @@ serve(async (req) => {
       }
     }
 
+    // If no load found but we need to create lead anyway, get default owner
+    if (!owner_id) {
+      const { data: defaultOwner } = await supabase
+        .from('trucking_loads')
+        .select('owner_id')
+        .limit(1)
+        .single();
+      
+      if (defaultOwner) {
+        owner_id = defaultOwner.owner_id;
+        console.log('Using default owner_id:', owner_id);
+      }
+    }
+
     // Use rate_offered from ElevenLabs, fallback to rate_requested
     const rateValue = rate_offered || rate_requested;
-    // Use contact_number or phone from ElevenLabs
-    const phoneValue = contact_number || phone;
 
-    // Create the lead
+    // Create the lead - MC is NULLABLE, phone is REQUIRED
     const leadData = {
       owner_id,
       load_id: actualLoadId,
       company_name: company_name || null,
-      mc_number: mc_number || null,
+      mc_number: mc_number || null, // MC is nullable - don't fail if missing
       dot_number: dot_number || null,
       contact_name: contact_name || company_name || null, // Use company_name as fallback
-      phone: phoneValue || null,
+      phone: phoneValue, // REQUIRED
       email: email || null,
       truck_type: truck_type || null,
       rate_requested: rateValue ? parseFloat(String(rateValue).replace(/[^0-9.]/g, '')) : null,
-      notes: notes || `Rate offered: ${rateValue || 'N/A'}`,
+      notes: notes || `Rate offered: ${rateValue || 'N/A'}${!mc_number ? ' | MC pending - dispatch to confirm' : ''}`,
       source: 'ai_voice_agent',
       status: 'new',
       is_confirmed: false,
       requires_callback: true,
-      call_source: 'inbound'
+      call_source: 'inbound',
+      mc_pending: !mc_number // Flag if MC needs to be collected on callback
     };
     
     console.log('Creating lead with data:', JSON.stringify(leadData, null, 2));
-
-    console.log('Creating lead with data:', leadData);
 
     const { data: lead, error } = await supabase
       .from('trucking_carrier_leads')
@@ -131,10 +159,23 @@ serve(async (req) => {
 
     console.log('Lead created successfully:', lead.id);
 
+    // Build response message based on what info we have
+    let responseMessage = `Great! I've recorded your interest`;
+    if (actualLoadId) {
+      responseMessage += ` in the load`;
+    }
+    responseMessage += `. Our broker will call you back at ${phoneValue}`;
+    if (!mc_number) {
+      responseMessage += `. They'll also confirm your MC number on the callback`;
+    }
+    responseMessage += `. Is there anything else I can help you with?`;
+
     return new Response(JSON.stringify({
       success: true,
-      message: `Lead created successfully for ${company_name || contact_name || 'carrier'}. The broker will follow up shortly.`,
-      lead_id: lead.id
+      message: responseMessage,
+      lead_id: lead.id,
+      mc_collected: !!mc_number,
+      phone_collected: true
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

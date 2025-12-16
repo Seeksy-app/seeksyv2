@@ -31,13 +31,17 @@ serve(async (req) => {
       return await handleNegotiateRate(supabase, body);
     } else if (action === "save_transcript") {
       return await handleSaveTranscript(supabase, body);
+    } else if (action === "log_call") {
+      return await handleLogCall(supabase, body);
+    } else if (action === "confirm_booking") {
+      return await handleConfirmBooking(supabase, body);
     } else {
       // Legacy format or unknown action
       console.log("[ai-trucking-call-router] Unknown action:", action);
       return new Response(
         JSON.stringify({ 
           error: "Unknown action", 
-          available_actions: ["lookup_load", "create_lead", "negotiate_rate", "save_transcript"] 
+          available_actions: ["lookup_load", "create_lead", "negotiate_rate", "save_transcript", "log_call", "confirm_booking"] 
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -57,83 +61,124 @@ async function handleLookupLoad(supabase: any, body: any) {
   
   console.log("[lookup_load] Searching for load:", { load_number, origin_city, destination_city });
 
-  // IMPORTANT: Many drivers don't speak English well and may not know the load number.
-  // They often only know the destination city. Be flexible in matching.
-  
-  let query = supabase
-    .from('trucking_loads')
-    .select('*')
-    .eq('is_active', true);
+  let loads: any[] = [];
+  let searchStrategy = 'none';
 
-  // Search by load number first (if provided)
+  // STRATEGY 1: Search by load number first (most specific)
   if (load_number) {
-    // Try exact match first, then partial
-    query = query.ilike('load_number', `%${load_number}%`);
-  } else if (destination_city) {
-    // Destination-only search is common for drivers shopping rates
-    query = query.ilike('destination_city', `%${destination_city}%`);
-    if (origin_city) {
-      query = query.ilike('origin_city', `%${origin_city}%`);
-    }
-  } else if (origin_city) {
-    // Origin-only search
-    query = query.ilike('origin_city', `%${origin_city}%`);
-  } else {
-    // No search criteria - list available loads to help driver find what they need
-    // This helps non-English speakers who might struggle to explain what they're looking for
-    const { data: availableLoads, error: listError } = await supabase
+    const normalizedLoadNumber = String(load_number).replace(/[^a-zA-Z0-9]/g, '');
+    console.log('Strategy 1: Load number search:', normalizedLoadNumber);
+    
+    const { data, error } = await supabase
       .from('trucking_loads')
-      .select('id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, pickup_date')
-      .eq('is_active', true)
-      .limit(5);
+      .select('*')
+      .ilike('load_number', `%${normalizedLoadNumber}%`)
+      .limit(10);
     
-    if (listError || !availableLoads || availableLoads.length === 0) {
-      return new Response(
-        JSON.stringify({ 
-          found: false, 
-          message: "I don't have any loads available right now. Can I help you with something else?" 
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (!error && data && data.length > 0) {
+      loads = data;
+      searchStrategy = 'load_number';
     }
-    
-    // Format available loads as options for the driver
-    const loadOptions = availableLoads.map((l: any) => 
-      `${l.origin_city} to ${l.destination_city} - $${Math.round(l.target_rate || 0)}`
-    ).join('; ');
-    
-    return new Response(
-      JSON.stringify({ 
-        found: false,
-        available_loads: availableLoads.map((l: any) => ({
-          load_id: l.id,
-          load_number: l.load_number,
-          lane: `${l.origin_city}, ${l.origin_state} to ${l.destination_city}, ${l.destination_state}`,
-          rate: Math.round(l.target_rate || 0),
-          pickup_date: l.pickup_date
-        })),
-        message: `I have a few loads available. Where are you trying to go? I have: ${loadOptions}. Just tell me the city you're heading to.`
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
   }
 
-  const { data: loads, error } = await query.limit(5);
+  // STRATEGY 2: Origin + Destination (full lane match)
+  if (loads.length === 0 && origin_city && destination_city) {
+    console.log('Strategy 2: Full lane search:', origin_city, '->', destination_city);
+    
+    const { data, error } = await supabase
+      .from('trucking_loads')
+      .select('*')
+      .eq('is_active', true)
+      .ilike('origin_city', `%${origin_city}%`)
+      .ilike('destination_city', `%${destination_city}%`)
+      .limit(10);
+    
+    if (!error && data && data.length > 0) {
+      loads = data;
+      searchStrategy = 'full_lane';
+    }
+  }
 
-  if (error) {
-    console.error("[lookup_load] Database error:", error);
-    return new Response(
-      JSON.stringify({ found: false, message: "I'm having trouble searching right now. Can you try again?" }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+  // STRATEGY 3: Destination-only search (common for drivers shopping rates)
+  if (loads.length === 0 && destination_city) {
+    console.log('Strategy 3: Destination-only search:', destination_city);
+    
+    const { data, error } = await supabase
+      .from('trucking_loads')
+      .select('*')
+      .eq('is_active', true)
+      .ilike('destination_city', `%${destination_city}%`)
+      .limit(10);
+    
+    if (!error && data && data.length > 0) {
+      loads = data;
+      searchStrategy = 'destination_only';
+    }
+  }
+
+  // STRATEGY 4: Origin-only search
+  if (loads.length === 0 && origin_city) {
+    console.log('Strategy 4: Origin-only search:', origin_city);
+    
+    const { data, error } = await supabase
+      .from('trucking_loads')
+      .select('*')
+      .eq('is_active', true)
+      .ilike('origin_city', `%${origin_city}%`)
+      .limit(10);
+    
+    if (!error && data && data.length > 0) {
+      loads = data;
+      searchStrategy = 'origin_only';
+    }
+  }
+
+  // STRATEGY 5: Same-lane alternatives with state-level matching
+  if (loads.length === 0 && (origin_city || destination_city)) {
+    console.log('Strategy 5: Same-lane alternatives');
+    
+    let stateQuery = supabase
+      .from('trucking_loads')
+      .select('*')
+      .eq('is_active', true);
+    
+    if (destination_city) {
+      stateQuery = stateQuery.or(`destination_city.ilike.%${destination_city}%,destination_state.ilike.%${destination_city}%`);
+    }
+    if (origin_city) {
+      stateQuery = stateQuery.or(`origin_city.ilike.%${origin_city}%,origin_state.ilike.%${origin_city}%`);
+    }
+    
+    const { data, error } = await stateQuery.limit(10);
+    
+    if (!error && data && data.length > 0) {
+      loads = data;
+      searchStrategy = 'same_lane_alternatives';
+    }
+  }
+
+  // STRATEGY 6: List all available loads if no criteria matched
+  if (loads.length === 0) {
+    console.log('Strategy 6: Listing all available loads');
+    
+    const { data, error } = await supabase
+      .from('trucking_loads')
+      .select('*')
+      .eq('is_active', true)
+      .order('pickup_date', { ascending: true })
+      .limit(5);
+    
+    if (!error && data) {
+      loads = data;
+      searchStrategy = 'all_available';
+    }
   }
 
   if (!loads || loads.length === 0) {
-    console.log("[lookup_load] No loads found");
     return new Response(
       JSON.stringify({ 
         found: false, 
-        message: "I don't have any loads going there right now. What other cities are you interested in? Or do you have a load number?" 
+        message: "I don't have any loads available right now. What cities are you interested in? I can check for alternatives." 
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -150,8 +195,8 @@ async function handleLookupLoad(supabase: any, body: any) {
       miles: l.miles
     }));
     
-    const optionsText = loads.map((l: any) => 
-      `Load ${l.load_number}: ${l.origin_city} to ${l.destination_city}, $${Math.round(l.target_rate || 0)}, pickup ${l.pickup_date || 'TBD'}`
+    const optionsText = loads.slice(0, 3).map((l: any) => 
+      `Load ${l.load_number}: ${l.origin_city} to ${l.destination_city}, $${Math.round(l.target_rate || 0)}`
     ).join('. ');
     
     return new Response(
@@ -159,7 +204,8 @@ async function handleLookupLoad(supabase: any, body: any) {
         found: true,
         multiple_loads: true,
         loads: loadOptions,
-        message: `I found ${loads.length} loads. ${optionsText}. Which one are you interested in? Just tell me the load number or the cities.`
+        search_strategy: searchStrategy,
+        message: `I found ${loads.length} loads. ${optionsText}. Which one are you interested in?`
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
@@ -168,16 +214,12 @@ async function handleLookupLoad(supabase: any, body: any) {
   // Single load found - provide full details
   const load = loads[0];
   const rateText = formatRate(load);
-  
-  // Calculate rate per mile if we have both values - round to nearest dollar
   const distanceMiles = load.miles ? Math.round(load.miles) : null;
   const targetRate = load.target_rate ? Math.round(load.target_rate) : null;
   let ratePerMile: number | null = null;
   if (distanceMiles && distanceMiles > 0 && targetRate && targetRate > 0) {
     ratePerMile = targetRate / distanceMiles;
   }
-
-  console.log("[lookup_load] Found load:", load.load_number, "Miles:", distanceMiles, "Rate/mi:", ratePerMile);
 
   return new Response(
     JSON.stringify({
@@ -189,7 +231,6 @@ async function handleLookupLoad(supabase: any, body: any) {
       pickup_date: load.pickup_date,
       pickup_window: `${load.pickup_window_start || 'TBD'} - ${load.pickup_window_end || 'TBD'}`,
       delivery_date: load.delivery_date,
-      delivery_window: `${load.delivery_window_start || 'TBD'} - ${load.delivery_window_end || 'TBD'}`,
       equipment_type: load.equipment_type || 'Dry Van',
       weight_lbs: load.weight_lbs,
       miles: distanceMiles,
@@ -197,7 +238,7 @@ async function handleLookupLoad(supabase: any, body: any) {
       target_rate: targetRate,
       floor_rate: load.floor_rate ? Math.round(load.floor_rate) : null,
       rate_per_mile: ratePerMile ? Math.round(ratePerMile * 100) / 100 : null,
-      notes: load.notes,
+      search_strategy: searchStrategy,
       message: buildLoadMessage(load, distanceMiles, targetRate, ratePerMile)
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -216,7 +257,6 @@ async function handleNegotiateRate(supabase: any, body: any) {
     );
   }
 
-  // Get load details with target and ceiling rates
   const { data: load, error: loadError } = await supabase
     .from('trucking_loads')
     .select('*')
@@ -231,63 +271,34 @@ async function handleNegotiateRate(supabase: any, body: any) {
     );
   }
 
-  // Round all rates to nearest dollar - never show decimals
   const targetRate = Math.round(load.target_rate || 0);
-  const ceilingRate = Math.round(load.floor_rate || targetRate); // floor_rate is the ceiling in DB
-  const INCREMENT = 25; // Always offer $25 more when driver wants more
-
-  // Parse carrier's offer and round to nearest dollar
+  const ceilingRate = Math.round(load.floor_rate || targetRate);
+  const INCREMENT = 25;
   const offerAmount = Math.round(parseFloat(carrier_offer) || 0);
-  
-  // NEGOTIATION LOGIC:
-  // 1. Start at target rate (our goal - maximize profit)
-  // 2. Counter with +$25 increments when driver wants more
-  // 3. Never go above ceiling rate
-  // 4. Accept immediately if driver accepts anything at or below ceiling
   
   let counterOffer = targetRate;
   let shouldAccept = false;
   let message = "";
-  let negotiationGuidance = "";
 
   if (offerAmount > 0 && offerAmount <= ceilingRate) {
-    // ACCEPT - Driver accepted at or below our ceiling (any offer under ceiling is good!)
     shouldAccept = true;
     counterOffer = offerAmount;
     message = `$${offerAmount} works for us! Let's book this load right now.`;
-    negotiationGuidance = "ACCEPT - Carrier accepted at or below ceiling. Book immediately!";
   } else if (offerAmount > ceilingRate && offerAmount <= targetRate) {
-    // ACCEPT - Driver accepted between ceiling and target (great deal for us!)
     shouldAccept = true;
     counterOffer = offerAmount;
     message = `That rate of $${offerAmount} works for us. Let's get this load booked!`;
-    negotiationGuidance = "ACCEPT - Carrier accepted between ceiling and target. Good profit margin!";
   } else if (offerAmount > targetRate) {
-    // Driver wants MORE than our target - counter down toward target
-    // Offer $25 less than their ask, but don't go below target
     counterOffer = Math.max(offerAmount - INCREMENT, targetRate);
     shouldAccept = false;
     message = `I can do $${counterOffer}. That's a fair rate for this lane.`;
-    negotiationGuidance = `COUNTER DOWN at $${counterOffer}. Driver asking above target. Stay firm near target rate.`;
   } else if (offerAmount === 0) {
-    // No offer yet - quote target rate (start high to maximize profit)
     counterOffer = targetRate;
     message = `The all-in rate for this load is $${targetRate}.`;
-    negotiationGuidance = "INITIAL QUOTE - Start at target rate to maximize profit margin.";
   } else {
-    // This shouldn't happen but handle gracefully
     counterOffer = targetRate;
     message = `Our rate for this load is $${targetRate}.`;
-    negotiationGuidance = "RESTATE target rate.";
   }
-
-  console.log("[negotiate_rate] Result:", { 
-    carrier_offer: offerAmount, 
-    counter_offer: counterOffer, 
-    should_accept: shouldAccept,
-    target: targetRate,
-    ceiling: ceilingRate
-  });
 
   return new Response(
     JSON.stringify({
@@ -299,10 +310,8 @@ async function handleNegotiateRate(supabase: any, body: any) {
       target_rate: targetRate,
       ceiling_rate: ceilingRate,
       should_accept: shouldAccept,
-      room_to_negotiate: ceilingRate - counterOffer, // How much we can still come up if needed
       increment_amount: INCREMENT,
-      message: message,
-      negotiation_guidance: negotiationGuidance
+      message: message
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
@@ -320,9 +329,26 @@ async function handleCreateLead(supabase: any, body: any) {
 
   console.log("[create_lead] Creating lead:", { load_id, company_name, mc_number, contact_name, phone, rate_offered });
 
+  // CRITICAL: Phone number is REQUIRED
+  if (!phone) {
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        requires_phone: true,
+        message: "I need a callback number to proceed. What's the best number to reach you at?" 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Load ID is required to book a specific load
   if (!load_id) {
     return new Response(
-      JSON.stringify({ success: false, message: "Load ID is required to book a load." }),
+      JSON.stringify({ 
+        success: false, 
+        requires_load_confirmation: true,
+        message: "Which load would you like to book? Please confirm the load number or the cities." 
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
@@ -342,20 +368,21 @@ async function handleCreateLead(supabase: any, body: any) {
     );
   }
 
-  // Create the carrier lead
+  // Create the carrier lead - MC is NULLABLE
   const { data: lead, error: leadError } = await supabase
     .from('trucking_carrier_leads')
     .insert({
       owner_id: load.owner_id,
       load_id: load_id,
       company_name: company_name || 'Unknown Company',
-      mc_number: mc_number,
+      mc_number: mc_number || null, // MC is optional
       contact_name: contact_name,
-      phone: phone,
+      phone: phone, // REQUIRED
       rate_offered: rate_offered || load.target_rate,
       status: 'interested',
       source: 'ai_call',
-      notes: `AI agent booking. Rate offered: $${rate_offered || load.target_rate}`,
+      notes: `AI agent booking. Rate: $${rate_offered || load.target_rate}${!mc_number ? ' | MC pending - dispatch to confirm' : ''}`,
+      mc_pending: !mc_number
     })
     .select()
     .single();
@@ -370,49 +397,232 @@ async function handleCreateLead(supabase: any, body: any) {
 
   console.log("[create_lead] Lead created:", lead.id);
 
-  // Calculate estimated cost based on summary text
-  const summaryText = `Carrier ${company_name} interested in load ${load.load_number}. MC: ${mc_number || 'N/A'}. Rate: $${rate_offered || load.target_rate}`;
-  const totalCharacters = summaryText.length;
-  
-  // Get pricing from settings or use default
-  const { data: settings } = await supabase
-    .from('trucking_settings')
-    .select('ai_price_per_million_chars_usd, demo_mode_enabled')
-    .eq('owner_id', load.owner_id)
-    .single();
-  
-  const pricePerMillion = settings?.ai_price_per_million_chars_usd ?? 50;
-  const isDemo = settings?.demo_mode_enabled ?? false;
-  const estimatedCostUsd = (totalCharacters / 1_000_000) * pricePerMillion;
-
-  // Log the call with cost tracking
-  await supabase.from('trucking_call_logs').insert({
-    owner_id: load.owner_id,
-    carrier_phone: phone,
-    load_id: load_id,
-    call_direction: 'inbound',
-    summary: summaryText,
-    call_started_at: new Date().toISOString(),
-    call_ended_at: new Date().toISOString(),
-    total_characters: totalCharacters,
-    estimated_cost_usd: estimatedCostUsd,
-    is_demo: isDemo,
-  });
-
   // Send email notification to broker
   await sendBrokerNotification(load, lead, company_name, mc_number, contact_name, phone, rate_offered);
+
+  // Build response based on what info was collected
+  let responseMessage = `Great! I've notified our broker about your interest in load ${load.load_number}. They will call you back at ${phone}`;
+  if (!mc_number) {
+    responseMessage += `. They'll also confirm your MC number on the callback`;
+  }
+  responseMessage += `. Is there anything else I can help you with?`;
 
   return new Response(
     JSON.stringify({
       success: true,
       lead_id: lead.id,
-      message: `Great! I've notified our broker about your interest in load ${load.load_number}. They will call you right back at ${phone} to confirm the booking. Is there anything else I can help you with?`
+      mc_collected: !!mc_number,
+      phone_collected: true,
+      message: responseMessage
     }),
     { headers: { ...corsHeaders, "Content-Type": "application/json" } }
   );
 }
 
-// Save call transcript for learning and analytics
+// NEW: Separate log_call action - called unconditionally at end of every call
+async function handleLogCall(supabase: any, body: any) {
+  const { 
+    caller_phone,
+    load_id,
+    lead_id,
+    duration_seconds,
+    outcome,
+    transcript,
+    summary,
+    confirmed_load_number,
+    final_rate,
+    phone_captured,
+    conversation_id
+  } = body;
+
+  console.log("[log_call] Logging call:", { caller_phone, load_id, lead_id, outcome });
+
+  // Get owner_id from lead or load
+  let owner_id = null;
+  
+  if (lead_id) {
+    const { data: lead } = await supabase
+      .from('trucking_carrier_leads')
+      .select('owner_id')
+      .eq('id', lead_id)
+      .single();
+    if (lead) owner_id = lead.owner_id;
+  }
+  
+  if (!owner_id && load_id) {
+    const { data: load } = await supabase
+      .from('trucking_loads')
+      .select('owner_id')
+      .eq('id', load_id)
+      .single();
+    if (load) owner_id = load.owner_id;
+  }
+  
+  // Fallback to default owner
+  if (!owner_id) {
+    const { data: anyOwner } = await supabase
+      .from('trucking_loads')
+      .select('owner_id')
+      .limit(1)
+      .single();
+    if (anyOwner) owner_id = anyOwner.owner_id;
+  }
+
+  // Determine outcome - mark incomplete if no phone captured
+  let finalOutcome = outcome || 'completed';
+  if (!phone_captured && !lead_id) {
+    finalOutcome = 'incomplete_no_phone';
+  }
+
+  const callLogData = {
+    owner_id,
+    load_id: load_id || null,
+    caller_number: caller_phone || null,
+    call_started_at: new Date().toISOString(),
+    call_ended_at: new Date().toISOString(),
+    duration_seconds: duration_seconds || 0,
+    outcome: finalOutcome,
+    transcript: transcript || null,
+    ai_summary: summary || null,
+    elevenlabs_conversation_id: conversation_id || null,
+    is_demo: false,
+    confirmed_load_number: confirmed_load_number || null,
+    final_rate: final_rate || null,
+    phone_captured: !!caller_phone,
+    lead_created: !!lead_id
+  };
+
+  const { data: callLog, error } = await supabase
+    .from('trucking_call_logs')
+    .insert(callLogData)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("[log_call] Error:", error);
+    // Don't fail - still return success to not block call termination
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        error: error.message,
+        message: "Call log failed but call can end." 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Update lead with call_log_id if applicable
+  if (lead_id && callLog) {
+    await supabase
+      .from('trucking_carrier_leads')
+      .update({ call_log_id: callLog.id })
+      .eq('id', lead_id);
+  }
+
+  console.log("[log_call] Call logged:", callLog.id);
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      call_log_id: callLog.id,
+      message: "Call logged successfully."
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+// NEW: Confirm booking action - REQUIRED before ending call if multiple loads discussed
+async function handleConfirmBooking(supabase: any, body: any) {
+  const { 
+    load_id,
+    load_number,
+    origin,
+    destination,
+    final_rate,
+    phone,
+    mc_number
+  } = body;
+
+  console.log("[confirm_booking] Confirming booking:", { load_id, load_number, origin, destination, final_rate });
+
+  // Phone is REQUIRED before confirming
+  if (!phone) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        confirmed: false,
+        requires_phone: true,
+        message: "Before I can confirm, I need your callback number. What's the best number to reach you at?"
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Load must be specified
+  if (!load_id && !load_number) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        confirmed: false,
+        requires_load_selection: true,
+        message: "Which load are you booking? Please confirm the load number or tell me the cities again."
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Look up load details if we only have load_number
+  let loadDetails = null;
+  if (load_id) {
+    const { data } = await supabase
+      .from('trucking_loads')
+      .select('id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate')
+      .eq('id', load_id)
+      .single();
+    loadDetails = data;
+  } else if (load_number) {
+    const normalizedLoadNumber = String(load_number).replace(/[^a-zA-Z0-9]/g, '');
+    const { data } = await supabase
+      .from('trucking_loads')
+      .select('id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate')
+      .ilike('load_number', `%${normalizedLoadNumber}%`)
+      .limit(1)
+      .single();
+    loadDetails = data;
+  }
+
+  if (!loadDetails) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        confirmed: false,
+        message: "I couldn't find that load. Can you tell me the cities again so I can confirm?"
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Generate confirmation message
+  const confirmMessage = `Just to confirm: We are proceeding with load ${loadDetails.load_number} from ${loadDetails.origin_city}, ${loadDetails.origin_state} to ${loadDetails.destination_city}, ${loadDetails.destination_state} at $${Math.round(final_rate || loadDetails.target_rate)}. Is that correct?`;
+
+  return new Response(
+    JSON.stringify({
+      success: true,
+      confirmed: true,
+      load_id: loadDetails.id,
+      load_number: loadDetails.load_number,
+      origin: `${loadDetails.origin_city}, ${loadDetails.origin_state}`,
+      destination: `${loadDetails.destination_city}, ${loadDetails.destination_state}`,
+      final_rate: Math.round(final_rate || loadDetails.target_rate),
+      phone_captured: !!phone,
+      mc_captured: !!mc_number,
+      confirmation_message: confirmMessage,
+      message: confirmMessage
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
 async function handleSaveTranscript(supabase: any, body: any) {
   const { 
     owner_id,
@@ -437,7 +647,6 @@ async function handleSaveTranscript(supabase: any, body: any) {
     );
   }
 
-  // If no owner_id provided but we have load_id, get owner from load
   let finalOwnerId = owner_id;
   if (!finalOwnerId && load_id) {
     const { data: load } = await supabase
@@ -456,7 +665,6 @@ async function handleSaveTranscript(supabase: any, body: any) {
     );
   }
 
-  // Save the transcript
   const { data: transcript, error: transcriptError } = await supabase
     .from('trucking_call_transcripts')
     .insert({
@@ -505,8 +713,6 @@ async function sendBrokerNotification(
   rateOffered: number
 ) {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
-  
-  // Always send to D&L Transport broker email
   const brokerEmail = "stephen@dltransport.com";
 
   if (!resendApiKey) {
@@ -517,11 +723,19 @@ async function sendBrokerNotification(
   try {
     const resend = new Resend(resendApiKey);
 
+    const mcPendingNote = !mcNumber ? `
+      <div style="background-color: #fef3c7; padding: 10px; border-radius: 4px; margin: 10px 0;">
+        <strong>⚠️ MC Number Pending:</strong> Please confirm MC on callback.
+      </div>
+    ` : '';
+
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">
           🚚 New Load Booking Request
         </h1>
+        
+        ${mcPendingNote}
         
         <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <h2 style="margin-top: 0; color: #1f2937;">Load Details</h2>
@@ -558,7 +772,7 @@ async function sendBrokerNotification(
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: bold; color: #166534;">MC Number:</td>
-              <td style="padding: 8px 0; color: #1f2937;">${mcNumber || 'Not provided'}</td>
+              <td style="padding: 8px 0; color: #1f2937;">${mcNumber || '⚠️ PENDING - Confirm on callback'}</td>
             </tr>
             <tr>
               <td style="padding: 8px 0; font-weight: bold; color: #166534;">Contact:</td>
@@ -592,7 +806,7 @@ async function sendBrokerNotification(
     const { data, error } = await resend.emails.send({
       from: "D&L Trucking AI <onboarding@resend.dev>",
       to: [brokerEmail],
-      subject: `🚚 New Booking Request - Load ${load.load_number} - ${companyName || 'Carrier'}`,
+      subject: `🚚 New Booking Request - Load ${load.load_number} - ${companyName || 'Carrier'}${!mcNumber ? ' [MC PENDING]' : ''}`,
       html: emailHtml,
     });
 
@@ -607,7 +821,6 @@ async function sendBrokerNotification(
 }
 
 function formatRate(load: any): string {
-  // Never show decimals - round to nearest dollar
   if (load.rate_unit === 'per_mile' && load.miles) {
     const flatRate = Math.round(load.target_rate * load.miles);
     const perMile = Math.round(load.target_rate);
@@ -617,8 +830,6 @@ function formatRate(load: any): string {
 }
 
 function buildLoadMessage(load: any, distanceMiles: number | null, targetRate: number | null, ratePerMile: number | null): string {
-  // Build a conversational message that helps non-English speakers identify the load
-  // Offer multiple ways to confirm: load number, cities, dates
   let msg = `I found load ${load.load_number}. `;
   msg += `It goes from ${load.origin_city}, ${load.origin_state} to ${load.destination_city}, ${load.destination_state}. `;
   
@@ -626,15 +837,7 @@ function buildLoadMessage(load: any, distanceMiles: number | null, targetRate: n
     msg += `About ${Math.round(distanceMiles)} miles. `;
   }
   
-  msg += `Pickup is ${load.pickup_date || 'TBD'}`;
-  if (load.pickup_window_start) {
-    msg += ` between ${load.pickup_window_start} and ${load.pickup_window_end || 'TBD'}`;
-  }
-  msg += `. `;
-  
-  if (load.delivery_date) {
-    msg += `Delivery ${load.delivery_date}. `;
-  }
+  msg += `Pickup is ${load.pickup_date || 'TBD'}. `;
   
   if (load.weight_lbs) {
     msg += `Weight is ${load.weight_lbs.toLocaleString()} pounds. `;
@@ -643,7 +846,6 @@ function buildLoadMessage(load: any, distanceMiles: number | null, targetRate: n
   msg += `${load.equipment_type || 'Dry Van'}. `;
   
   if (targetRate) {
-    // Round to nearest dollar - never show decimals
     const roundedRate = Math.round(targetRate);
     msg += `The all-in rate is $${roundedRate}. `;
     if (ratePerMile && distanceMiles) {
@@ -652,8 +854,7 @@ function buildLoadMessage(load: any, distanceMiles: number | null, targetRate: n
     }
   }
   
-  // Help non-English speakers confirm - offer multiple confirmation options
-  msg += `Does this sound like the load you're looking for? You can confirm by the cities or the load number.`;
+  msg += `Does this sound like the load you're looking for?`;
   
   return msg;
 }

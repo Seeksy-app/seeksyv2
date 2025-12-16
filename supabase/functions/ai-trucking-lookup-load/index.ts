@@ -35,63 +35,137 @@ serve(async (req) => {
 
     console.log('Parsed params:', { load_number, origin_city, destination_city, pickup_date });
 
-    // Start with base query for open loads
-    let query = supabase
-      .from('trucking_loads')
-      .select('*')
-      .eq('status', 'open');
+    let loads: any[] = [];
+    let searchStrategy = 'none';
 
-    // Filter by load number if provided (override base query to search all statuses)
+    // STRATEGY 1: Search by load number first (most specific)
     if (load_number) {
-      // Normalize the load number by removing dashes, spaces, and other non-alphanumeric chars
       const normalizedLoadNumber = load_number.replace(/[^a-zA-Z0-9]/g, '');
-      console.log('Normalized load_number:', normalizedLoadNumber);
+      console.log('Strategy 1: Load number search:', normalizedLoadNumber);
       
-      query = supabase
+      const { data, error } = await supabase
         .from('trucking_loads')
         .select('*')
-        .ilike('load_number', `%${normalizedLoadNumber}%`);
+        .ilike('load_number', `%${normalizedLoadNumber}%`)
+        .limit(10);
+      
+      if (!error && data && data.length > 0) {
+        loads = data;
+        searchStrategy = 'load_number';
+      }
     }
 
-    // Filter by origin city if provided
-    if (origin_city) {
-      query = query.ilike('origin_city', `%${origin_city}%`);
+    // STRATEGY 2: Origin + Destination (full lane match)
+    if (loads.length === 0 && origin_city && destination_city) {
+      console.log('Strategy 2: Full lane search:', origin_city, '->', destination_city);
+      
+      const { data, error } = await supabase
+        .from('trucking_loads')
+        .select('*')
+        .eq('status', 'open')
+        .ilike('origin_city', `%${origin_city}%`)
+        .ilike('destination_city', `%${destination_city}%`)
+        .limit(10);
+      
+      if (!error && data && data.length > 0) {
+        loads = data;
+        searchStrategy = 'full_lane';
+      }
     }
 
-    // Filter by destination city if provided
-    if (destination_city) {
-      query = query.ilike('destination_city', `%${destination_city}%`);
+    // STRATEGY 3: Destination-only search (common for drivers shopping rates)
+    if (loads.length === 0 && destination_city) {
+      console.log('Strategy 3: Destination-only search:', destination_city);
+      
+      const { data, error } = await supabase
+        .from('trucking_loads')
+        .select('*')
+        .eq('status', 'open')
+        .ilike('destination_city', `%${destination_city}%`)
+        .limit(10);
+      
+      if (!error && data && data.length > 0) {
+        loads = data;
+        searchStrategy = 'destination_only';
+      }
     }
 
-    // Filter by pickup date if provided
-    if (pickup_date) {
-      query = query.eq('pickup_date', pickup_date);
+    // STRATEGY 4: Origin-only search
+    if (loads.length === 0 && origin_city) {
+      console.log('Strategy 4: Origin-only search:', origin_city);
+      
+      const { data, error } = await supabase
+        .from('trucking_loads')
+        .select('*')
+        .eq('status', 'open')
+        .ilike('origin_city', `%${origin_city}%`)
+        .limit(10);
+      
+      if (!error && data && data.length > 0) {
+        loads = data;
+        searchStrategy = 'origin_only';
+      }
     }
 
-    // Limit results
-    query = query.limit(10);
-
-    const { data: loads, error } = await query;
-
-    if (error) {
-      console.error('Database error:', error);
-      return new Response(JSON.stringify({
-        success: false,
-        message: "Error looking up loads",
-        error: error.message
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+    // STRATEGY 5: Same-lane alternatives - broaden search with partial matches
+    if (loads.length === 0 && (origin_city || destination_city)) {
+      console.log('Strategy 5: Same-lane alternatives with state-level matching');
+      
+      // Try to match by state if city match failed
+      let stateQuery = supabase
+        .from('trucking_loads')
+        .select('*')
+        .eq('status', 'open');
+      
+      // Extract possible state abbreviations from city names
+      if (destination_city) {
+        // Try matching destination state
+        stateQuery = stateQuery.or(`destination_city.ilike.%${destination_city}%,destination_state.ilike.%${destination_city}%`);
+      }
+      if (origin_city) {
+        stateQuery = stateQuery.or(`origin_city.ilike.%${origin_city}%,origin_state.ilike.%${origin_city}%`);
+      }
+      
+      const { data, error } = await stateQuery.limit(10);
+      
+      if (!error && data && data.length > 0) {
+        loads = data;
+        searchStrategy = 'same_lane_alternatives';
+      }
     }
 
-    console.log(`Found ${loads?.length || 0} loads`);
+    // STRATEGY 6: Pickup date filter (if provided with other criteria)
+    if (pickup_date && loads.length > 0) {
+      loads = loads.filter(l => l.pickup_date === pickup_date);
+      searchStrategy += '_with_date';
+    }
 
-    if (!loads || loads.length === 0) {
+    // STRATEGY 7: List all available loads if no criteria matched
+    if (loads.length === 0) {
+      console.log('Strategy 7: Listing all available loads');
+      
+      const { data, error } = await supabase
+        .from('trucking_loads')
+        .select('*')
+        .eq('status', 'open')
+        .order('pickup_date', { ascending: true })
+        .limit(10);
+      
+      if (!error && data) {
+        loads = data;
+        searchStrategy = 'all_available';
+      }
+    }
+
+    console.log(`Found ${loads.length} loads using strategy: ${searchStrategy}`);
+
+    if (loads.length === 0) {
       return new Response(JSON.stringify({
         success: true,
-        message: "No loads found matching your criteria. Please try different search parameters.",
-        loads: []
+        found: false,
+        message: "I don't have any loads available right now. What cities are you interested in? I can check for alternatives.",
+        loads: [],
+        search_strategy: searchStrategy
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
@@ -114,17 +188,19 @@ serve(async (req) => {
       } else {
         // Flat rate
         if (load.target_rate) {
-          rateDisplay = `$${load.target_rate}`;
+          rateDisplay = `$${Math.round(load.target_rate)}`;
         }
       }
 
       return {
+        load_id: load.id,
         load_number: load.load_number,
         origin: `${load.origin_city}, ${load.origin_state}`,
         destination: `${load.destination_city}, ${load.destination_state}`,
         pickup_date: load.pickup_date,
         rate_type: rateType,
         rate: rateDisplay,
+        target_rate: load.target_rate ? Math.round(load.target_rate) : null,
         miles: load.miles,
         weight: load.weight_lbs ? `${load.weight_lbs} lbs` : 'Weight TBD',
         equipment_type: load.equipment_type || 'Dry Van',
@@ -133,10 +209,31 @@ serve(async (req) => {
       };
     });
 
+    // Build helpful message based on search results
+    let message = '';
+    if (loads.length === 1) {
+      const l = formattedLoads[0];
+      message = `I found load ${l.load_number} from ${l.origin} to ${l.destination}. The rate is ${l.rate}. Pickup is ${l.pickup_date || 'TBD'}. Are you interested in this load?`;
+    } else if (loads.length > 1) {
+      message = `I found ${loads.length} loads. `;
+      const topLoads = formattedLoads.slice(0, 3).map(l => 
+        `${l.origin} to ${l.destination} at ${l.rate}`
+      ).join('; ');
+      message += topLoads + '. Which one interests you?';
+    }
+
+    // Add note about search strategy for non-exact matches
+    if (searchStrategy === 'same_lane_alternatives' || searchStrategy === 'all_available') {
+      message += ' These are the closest matches I have available.';
+    }
+
     return new Response(JSON.stringify({
       success: true,
-      message: `Found ${formattedLoads.length} load(s) matching your search.`,
-      loads: formattedLoads
+      found: true,
+      message,
+      loads: formattedLoads,
+      search_strategy: searchStrategy,
+      multiple_loads: loads.length > 1
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
@@ -146,7 +243,8 @@ serve(async (req) => {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(JSON.stringify({
       success: false,
-      message: "An error occurred while looking up loads",
+      found: false,
+      message: "I'm having trouble looking that up. Let me try again. What city are you heading to?",
       error: errorMessage
     }), {
       status: 500,

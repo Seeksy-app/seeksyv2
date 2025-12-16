@@ -12,6 +12,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // This endpoint ALWAYS logs the call - never fail silently
+  let callLogId: string | null = null;
+  let logError: string | null = null;
+
   try {
     // Log all headers for debugging
     const headers: Record<string, string> = {};
@@ -20,6 +24,7 @@ serve(async (req) => {
         ? '[REDACTED]' 
         : value;
     });
+    console.log('=== CALL COMPLETE WEBHOOK ===');
     console.log('Incoming headers:', JSON.stringify(headers, null, 2));
     
     // Validate webhook secret if configured (optional - log warning but don't block)
@@ -29,17 +34,15 @@ serve(async (req) => {
                         req.headers.get('x-webhook-secret') ||
                         req.headers.get('authorization');
       
-      // Check if the secret matches (ElevenLabs may send it in different formats)
       const isValid = signature === webhookSecret || 
                       signature === `Bearer ${webhookSecret}` ||
                       signature?.includes(webhookSecret);
       
       if (!isValid) {
-        console.warn('Webhook signature mismatch - proceeding anyway for debugging. Received signature type:', 
+        console.warn('Webhook signature mismatch - proceeding anyway. Signature:', 
           signature ? 'present' : 'missing');
-        // Don't block - just log warning for now to debug
       } else {
-        console.log('Webhook signature validated successfully');
+        console.log('Webhook signature validated');
       }
     }
 
@@ -48,7 +51,6 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const body = await req.json();
-    console.log('=== CALL COMPLETE WEBHOOK ===');
     console.log('Raw body:', JSON.stringify(body, null, 2));
 
     // ElevenLabs sends call data in various formats
@@ -70,9 +72,15 @@ serve(async (req) => {
       metadata,
       started_at,
       ended_at,
-      // Tool call results that may have been collected
+      // Tool call results
       collected_data,
-      tool_results
+      tool_results,
+      // Lead info if available
+      lead_id,
+      load_id: provided_load_id,
+      // Confirmation tracking
+      confirmed_load_number,
+      final_rate
     } = body;
 
     // Extract phone number from various possible fields
@@ -86,31 +94,54 @@ serve(async (req) => {
       callDuration = Math.round((end.getTime() - start.getTime()) / 1000);
     }
 
-    // Try to get owner_id from the most recent lead created in this call
-    let owner_id = null;
-    let load_id = null;
+    // Determine call outcome
+    let callOutcome = outcome || status || 'completed';
     
-    // Look for recently created lead from this caller (within last 5 minutes)
-    if (callerPhone) {
-      const { data: recentLead } = await supabase
+    // Mark as incomplete if phone wasn't captured and no lead was created
+    if (!callerPhone && !lead_id) {
+      callOutcome = 'incomplete_no_phone';
+    }
+
+    // Try to get owner_id and load_id from various sources
+    let owner_id = null;
+    let load_id = provided_load_id || null;
+    
+    // 1. Check if lead was created in this call (most reliable)
+    if (lead_id) {
+      const { data: lead } = await supabase
         .from('trucking_carrier_leads')
         .select('owner_id, load_id')
-        .eq('phone', callerPhone.replace(/[^0-9]/g, ''))
-        .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString())
+        .eq('id', lead_id)
+        .single();
+      
+      if (lead) {
+        owner_id = lead.owner_id;
+        load_id = load_id || lead.load_id;
+        console.log('Found lead:', lead_id);
+      }
+    }
+    
+    // 2. Look for recently created lead from this caller (within last 10 minutes)
+    if (!owner_id && callerPhone) {
+      const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
+      const { data: recentLead } = await supabase
+        .from('trucking_carrier_leads')
+        .select('owner_id, load_id, id')
+        .or(`phone.eq.${cleanPhone},phone.ilike.%${cleanPhone}%`)
+        .gte('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
       
       if (recentLead) {
         owner_id = recentLead.owner_id;
-        load_id = recentLead.load_id;
-        console.log('Found recent lead for caller:', recentLead);
+        load_id = load_id || recentLead.load_id;
+        console.log('Found recent lead for caller:', recentLead.id);
       }
     }
 
-    // If no owner_id from lead, try to get from a recent load lookup
+    // 3. If still no owner, get default from any load
     if (!owner_id) {
-      // Get any owner from the system (fallback for now)
       const { data: anyOwner } = await supabase
         .from('trucking_loads')
         .select('owner_id')
@@ -119,10 +150,11 @@ serve(async (req) => {
       
       if (anyOwner) {
         owner_id = anyOwner.owner_id;
+        console.log('Using default owner_id:', owner_id);
       }
     }
 
-    // Create call log entry
+    // Build call log entry - THIS ALWAYS GETS CREATED
     const callLogData = {
       owner_id,
       load_id,
@@ -130,13 +162,18 @@ serve(async (req) => {
       call_started_at: started_at || new Date().toISOString(),
       call_ended_at: ended_at || new Date().toISOString(),
       duration_seconds: callDuration || 0,
-      outcome: outcome || status || 'completed',
+      outcome: callOutcome,
       transcript: transcript || null,
       ai_summary: summary || null,
       elevenlabs_conversation_id: conversation_id || call_id || null,
       is_demo: false,
-      total_characters: null,
-      estimated_cost_usd: null
+      total_characters: transcript ? transcript.length : null,
+      estimated_cost_usd: null,
+      // Additional tracking fields
+      confirmed_load_number: confirmed_load_number || null,
+      final_rate: final_rate || null,
+      phone_captured: !!callerPhone,
+      lead_created: !!lead_id
     };
 
     console.log('Creating call log:', JSON.stringify(callLogData, null, 2));
@@ -148,46 +185,37 @@ serve(async (req) => {
       .single();
 
     if (error) {
-      console.error('Database error:', error);
-      return new Response(JSON.stringify({
-        success: false,
-        message: "Error logging call",
-        error: error.message
-      }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      });
+      console.error('Database error creating call log:', error);
+      logError = error.message;
+    } else {
+      callLogId = callLog.id;
+      console.log('Call logged successfully:', callLog.id);
+
+      // Update the lead with the call_log_id if we found one
+      if (load_id && callerPhone) {
+        const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
+        await supabase
+          .from('trucking_carrier_leads')
+          .update({ call_log_id: callLog.id })
+          .or(`phone.eq.${cleanPhone},phone.ilike.%${cleanPhone}%`)
+          .gte('created_at', new Date(Date.now() - 10 * 60 * 1000).toISOString());
+      }
     }
-
-    console.log('Call logged successfully:', callLog.id);
-
-    // Update the lead with the call_log_id if we found one
-    if (load_id && callerPhone) {
-      await supabase
-        .from('trucking_carrier_leads')
-        .update({ call_log_id: callLog.id })
-        .eq('phone', callerPhone.replace(/[^0-9]/g, ''))
-        .gte('created_at', new Date(Date.now() - 5 * 60 * 1000).toISOString());
-    }
-
-    return new Response(JSON.stringify({
-      success: true,
-      message: "Call logged successfully",
-      call_log_id: callLog.id
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
 
   } catch (error: unknown) {
     console.error('Error in ai-trucking-call-complete:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({
-      success: false,
-      message: "An error occurred while logging the call",
-      error: errorMessage
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-    });
+    logError = error instanceof Error ? error.message : 'Unknown error';
   }
+
+  // ALWAYS return success to ElevenLabs - we don't want to retry webhooks
+  // but include the actual status in the response
+  return new Response(JSON.stringify({
+    success: !logError,
+    message: logError ? `Call logged with error: ${logError}` : "Call logged successfully",
+    call_log_id: callLogId,
+    error: logError
+  }), {
+    status: 200, // Always 200 to prevent webhook retries
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
 });
