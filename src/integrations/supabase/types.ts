@@ -1936,6 +1936,93 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_daily_briefs: {
+        Row: {
+          answered_calls: number
+          avg_call_seconds: number
+          avg_time_to_qualify_seconds: number
+          created_at: string
+          date_local: string
+          executive_summary: string
+          flags: Json
+          id: string
+          insights: Json
+          loads_active: number
+          loads_confirmed: number
+          loads_declined: number
+          loads_pending: number
+          loads_with_calls: number
+          long_term_index: Json
+          missed_calls: number
+          org_id: string | null
+          per_load: Json
+          repeat_callers: number
+          short_term_recs: Json
+          source_window: Json
+          status: string
+          tech_issues_count: number
+          timezone: string
+          total_calls: number
+          voicemails: number
+        }
+        Insert: {
+          answered_calls?: number
+          avg_call_seconds?: number
+          avg_time_to_qualify_seconds?: number
+          created_at?: string
+          date_local: string
+          executive_summary?: string
+          flags?: Json
+          id?: string
+          insights?: Json
+          loads_active?: number
+          loads_confirmed?: number
+          loads_declined?: number
+          loads_pending?: number
+          loads_with_calls?: number
+          long_term_index?: Json
+          missed_calls?: number
+          org_id?: string | null
+          per_load?: Json
+          repeat_callers?: number
+          short_term_recs?: Json
+          source_window?: Json
+          status?: string
+          tech_issues_count?: number
+          timezone?: string
+          total_calls?: number
+          voicemails?: number
+        }
+        Update: {
+          answered_calls?: number
+          avg_call_seconds?: number
+          avg_time_to_qualify_seconds?: number
+          created_at?: string
+          date_local?: string
+          executive_summary?: string
+          flags?: Json
+          id?: string
+          insights?: Json
+          loads_active?: number
+          loads_confirmed?: number
+          loads_declined?: number
+          loads_pending?: number
+          loads_with_calls?: number
+          long_term_index?: Json
+          missed_calls?: number
+          org_id?: string | null
+          per_load?: Json
+          repeat_callers?: number
+          short_term_recs?: Json
+          source_window?: Json
+          status?: string
+          tech_issues_count?: number
+          timezone?: string
+          total_calls?: number
+          voicemails?: number
+        }
+        Relationships: []
+      }
       ai_edit_events: {
         Row: {
           ai_job_id: string
