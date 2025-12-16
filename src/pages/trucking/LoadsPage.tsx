@@ -1231,7 +1231,7 @@ export default function LoadsPage() {
                   <>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label>Target Rate ($)</Label>
+                        <Label>Target Rate (Pay rate) ($)</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -1241,7 +1241,7 @@ export default function LoadsPage() {
                         />
                       </div>
                       <div>
-                        <Label>Floor Rate ($)</Label>
+                        <Label>Ceiling Rate ($)</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -1264,7 +1264,7 @@ export default function LoadsPage() {
                     </div>
                     {formData.target_rate && formData.floor_rate && (
                       <p className="text-xs text-muted-foreground">
-                        Est. broker earnings: ${(parseFloat(formData.target_rate) - parseFloat(formData.floor_rate)).toLocaleString()}
+                        Est. broker earnings: ${(parseFloat(formData.target_rate) - parseFloat(formData.floor_rate)).toLocaleString()} (Target - Ceiling)
                       </p>
                     )}
                   </>
@@ -1272,7 +1272,7 @@ export default function LoadsPage() {
                   <>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label>Desired Rate ($/ton)</Label>
+                        <Label>Desired Rate (Pay rate) ($/ton)</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -1282,7 +1282,7 @@ export default function LoadsPage() {
                         />
                       </div>
                       <div>
-                        <Label>Floor Rate ($/ton)</Label>
+                        <Label>Ceiling Rate ($/ton)</Label>
                         <Input
                           type="number"
                           step="0.01"

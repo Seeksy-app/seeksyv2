@@ -30,8 +30,10 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
     load_number: "",
     origin_city: "",
     origin_state: "",
+    origin_zip: "",
     destination_city: "",
     destination_state: "",
+    destination_zip: "",
     pickup_date: "",
     pickup_window_start: "",
     pickup_window_end: "",
@@ -41,12 +43,37 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
     miles: "",
     rate_type: "flat" as 'flat' | 'per_ton',
     target_rate: "",
-    floor_rate: "",
+    ceiling_rate: "",
     desired_rate_per_ton: "",
-    floor_rate_per_ton: "",
+    ceiling_rate_per_ton: "",
     tons: "",
     special_instructions: "",
   });
+
+  // Auto-fill load number on new load creation
+  useEffect(() => {
+    const fetchNextLoadNumber = async () => {
+      if (open && !editingLoadId) {
+        const { data } = await supabase
+          .from("trucking_loads")
+          .select("load_number")
+          .order("created_at", { ascending: false })
+          .limit(1);
+        
+        if (data && data.length > 0) {
+          const lastNumber = data[0].load_number;
+          // Try to extract numeric part and increment
+          const numericMatch = lastNumber?.match(/(\d+)/);
+          if (numericMatch) {
+            const nextNumber = parseInt(numericMatch[1]) + 1;
+            const prefix = lastNumber.replace(/\d+.*$/, '');
+            setFormData(prev => ({ ...prev, load_number: `${prefix}${nextNumber}` }));
+          }
+        }
+      }
+    };
+    fetchNextLoadNumber();
+  }, [open, editingLoadId]);
 
   useEffect(() => {
     if (!open) {
@@ -70,8 +97,10 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
         load_number: data.load_number || "",
         origin_city: data.origin_city || "",
         origin_state: data.origin_state || "",
+        origin_zip: data.origin_zip || "",
         destination_city: data.destination_city || "",
         destination_state: data.destination_state || "",
+        destination_zip: data.destination_zip || "",
         pickup_date: data.pickup_date || "",
         pickup_window_start: data.pickup_window_start || "",
         pickup_window_end: data.pickup_window_end || "",
@@ -81,9 +110,9 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
         miles: data.miles?.toString() || "",
         rate_type: (data.rate_type as 'flat' | 'per_ton') || "flat",
         target_rate: data.target_rate?.toString() || "",
-        floor_rate: data.floor_rate?.toString() || "",
+        ceiling_rate: data.floor_rate?.toString() || "",
         desired_rate_per_ton: data.desired_rate_per_ton?.toString() || "",
-        floor_rate_per_ton: data.floor_rate_per_ton?.toString() || "",
+        ceiling_rate_per_ton: data.floor_rate_per_ton?.toString() || "",
         tons: data.tons?.toString() || "",
         special_instructions: data.special_instructions || "",
       });
@@ -96,8 +125,10 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
       load_number: "",
       origin_city: "",
       origin_state: "",
+      origin_zip: "",
       destination_city: "",
       destination_state: "",
+      destination_zip: "",
       pickup_date: "",
       pickup_window_start: "",
       pickup_window_end: "",
@@ -107,9 +138,9 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
       miles: "",
       rate_type: "flat",
       target_rate: "",
-      floor_rate: "",
+      ceiling_rate: "",
       desired_rate_per_ton: "",
-      floor_rate_per_ton: "",
+      ceiling_rate_per_ton: "",
       tons: "",
       special_instructions: "",
     });
@@ -150,10 +181,12 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
         miles: formData.miles ? parseInt(formData.miles) : null,
         rate_type: formData.rate_type,
         target_rate: formData.target_rate ? parseFloat(formData.target_rate) : null,
-        floor_rate: formData.floor_rate ? parseFloat(formData.floor_rate) : null,
+        floor_rate: formData.ceiling_rate ? parseFloat(formData.ceiling_rate) : null,
         desired_rate_per_ton: formData.desired_rate_per_ton ? parseFloat(formData.desired_rate_per_ton) : null,
-        floor_rate_per_ton: formData.floor_rate_per_ton ? parseFloat(formData.floor_rate_per_ton) : null,
+        floor_rate_per_ton: formData.ceiling_rate_per_ton ? parseFloat(formData.ceiling_rate_per_ton) : null,
         tons: formData.tons ? parseFloat(formData.tons) : null,
+        origin_zip: formData.origin_zip || null,
+        destination_zip: formData.destination_zip || null,
         special_instructions: formData.special_instructions,
         status: "open",
         is_active: true,
@@ -227,6 +260,15 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
                   onChange={({ city, state }) => setFormData({ ...formData, origin_city: city, origin_state: state })}
                   placeholder="Select origin city..."
                 />
+                <Input
+                  value={formData.origin_zip}
+                  onChange={(e) => setFormData({ ...formData, origin_zip: e.target.value })}
+                  placeholder="ZIP Code (optional)"
+                  className="mt-1"
+                />
+                {formData.origin_zip && (
+                  <p className="text-xs text-muted-foreground">Primary ZIP: {formData.origin_zip}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Destination *</Label>
@@ -235,6 +277,15 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
                   onChange={({ city, state }) => setFormData({ ...formData, destination_city: city, destination_state: state })}
                   placeholder="Select destination city..."
                 />
+                <Input
+                  value={formData.destination_zip}
+                  onChange={(e) => setFormData({ ...formData, destination_zip: e.target.value })}
+                  placeholder="ZIP Code (optional)"
+                  className="mt-1"
+                />
+                {formData.destination_zip && (
+                  <p className="text-xs text-muted-foreground">Primary ZIP: {formData.destination_zip}</p>
+                )}
               </div>
             </div>
 
@@ -360,7 +411,7 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
             {formData.rate_type === "flat" ? (
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="target_rate">Target Rate ($)</Label>
+                  <Label htmlFor="target_rate">Target Rate (Pay rate) ($)</Label>
                   <Input
                     id="target_rate"
                     type="number"
@@ -371,13 +422,13 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
                   />
                 </div>
                 <div>
-                  <Label htmlFor="floor_rate">Floor Rate ($)</Label>
+                  <Label htmlFor="ceiling_rate">Ceiling Rate ($)</Label>
                   <Input
-                    id="floor_rate"
+                    id="ceiling_rate"
                     type="number"
                     step="0.01"
-                    value={formData.floor_rate}
-                    onChange={(e) => setFormData({ ...formData, floor_rate: e.target.value })}
+                    value={formData.ceiling_rate}
+                    onChange={(e) => setFormData({ ...formData, ceiling_rate: e.target.value })}
                     placeholder="e.g., 2200"
                   />
                 </div>
@@ -386,7 +437,7 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="desired_rate_per_ton">Desired Rate ($/ton)</Label>
+                    <Label htmlFor="desired_rate_per_ton">Desired Rate (Pay rate) ($/ton)</Label>
                     <Input
                       id="desired_rate_per_ton"
                       type="number"
@@ -397,13 +448,13 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
                     />
                   </div>
                   <div>
-                    <Label htmlFor="floor_rate_per_ton">Floor Rate ($/ton)</Label>
+                    <Label htmlFor="ceiling_rate_per_ton">Ceiling Rate ($/ton)</Label>
                     <Input
-                      id="floor_rate_per_ton"
+                      id="ceiling_rate_per_ton"
                       type="number"
                       step="0.01"
-                      value={formData.floor_rate_per_ton}
-                      onChange={(e) => setFormData({ ...formData, floor_rate_per_ton: e.target.value })}
+                      value={formData.ceiling_rate_per_ton}
+                      onChange={(e) => setFormData({ ...formData, ceiling_rate_per_ton: e.target.value })}
                       placeholder="e.g., 65"
                     />
                   </div>
