@@ -111,8 +111,9 @@ export default function BoardMeetingNotes() {
   const { user, loading: authLoading } = useAuth();
   const { activeTenantId, isLoading: tenantLoading } = useTenant();
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
-  const [memoOpen, setMemoOpen] = useState(true);
-  const [agendaOpen, setAgendaOpen] = useState(true);
+  const [memoOpen, setMemoOpen] = useState(true); // Meeting Agenda - expanded by default
+  const [agendaOpen, setAgendaOpen] = useState(true); // Key Topics - expanded by default
+  const [decisionMatrixOpen, setDecisionMatrixOpen] = useState(false); // Decision Matrix - collapsed by default
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
@@ -1434,7 +1435,7 @@ export default function BoardMeetingNotes() {
                 </div>
               )}
 
-              {/* Meeting Agenda (Memo) - Collapsible */}
+              {/* Meeting Agenda - Collapsible (expanded by default) */}
               {selectedNote.memo && (
                 <Collapsible open={memoOpen} onOpenChange={setMemoOpen}>
                   <Card>
@@ -1442,29 +1443,32 @@ export default function BoardMeetingNotes() {
                       <CardHeader className="cursor-pointer hover:bg-muted/50">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-lg">Meeting Agenda</CardTitle>
-                          {memoOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                          {memoOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
                         </div>
                       </CardHeader>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <CardContent className="space-y-4">
-                        {selectedNote.memo.purpose && (
-                          <div>
-                            <h4 className="font-medium text-sm text-foreground mb-1">Summary</h4>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {selectedNote.memo.purpose}
-                              {selectedNote.memo.objective && ` ${selectedNote.memo.objective}`}
-                              {selectedNote.memo.current_state && selectedNote.memo.current_state.length > 0 && 
-                                ` The current state includes: ${selectedNote.memo.current_state.slice(0, 2).join(', ')}.`}
-                            </p>
-                          </div>
-                        )}
-                        {selectedNote.memo.objective && (
-                          <div>
-                            <h4 className="font-medium text-sm text-foreground mb-1">Objective</h4>
-                            <p className="text-sm text-muted-foreground">{selectedNote.memo.objective}</p>
-                          </div>
-                        )}
+                        {/* Summary - Required, 3-5 sentences */}
+                        <div>
+                          <h4 className="font-medium text-sm text-foreground mb-1">Summary</h4>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {selectedNote.memo.purpose || 'No summary available.'}
+                            {selectedNote.memo.objective && ` ${selectedNote.memo.objective}`}
+                            {selectedNote.memo.current_state && selectedNote.memo.current_state.length > 0 && 
+                              ` The current state includes: ${selectedNote.memo.current_state.slice(0, 2).join(', ')}.`}
+                          </p>
+                        </div>
+                        
+                        {/* Meeting Goals & Objectives - Required */}
+                        <div>
+                          <h4 className="font-medium text-sm text-foreground mb-1">Meeting Goals & Objectives</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {selectedNote.memo.objective || 'No objectives specified.'}
+                          </p>
+                        </div>
+                        
+                        {/* Current State */}
                         {selectedNote.memo.current_state && selectedNote.memo.current_state.length > 0 && (
                           <div>
                             <h4 className="font-medium text-sm text-foreground mb-1">Current State</h4>
@@ -1475,6 +1479,8 @@ export default function BoardMeetingNotes() {
                             </ul>
                           </div>
                         )}
+                        
+                        {/* Key Questions */}
                         {selectedNote.memo.key_questions && selectedNote.memo.key_questions.length > 0 && (
                           <div>
                             <h4 className="font-medium text-sm text-foreground mb-1">Key Questions</h4>
@@ -1491,14 +1497,14 @@ export default function BoardMeetingNotes() {
                 </Collapsible>
               )}
 
-              {/* Board Meeting Agenda with Checkboxes - Collapsible */}
+              {/* Key Topics (checklist-driven discussion list) - Collapsible (expanded by default) */}
               <Collapsible open={agendaOpen} onOpenChange={setAgendaOpen}>
                 <Card>
                   <CollapsibleTrigger asChild>
                     <CardHeader className="cursor-pointer hover:bg-muted/50">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg flex items-center gap-2">
-                          Board Meeting Agenda
+                          Key Topics
                           {selectedNote.status === 'active' && (
                             <Badge variant="default" className="ml-2">In Progress</Badge>
                           )}
@@ -1510,6 +1516,15 @@ export default function BoardMeetingNotes() {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
+                                // Block AI generation if Summary is missing or too short
+                                if (!selectedNote.memo?.purpose || selectedNote.memo.purpose.split(/[.!?]+/).filter(s => s.trim()).length < 3) {
+                                  toast.error("Summary must be 3-5 sentences before generating AI content");
+                                  return;
+                                }
+                                if (!selectedNote.memo?.objective) {
+                                  toast.error("Meeting Goals & Objectives are required before generating AI content");
+                                  return;
+                                }
                                 setIsGenerateAgendaModalOpen(true);
                               }}
                               disabled={isGenerating}
@@ -1518,7 +1533,7 @@ export default function BoardMeetingNotes() {
                               Generate with AI
                             </Button>
                           )}
-                          {agendaOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                          {agendaOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
                         </div>
                       </div>
                     </CardHeader>
@@ -1573,56 +1588,51 @@ export default function BoardMeetingNotes() {
                 </Card>
               </Collapsible>
 
-              {/* Decision Matrix - New component for active meetings */}
-              {selectedNote.status === 'active' && (
-                <Card id="decision-matrix-section">
-                  <CardHeader>
-                    <CardTitle className="text-lg">Decision Matrix</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <DecisionMatrixTable 
-                      meetingId={selectedNote.id}
-                      isHost={true}
-                      isCompleted={false}
-                      meetingStatus={selectedNote.status}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Decision Matrix - Read-only for completed meetings */}
-              {selectedNote.status === 'completed' && (
-                <Card id="decision-matrix-section">
-                  <CardHeader>
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">Decision Matrix</CardTitle>
-                      <Lock className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <DecisionMatrixTable 
-                      meetingId={selectedNote.id}
-                      isHost={true}
-                      isCompleted={true}
-                      meetingStatus={selectedNote.status}
-                    />
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Legacy Decision Table for upcoming meetings (from AI generation) */}
-              {selectedNote.status === 'upcoming' && selectedNote.decision_table.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Decision Matrix (Preview)</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <DecisionTable 
-                      rows={selectedNote.decision_table}
-                      onDecisionChange={(rowIndex, value) => handleDecisionChange(selectedNote.id, rowIndex, value)}
-                    />
-                  </CardContent>
-                </Card>
+              {/* Decision Matrix - Collapsible (collapsed by default) */}
+              {(selectedNote.status === 'active' || selectedNote.status === 'completed' || (selectedNote.status === 'upcoming' && selectedNote.decision_table.length > 0)) && (
+                <Collapsible open={decisionMatrixOpen} onOpenChange={setDecisionMatrixOpen}>
+                  <Card id="decision-matrix-section">
+                    <CollapsibleTrigger asChild>
+                      <CardHeader className="cursor-pointer hover:bg-muted/50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-lg">Decision Matrix</CardTitle>
+                            {selectedNote.status === 'completed' && (
+                              <Lock className="w-4 h-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          {decisionMatrixOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
+                        </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <CardContent>
+                        {selectedNote.status === 'active' && (
+                          <DecisionMatrixTable 
+                            meetingId={selectedNote.id}
+                            isHost={true}
+                            isCompleted={false}
+                            meetingStatus={selectedNote.status}
+                          />
+                        )}
+                        {selectedNote.status === 'completed' && (
+                          <DecisionMatrixTable 
+                            meetingId={selectedNote.id}
+                            isHost={true}
+                            isCompleted={true}
+                            meetingStatus={selectedNote.status}
+                          />
+                        )}
+                        {selectedNote.status === 'upcoming' && selectedNote.decision_table.length > 0 && (
+                          <DecisionTable 
+                            rows={selectedNote.decision_table}
+                            onDecisionChange={(rowIndex, value) => handleDecisionChange(selectedNote.id, rowIndex, value)}
+                          />
+                        )}
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Card>
+                </Collapsible>
               )}
 
               {/* AI Meeting Notes (from video meeting) */}
