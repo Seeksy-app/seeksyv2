@@ -27,8 +27,11 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
   const [isCapturingAudio, setIsCapturingAudio] = useState(false);
   const [aiNotesStatus, setAiNotesStatus] = useState<string>('none');
   const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
+  const [screenShareTrack, setScreenShareTrack] = useState<MediaStreamTrack | null>(null);
+  const [screenShareParticipantId, setScreenShareParticipantId] = useState<string | null>(null);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const screenShareRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -172,6 +175,41 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
             ? { ...participant, isVideoOff: !p.video, isMuted: !p.audio }
             : participant
         ));
+      }
+    });
+
+    // Handle screen share track events
+    daily.on('track-started', (event: any) => {
+      console.log('Track started:', event);
+      if (event?.track?.kind === 'video' && event?.participant) {
+        // Check if this is a screen share track (not camera)
+        const trackType = event.type || '';
+        if (trackType === 'screenVideo' || event.participant?.tracks?.screenVideo?.track === event.track) {
+          console.log('Screen share started by:', event.participant.user_name);
+          setScreenShareTrack(event.track);
+          setScreenShareParticipantId(event.participant.session_id);
+          
+          // Attach to video element
+          if (screenShareRef.current) {
+            const stream = new MediaStream([event.track]);
+            screenShareRef.current.srcObject = stream;
+          }
+        }
+      }
+    });
+
+    daily.on('track-stopped', (event: any) => {
+      console.log('Track stopped:', event);
+      // Check if the stopped track is the screen share
+      if (event?.track === screenShareTrack || 
+          (event?.participant?.session_id === screenShareParticipantId && 
+           event?.type === 'screenVideo')) {
+        console.log('Screen share stopped');
+        setScreenShareTrack(null);
+        setScreenShareParticipantId(null);
+        if (screenShareRef.current) {
+          screenShareRef.current.srcObject = null;
+        }
       }
     });
 
@@ -565,6 +603,9 @@ export const useBoardMeetingVideo = (meetingNoteId: string) => {
     isCapturingAudio,
     participants,
     localVideoRef,
+    screenShareRef,
+    screenShareTrack,
+    screenShareParticipantId,
     audioStream,
     hasActiveRoom,
     startVideoMeeting,

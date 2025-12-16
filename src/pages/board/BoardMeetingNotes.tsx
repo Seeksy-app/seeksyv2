@@ -144,6 +144,9 @@ export default function BoardMeetingNotes() {
     isCapturingAudio,
     participants,
     localVideoRef,
+    screenShareRef,
+    screenShareTrack,
+    screenShareParticipantId,
     audioStream,
     hasActiveRoom,
     startVideoMeeting,
@@ -1409,6 +1412,9 @@ export default function BoardMeetingNotes() {
                     isCapturingAudio={isCapturingAudio}
                     participants={participants}
                     localVideoRef={localVideoRef}
+                    screenShareRef={screenShareRef}
+                    screenShareTrack={screenShareTrack}
+                    screenShareParticipantId={screenShareParticipantId}
                     hasActiveRoom={hasActiveRoom}
                     guestToken={(selectedNote as any).guest_token}
                     onToggleMute={toggleMute}
