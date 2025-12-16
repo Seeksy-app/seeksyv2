@@ -573,6 +573,13 @@ export default function TruckingDashboardPage() {
               Voicemail
               <Badge className="ml-2 bg-purple-400 text-purple-900 border-0">{voicemails.length}</Badge>
             </TabsTrigger>
+            <TabsTrigger 
+              value="archive"
+              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Archive
+              <Badge className="ml-2 bg-slate-400 text-slate-900 border-0">{archivedLeads.length}</Badge>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -732,6 +739,80 @@ export default function TruckingDashboardPage() {
               )}
             </TableBody>
           </Table>
+        </Card>
+      ) : activeTab === "archive" ? (
+        <Card className="bg-white border border-slate-200 overflow-hidden">
+          <div className="p-4 border-b border-slate-200">
+            <h3 className="font-semibold text-slate-900">Archived Leads</h3>
+            <p className="text-sm text-slate-500">Leads you've archived for later reference</p>
+          </div>
+          {archivedLeads.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 text-slate-500 py-12">
+              <Archive className="h-10 w-10 text-slate-300" />
+              <p>No archived leads</p>
+              <p className="text-sm">Archive leads from the pending tab to see them here</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 border-b border-slate-200">
+                  <TableHead className="font-medium text-slate-600">Load #</TableHead>
+                  <TableHead className="font-medium text-slate-600">Company</TableHead>
+                  <TableHead className="font-medium text-slate-600">MC #</TableHead>
+                  <TableHead className="font-medium text-slate-600">Phone</TableHead>
+                  <TableHead className="font-medium text-slate-600">Archived</TableHead>
+                  <TableHead className="font-medium text-slate-600">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {archivedLeads.map((lead) => (
+                  <TableRow key={lead.id} className="hover:bg-slate-50">
+                    <TableCell className="font-medium text-blue-600">
+                      {lead.trucking_loads?.load_number || "—"}
+                    </TableCell>
+                    <TableCell className="font-medium">{lead.company_name || "—"}</TableCell>
+                    <TableCell>{lead.mc_number || "—"}</TableCell>
+                    <TableCell>{lead.phone || "—"}</TableCell>
+                    <TableCell className="text-slate-500 text-sm">
+                      {(lead as any).archived_at ? format(new Date((lead as any).archived_at), "MMM d, h:mm a") : format(new Date(lead.created_at), "MMM d, h:mm a")}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={async () => {
+                            try {
+                              const { error } = await supabase
+                                .from("trucking_carrier_leads")
+                                .update({ is_archived: false, archived_at: null })
+                                .eq("id", lead.id);
+                              if (error) throw error;
+                              toast({ title: "Lead restored", description: `${lead.company_name || 'Lead'} moved back to pending` });
+                              fetchData();
+                            } catch (error: any) {
+                              toast({ title: "Error", description: error.message, variant: "destructive" });
+                            }
+                          }}>
+                            <Archive className="h-4 w-4 mr-2" />
+                            Restore
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDeleteLead(lead.id)} className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Permanently
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </Card>
       ) : (
         <Card className="bg-white border border-slate-200 overflow-hidden">

@@ -29,7 +29,16 @@ interface CallLog {
   failure_reason: string | null;
   load_id: string | null;
   lead_id: string | null;
+  language: string | null;
+  total_characters: number | null;
   trucking_loads?: { load_number: string } | null;
+  trucking_call_transcripts?: {
+    transcript_text: string | null;
+    sentiment: string | null;
+    key_topics: string[] | null;
+    negotiation_outcome: string | null;
+    rate_discussed: number | null;
+  }[] | null;
 }
 
 const outcomeColors: Record<string, string> = {
@@ -57,7 +66,11 @@ export default function CallLogsPage() {
     try {
       const { data, error } = await supabase
         .from("trucking_call_logs")
-        .select(`*, trucking_loads(load_number)`)
+        .select(`
+          *, 
+          trucking_loads(load_number),
+          trucking_call_transcripts(transcript_text, sentiment, key_topics, negotiation_outcome, rate_discussed)
+        `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -177,6 +190,8 @@ export default function CallLogsPage() {
                   <TableHead>Time</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>Outcome</TableHead>
+                  <TableHead>Rate</TableHead>
+                  <TableHead>Sentiment</TableHead>
                   <TableHead>Cost</TableHead>
                   <TableHead>Summary</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -185,6 +200,7 @@ export default function CallLogsPage() {
               <TableBody>
                 {filteredLogs.map((log) => {
                   const outcome = getOutcome(log);
+                  const transcript = log.trucking_call_transcripts?.[0];
                   return (
                     <TableRow key={log.id}>
                       <TableCell className="font-mono text-sm">
@@ -198,6 +214,11 @@ export default function CallLogsPage() {
                           )}
                           {log.carrier_phone || "Unknown"}
                         </div>
+                        {log.language && (
+                          <Badge variant="outline" className="mt-1 text-xs">
+                            {log.language === 'es' ? 'Spanish' : 'English'}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell>
                         {log.trucking_loads?.load_number || "—"}
@@ -224,12 +245,40 @@ export default function CallLogsPage() {
                         {log.is_demo && (
                           <Badge variant="outline" className="ml-1 text-xs">DEMO</Badge>
                         )}
+                        {transcript?.negotiation_outcome && (
+                          <div className="text-xs text-slate-500 mt-1">
+                            {transcript.negotiation_outcome}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {transcript?.rate_discussed ? (
+                          <div className="font-medium text-green-600">
+                            ${transcript.rate_discussed.toLocaleString()}
+                          </div>
+                        ) : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {transcript?.sentiment ? (
+                          <Badge className={
+                            transcript.sentiment === 'positive' ? 'bg-green-100 text-green-700' :
+                            transcript.sentiment === 'negative' ? 'bg-red-100 text-red-700' :
+                            'bg-slate-100 text-slate-700'
+                          }>
+                            {transcript.sentiment}
+                          </Badge>
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm">
                           <DollarSign className="h-3 w-3 text-slate-400" />
                           {formatCost(log.estimated_cost_usd)}
                         </div>
+                        {log.total_characters && (
+                          <div className="text-xs text-slate-400">
+                            {log.total_characters.toLocaleString()} chars
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="max-w-xs">
                         <p className="text-sm text-slate-600 truncate">
@@ -238,6 +287,15 @@ export default function CallLogsPage() {
                             : log.summary || "—"
                           }
                         </p>
+                        {transcript?.key_topics && transcript.key_topics.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {transcript.key_topics.slice(0, 3).map((topic, i) => (
+                              <Badge key={i} variant="outline" className="text-xs">
+                                {topic}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
