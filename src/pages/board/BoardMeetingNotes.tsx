@@ -116,7 +116,7 @@ export default function BoardMeetingNotes() {
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
   const [memoOpen, setMemoOpen] = useState(true); // Meeting Agenda - expanded by default
   const [agendaOpen, setAgendaOpen] = useState(true); // Key Topics - expanded by default
-  const [decisionMatrixOpen, setDecisionMatrixOpen] = useState(false); // Decision Matrix - collapsed by default
+  const [decisionMatrixOpen, setDecisionMatrixOpen] = useState(true); // Decision Matrix - expanded by default
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");

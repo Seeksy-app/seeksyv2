@@ -214,7 +214,7 @@ export default function BoardDashboard() {
       </Card>
 
       {/* Quick Links + Market Intelligence Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
         {/* Quick Links */}
         <div className="lg:col-span-2">
           <h2 className="text-lg font-semibold text-foreground mb-4">Quick Access</h2>
@@ -246,7 +246,7 @@ export default function BoardDashboard() {
         </div>
 
         {/* Market Intelligence Widget */}
-        <div>
+        <div className="self-start">
           <MarketIntelligenceWidget 
             audience="board" 
             title="Market Intelligence"
