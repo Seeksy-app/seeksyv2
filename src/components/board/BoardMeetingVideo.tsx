@@ -163,17 +163,17 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     hostName,
   });
 
-  // Wrap navigateToSection to also navigate host to Board Portal routes
+  // Host broadcasts section but stays in meeting - only attendees navigate to Board Portal routes
   const navigateToSection = useCallback((section: PresenterSection) => {
     baseNavigateToSection(section);
     
-    // If host selects a Board Portal route, navigate them too
-    if (isHost && isBoardPortalRoute(section)) {
-      const path = getBoardPortalPath(section);
-      console.log("[BoardMeetingVideo] Host navigating to Board Portal:", path);
-      navigate(path);
+    // Host does NOT navigate away - they stay in the meeting room
+    // Attendees will auto-navigate via GuestPresenterView
+    if (isBoardPortalRoute(section)) {
+      console.log("[BoardMeetingVideo] Host broadcasting Board Portal route to attendees:", section);
+      toast.info(`Navigating attendees to ${section.replace('board-', '').replace(/-/g, ' ')}`);
     }
-  }, [baseNavigateToSection, isHost, navigate]);
+  }, [baseNavigateToSection]);
 
   // Fetch media library
   const { data: mediaLibrary = [], isLoading: mediaLoading } = useQuery({
