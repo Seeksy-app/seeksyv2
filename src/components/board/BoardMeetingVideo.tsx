@@ -41,6 +41,9 @@ interface BoardMeetingVideoProps {
   isCapturingAudio: boolean;
   participants: Participant[];
   localVideoRef: React.RefObject<HTMLVideoElement>;
+  screenShareRef?: React.RefObject<HTMLVideoElement>;
+  screenShareTrack?: MediaStreamTrack | null;
+  screenShareParticipantId?: string | null;
   hasActiveRoom: boolean;
   guestToken?: string | null;
   onToggleMute: () => void;
@@ -62,6 +65,9 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   isCapturingAudio,
   participants,
   localVideoRef,
+  screenShareRef,
+  screenShareTrack,
+  screenShareParticipantId,
   hasActiveRoom,
   guestToken,
   onToggleMute,
@@ -78,6 +84,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
   const [isJoiningMeeting, setIsJoiningMeeting] = useState(false);
   const [isEndingCall, setIsEndingCall] = useState(false);
   const totalParticipants = participants.length + 1;
+  const isScreenSharing = !!screenShareTrack;
 
   const copyGuestLink = () => {
     if (!guestToken) return;
@@ -220,7 +227,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
     );
   }
 
-  // Connected - show video grid
+  // Connected - show video grid (or screen share layout)
   return (
     <div className="bg-slate-900 rounded-lg overflow-hidden">
       {/* Header with participant count and recording indicator */}
@@ -236,6 +243,12 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             isCapturingAudio={isCapturingAudio} 
             isGeneratingNotes={isGeneratingNotes} 
           />
+          {isScreenSharing && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              <Video className="h-3 w-3" />
+              Screen Sharing
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {guestToken && (
@@ -246,8 +259,10 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
           )}
         </div>
       </div>
-      <div className="p-3 flex gap-2 overflow-x-auto bg-slate-900/50">
-        {/* Local video */}
+
+      {/* Persistent Attendee Thumbnails Strip - Always visible */}
+      <div className="p-3 flex gap-2 overflow-x-auto bg-slate-900/50 border-b border-slate-700/50">
+        {/* Local video thumbnail */}
         <div className="relative flex-shrink-0 w-32 h-24 bg-slate-700 rounded-lg overflow-hidden">
           {!isVideoOff ? (
             <video
@@ -274,11 +289,13 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
           )}
         </div>
 
-        {/* Remote participants */}
+        {/* Remote participants thumbnails */}
         {participants.map((participant) => (
           <div
             key={participant.id}
-            className="relative flex-shrink-0 w-32 h-24 bg-slate-700 rounded-lg overflow-hidden"
+            className={`relative flex-shrink-0 w-32 h-24 bg-slate-700 rounded-lg overflow-hidden ${
+              participant.id === screenShareParticipantId ? 'ring-2 ring-primary' : ''
+            }`}
           >
             {!participant.isVideoOff ? (
               <div className="w-full h-full bg-slate-600 flex items-center justify-center">
@@ -297,6 +314,7 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
             )}
             <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white truncate max-w-[90%]">
               {participant.name}
+              {participant.id === screenShareParticipantId && ' (sharing)'}
             </div>
             {participant.isMuted && (
               <div className="absolute top-1 right-1 bg-red-500/80 rounded-full p-0.5">
@@ -313,6 +331,24 @@ const BoardMeetingVideo: React.FC<BoardMeetingVideoProps> = ({
           </div>
         )}
       </div>
+
+      {/* Screen Share Area - Only visible when screen sharing is active */}
+      {isScreenSharing && screenShareRef && (
+        <div className="p-3 bg-slate-950">
+          <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+            <video
+              ref={screenShareRef}
+              autoPlay
+              playsInline
+              className="w-full h-full object-contain"
+            />
+            <div className="absolute top-2 left-2 bg-black/60 px-2 py-1 rounded text-xs text-white flex items-center gap-1">
+              <Video className="h-3 w-3" />
+              Shared Screen
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <TooltipProvider>
