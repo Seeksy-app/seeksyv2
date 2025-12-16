@@ -55,14 +55,10 @@ export default function CallLogsPage() {
 
   const fetchLogs = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data, error } = await supabase
         .from("trucking_call_logs")
         .select(`*, trucking_loads(load_number)`)
-        .eq("owner_id", user.id)
-        .order("call_started_at", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setLogs((data as CallLog[]) || []);

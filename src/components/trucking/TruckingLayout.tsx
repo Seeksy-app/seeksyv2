@@ -61,7 +61,6 @@ const navItems = [
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch },
   { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser },
-  { label: "AI Console", href: "/trucking/console", icon: Network },
   { label: "Settings", href: "/trucking/settings", icon: Settings },
 ];
 
