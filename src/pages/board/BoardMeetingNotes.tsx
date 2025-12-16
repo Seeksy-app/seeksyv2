@@ -1421,6 +1421,8 @@ export default function BoardMeetingNotes() {
                     hasActiveRoom={hasActiveRoom}
                     guestToken={(selectedNote as any).guest_token}
                     isHost={isHost}
+                    meetingId={selectedNote.id}
+                    hostName={user?.email?.split('@')[0] || "Host"}
                     onToggleMute={toggleMute}
                     onToggleVideo={toggleVideo}
                     onStartMeeting={isHost ? startVideoMeeting : undefined}

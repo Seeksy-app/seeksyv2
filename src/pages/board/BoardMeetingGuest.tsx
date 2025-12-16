@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import DailyIframe from "@daily-co/daily-js";
+import { usePresenterMode } from "@/hooks/usePresenterMode";
+import { GuestPresenterView } from "@/components/board/GuestPresenterView";
 
 export default function BoardMeetingGuest() {
   const { token } = useParams<{ token: string }>();
@@ -26,11 +28,22 @@ export default function BoardMeetingGuest() {
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [meetingTitle, setMeetingTitle] = useState("");
+  const [meetingId, setMeetingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [participantCount, setParticipantCount] = useState(1);
 
   const callFrameRef = useRef<ReturnType<typeof DailyIframe.createCallObject> | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Presenter mode for guests
+  const {
+    presenterState,
+    isFollowing,
+    toggleFollowing,
+  } = usePresenterMode({
+    meetingId: meetingId || '',
+    isHost: false,
+  });
 
   const handleJoin = async () => {
     if (!guestName.trim()) {
@@ -51,6 +64,7 @@ export default function BoardMeetingGuest() {
       }
 
       setMeetingTitle(data.meetingTitle || "Board Meeting");
+      setMeetingId(data.meetingId || null);
 
       // Create Daily call object
       const callFrame = DailyIframe.createCallObject({
@@ -201,7 +215,7 @@ export default function BoardMeetingGuest() {
     );
   }
 
-  // Connected - show video
+  // Connected - show video + presenter view
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
       {/* Header */}
@@ -216,28 +230,43 @@ export default function BoardMeetingGuest() {
         </div>
       </div>
 
-      {/* Video area */}
-      <div className="flex-1 p-4 flex items-center justify-center">
-        <div className="relative w-full max-w-2xl aspect-video bg-slate-800 rounded-lg overflow-hidden">
-          {!isVideoOff ? (
-            <video
-              ref={localVideoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center">
-                <VideoOff className="h-10 w-10 text-slate-400" />
+      {/* Main content area */}
+      <div className="flex-1 p-4 flex flex-col gap-4">
+        {/* Video area */}
+        <div className="flex items-center justify-center">
+          <div className="relative w-full max-w-2xl aspect-video bg-slate-800 rounded-lg overflow-hidden">
+            {!isVideoOff ? (
+              <video
+                ref={localVideoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center">
+                  <VideoOff className="h-10 w-10 text-slate-400" />
+                </div>
               </div>
-            </div>
-          )}
-          <Badge className="absolute bottom-3 left-3 bg-black/60">
-            {guestName} (You)
-          </Badge>
+            )}
+            <Badge className="absolute bottom-3 left-3 bg-black/60">
+              {guestName} (You)
+            </Badge>
+          </div>
         </div>
+
+        {/* Presenter View - shows when host is presenting */}
+        {meetingId && presenterState.isPresenting && (
+          <div className="max-w-2xl mx-auto w-full">
+            <GuestPresenterView
+              meetingId={meetingId}
+              presenterState={presenterState}
+              isFollowing={isFollowing}
+              onToggleFollowing={toggleFollowing}
+            />
+          </div>
+        )}
       </div>
 
       {/* Controls */}

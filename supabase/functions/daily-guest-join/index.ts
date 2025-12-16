@@ -86,6 +86,7 @@ serve(async (req) => {
         roomUrl: meetingNote.room_url,
         token: tokenData.token,
         meetingTitle: meetingNote.title,
+        meetingId: meetingNote.id,
         isGuest: true,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
