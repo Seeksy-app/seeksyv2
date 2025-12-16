@@ -243,6 +243,9 @@ serve(async (req: Request): Promise<Response> => {
 
     // Tutorial video link (placeholder)
     const tutorialUrl = `${baseUrl}/board/help/meeting-guide`;
+    
+    // Agenda URL (requires Board login)
+    const agendaUrl = `${baseUrl}/board/meeting-notes/${meeting.id}`;
 
     // Send email with ICS attachment
     const { error: emailError } = await resend.emails.send({
@@ -267,6 +270,7 @@ serve(async (req: Request): Promise<Response> => {
             .buttons { text-align: center; margin: 28px 0; }
             .btn-primary { display: inline-block; background: #2C6BED; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 6px; }
             .btn-secondary { display: inline-block; background: white; color: #2C6BED !important; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid #2C6BED; margin: 6px; font-size: 14px; }
+            .btn-divider { display: block; font-size: 13px; color: #64748b; margin: 8px 0; }
             .calendar-options { text-align: center; margin: 20px 0; padding: 16px; background: #f8fafc; border-radius: 8px; }
             .calendar-options p { margin: 0 0 12px 0; font-size: 14px; color: #64748b; }
             .calendar-links { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
@@ -279,6 +283,7 @@ serve(async (req: Request): Promise<Response> => {
             .tutorial-link p { margin: 4px 0 0 0; font-size: 13px; color: #166534; }
             .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
             .ics-note { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 8px; }
+            .login-note { font-size: 12px; color: #64748b; margin-top: 4px; }
           </style>
         </head>
         <body>
@@ -299,6 +304,9 @@ serve(async (req: Request): Promise<Response> => {
               
               <div class="buttons">
                 <a href="${joinUrl}" class="btn-primary">Join Meeting</a>
+                <span class="btn-divider">or</span>
+                <a href="${agendaUrl}" class="btn-secondary">Review Agenda</a>
+                <p class="login-note">Agenda requires Board login</p>
               </div>
               
               <div class="calendar-options">
