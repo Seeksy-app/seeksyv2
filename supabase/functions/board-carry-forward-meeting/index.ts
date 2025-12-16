@@ -29,6 +29,28 @@ serve(async (req) => {
 
     console.log('Creating carry-forward meeting from:', completed_meeting_id);
 
+    // Check for existing follow-up (idempotency)
+    const { data: existingFollowUp } = await supabaseClient
+      .from('board_meeting_notes')
+      .select('id')
+      .ilike('title', `Follow-up:%`)
+      .or(`agenda_items.cs.${JSON.stringify([{ carried_from: completed_meeting_id }])}`)
+      .maybeSingle();
+
+    if (existingFollowUp) {
+      console.log('Follow-up already exists:', existingFollowUp.id);
+      return new Response(
+        JSON.stringify({
+          success: true,
+          new_meeting_id: existingFollowUp.id,
+          carried_agenda_items: 0,
+          carried_decisions: 0,
+          already_existed: true,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get the completed meeting
     const { data: completedMeeting, error: fetchError } = await supabaseClient
       .from('board_meeting_notes')

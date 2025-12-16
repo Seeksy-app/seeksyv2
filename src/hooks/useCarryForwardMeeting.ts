@@ -18,9 +18,14 @@ export function useCarryForwardMeeting() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['board-meeting-notes'] });
       queryClient.invalidateQueries({ queryKey: ['board-decisions'] });
-      toast.success(
-        `Created follow-up meeting with ${data.carried_agenda_items} agenda items and ${data.carried_decisions} decisions carried forward`
-      );
+      
+      if (data.already_existed) {
+        toast.info('Follow-up meeting already exists');
+      } else {
+        toast.success(
+          `Created follow-up meeting with ${data.carried_agenda_items} agenda items and ${data.carried_decisions} decisions carried forward`
+        );
+      }
       
       // Push GTM event
       if (typeof window !== 'undefined' && (window as any).dataLayer) {

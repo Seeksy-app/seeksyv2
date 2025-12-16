@@ -20,8 +20,10 @@ export function useBoardMeetingHost({
   const [wasCapturingBeforeMedia, setWasCapturingBeforeMedia] = useState(false);
   const [isLoadingHost, setIsLoadingHost] = useState(true);
 
-  // Check if current user is host
+  // Check if current user is host + subscribe to realtime updates
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    
     const checkHost = async () => {
       if (!meetingId) {
         setIsLoadingHost(false);
@@ -48,6 +50,26 @@ export function useBoardMeetingHost({
           setIsHost(userData.user.id === hostId);
           setHostHasStarted(meeting.host_has_started || false);
         }
+
+        // Subscribe to realtime updates for this meeting (for participants to know when host starts)
+        channel = supabase
+          .channel(`board-meeting-${meetingId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'board_meeting_notes',
+              filter: `id=eq.${meetingId}`,
+            },
+            (payload) => {
+              const updated = payload.new as { host_has_started?: boolean; status?: string };
+              if (updated.host_has_started !== undefined) {
+                setHostHasStarted(updated.host_has_started);
+              }
+            }
+          )
+          .subscribe();
       } catch (error) {
         console.error('Error checking host status:', error);
       } finally {
@@ -56,6 +78,12 @@ export function useBoardMeetingHost({
     };
 
     checkHost();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, [meetingId]);
 
   // Start meeting as host

@@ -15,30 +15,65 @@ interface InviteRequest {
   invitee_name?: string;
 }
 
-// Generate ICS calendar file content
+// Generate ICS calendar file content with proper timezone
 function generateICS(meeting: any, joinUrl: string): string {
-  const startDate = new Date(`${meeting.meeting_date}T${meeting.start_time || '10:00:00'}`);
-  const endDate = new Date(startDate.getTime() + (meeting.duration_minutes || 60) * 60000);
+  // Parse meeting date/time as Eastern Time
+  const meetingDateStr = meeting.meeting_date;
+  const startTimeStr = meeting.start_time || '10:00:00';
+  const durationMinutes = meeting.duration_minutes || 60;
   
-  const formatDate = (date: Date) => {
-    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  // Format for TZID usage (YYYYMMDDTHHMMSS without Z)
+  const formatLocalDate = (dateStr: string, timeStr: string) => {
+    const [year, month, day] = dateStr.split('-');
+    const [hours, minutes, seconds] = timeStr.split(':');
+    return `${year}${month}${day}T${hours}${minutes}${seconds || '00'}`;
   };
   
+  // Calculate end time
+  const [startHours, startMinutes] = startTimeStr.split(':').map(Number);
+  const totalMinutes = startHours * 60 + startMinutes + durationMinutes;
+  const endHours = Math.floor(totalMinutes / 60) % 24;
+  const endMinutes = totalMinutes % 60;
+  const endTimeStr = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}:00`;
+  
   const uid = `${meeting.id}@seeksy.io`;
-  const now = formatDate(new Date());
+  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  
+  const startFormatted = formatLocalDate(meetingDateStr, startTimeStr);
+  const endFormatted = formatLocalDate(meetingDateStr, endTimeStr);
+  
+  // Escape description for ICS (newlines as \n, commas and semicolons escaped)
+  const description = `Join the meeting: ${joinUrl}\\n\\nClick the link to join when the meeting starts.`;
   
   return `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Seeksy//Board Meeting//EN
 CALSCALE:GREGORIAN
 METHOD:REQUEST
+BEGIN:VTIMEZONE
+TZID:America/New_York
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+DTSTART:19700308T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+TZNAME:EDT
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+DTSTART:19701101T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+TZNAME:EST
+END:STANDARD
+END:VTIMEZONE
 BEGIN:VEVENT
 UID:${uid}
 DTSTAMP:${now}
-DTSTART:${formatDate(startDate)}
-DTEND:${formatDate(endDate)}
+DTSTART;TZID=America/New_York:${startFormatted}
+DTEND;TZID=America/New_York:${endFormatted}
 SUMMARY:${meeting.title || 'Board Meeting'}
-DESCRIPTION:Join the meeting: ${joinUrl}\\n\\nClick the link to join when the meeting starts.
+DESCRIPTION:${description}
 URL:${joinUrl}
 STATUS:CONFIRMED
 SEQUENCE:0
