@@ -590,8 +590,62 @@ export default function BoardMeetingGuest() {
       </div>
 
       {/* Main content - full width */}
-      <div className="flex-1 overflow-auto">
-        <div className="p-6 space-y-6">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Sticky Video Thumbnails (when connected) */}
+        {isConnected && (
+          <div className="sticky top-0 z-10 bg-slate-900 p-4 flex gap-3 overflow-x-auto border-b border-slate-800">
+            {/* Local video thumbnail */}
+            <div className="relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden">
+              {!isVideoOff ? (
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full bg-slate-600 flex items-center justify-center">
+                    <VideoOff className="h-7 w-7 text-slate-400" />
+                  </div>
+                </div>
+              )}
+              <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white">
+                You ({guestName})
+              </div>
+            </div>
+
+            {/* Remote participants */}
+            {remoteParticipants.map((participant) => (
+              <div
+                key={participant.id}
+                className="relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden"
+              >
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-xl font-medium text-primary">
+                      {participant.name.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+                <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white truncate max-w-[90%]">
+                  {participant.name}
+                </div>
+              </div>
+            ))}
+
+            {/* Empty slot indicator when waiting for others */}
+            {remoteParticipants.length === 0 && (
+              <div className="flex-shrink-0 w-48 h-36 bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center">
+                <span className="text-sm text-slate-500">Waiting for others...</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-auto p-6 space-y-6">
           
           {/* Meeting Status Banner */}
           {!meetingStarted ? (
@@ -641,11 +695,10 @@ export default function BoardMeetingGuest() {
             </Card>
           ) : null}
 
-          {/* Video Area (when connected) */}
-          {isConnected && (
+          {/* Screen Share / Media / Presenter Area (when connected) */}
+          {isConnected && (remoteScreenShare || hostMediaUrl || (presenterState.isPresenting && meetingInfo?.id)) && (
             <Card className="overflow-hidden">
               <CardContent className="p-0">
-                {/* Screen Share / Media / Presenter */}
                 {remoteScreenShare && (
                   <div className="relative w-full aspect-video bg-black">
                     <video
@@ -685,57 +738,6 @@ export default function BoardMeetingGuest() {
                     onToggleFollowing={toggleFollowing}
                   />
                 )}
-
-                {/* Video thumbnails - all participants */}
-                <div className="p-4 bg-slate-900/50 flex gap-3 overflow-x-auto">
-                  {/* Local video thumbnail */}
-                  <div className="relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden">
-                    {!isVideoOff ? (
-                      <video
-                        ref={localVideoRef}
-                        autoPlay
-                        playsInline
-                        muted
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-14 h-14 rounded-full bg-slate-600 flex items-center justify-center">
-                          <VideoOff className="h-7 w-7 text-slate-400" />
-                        </div>
-                      </div>
-                    )}
-                    <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white">
-                      You ({guestName})
-                    </div>
-                  </div>
-
-                  {/* Remote participants */}
-                  {remoteParticipants.map((participant) => (
-                    <div
-                      key={participant.id}
-                      className="relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden"
-                    >
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-xl font-medium text-primary">
-                            {participant.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white truncate max-w-[90%]">
-                        {participant.name}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Empty slot indicator when waiting for others */}
-                  {remoteParticipants.length === 0 && (
-                    <div className="flex-shrink-0 w-48 h-36 bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center">
-                      <span className="text-sm text-slate-500">Waiting for others...</span>
-                    </div>
-                  )}
-                </div>
               </CardContent>
             </Card>
           )}
