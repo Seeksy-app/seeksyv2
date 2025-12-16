@@ -112,6 +112,7 @@ export default function BoardMeetingNotes() {
   const { activeTenantId, isLoading: tenantLoading } = useTenant();
   const [selectedNote, setSelectedNote] = useState<MeetingNote | null>(null);
   const [memoOpen, setMemoOpen] = useState(true);
+  const [agendaOpen, setAgendaOpen] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
@@ -1427,77 +1428,7 @@ export default function BoardMeetingNotes() {
                 </div>
               )}
 
-              {/* Agenda with Checkboxes */}
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      Board Meeting Agenda
-                      {selectedNote.status === 'active' && (
-                        <Badge variant="default" className="ml-2">In Progress</Badge>
-                      )}
-                    </CardTitle>
-                    {selectedNote.status !== 'completed' && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setIsGenerateAgendaModalOpen(true)}
-                        disabled={isGenerating}
-                      >
-                        <Sparkles className="w-4 h-4 mr-1" />
-                        Generate with AI
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {selectedNote.agenda_items.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No agenda items yet. Add items manually or use AI to generate from notes.</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {selectedNote.agenda_items.map((item, i) => {
-                        const isDisabled = selectedNote.status === 'completed' || (selectedNote.status === 'active' && !isHost);
-                        const checkboxId = `agenda-checkbox-${selectedNote.id}-${i}`;
-                        return (
-                          <div key={`agenda-${selectedNote.id}-${i}`} className="flex items-start gap-3 group">
-                            <Checkbox
-                              id={checkboxId}
-                              checked={item.checked}
-                              onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
-                              className="mt-0.5"
-                              disabled={isDisabled}
-                            />
-                            <label 
-                              htmlFor={checkboxId}
-                              className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'} ${isDisabled ? 'cursor-default' : 'cursor-pointer'}`}
-                            >
-                              {i + 1}. {item.text}
-                            </label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  {/* Add agenda item manually */}
-                  {selectedNote.status !== 'completed' && (
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Input
-                        placeholder="Add agenda item..."
-                        value={newAgendaItem}
-                        onChange={(e) => setNewAgendaItem(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && addManualAgendaItem()}
-                        className="flex-1"
-                      />
-                      <Button size="sm" onClick={addManualAgendaItem} disabled={!newAgendaItem.trim()}>
-                        <Plus className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Memo (Collapsible) */}
+              {/* Meeting Agenda (Memo) - Collapsible */}
               {selectedNote.memo && (
                 <Collapsible open={memoOpen} onOpenChange={setMemoOpen}>
                   <Card>
@@ -1514,7 +1445,12 @@ export default function BoardMeetingNotes() {
                         {selectedNote.memo.purpose && (
                           <div>
                             <h4 className="font-medium text-sm text-foreground mb-1">Summary</h4>
-                            <p className="text-sm text-muted-foreground">{selectedNote.memo.purpose}</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed">
+                              {selectedNote.memo.purpose}
+                              {selectedNote.memo.objective && ` ${selectedNote.memo.objective}`}
+                              {selectedNote.memo.current_state && selectedNote.memo.current_state.length > 0 && 
+                                ` The current state includes: ${selectedNote.memo.current_state.slice(0, 2).join(', ')}.`}
+                            </p>
                           </div>
                         )}
                         {selectedNote.memo.objective && (
@@ -1548,6 +1484,88 @@ export default function BoardMeetingNotes() {
                   </Card>
                 </Collapsible>
               )}
+
+              {/* Board Meeting Agenda with Checkboxes - Collapsible */}
+              <Collapsible open={agendaOpen} onOpenChange={setAgendaOpen}>
+                <Card>
+                  <CollapsibleTrigger asChild>
+                    <CardHeader className="cursor-pointer hover:bg-muted/50">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          Board Meeting Agenda
+                          {selectedNote.status === 'active' && (
+                            <Badge variant="default" className="ml-2">In Progress</Badge>
+                          )}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          {selectedNote.status !== 'completed' && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsGenerateAgendaModalOpen(true);
+                              }}
+                              disabled={isGenerating}
+                            >
+                              <Sparkles className="w-4 h-4 mr-1" />
+                              Generate with AI
+                            </Button>
+                          )}
+                          {agendaOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        </div>
+                      </div>
+                    </CardHeader>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <CardContent className="space-y-4">
+                      {selectedNote.agenda_items.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">No agenda items yet. Add items manually or use AI to generate from notes.</p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedNote.agenda_items.map((item, i) => {
+                            const isDisabled = selectedNote.status === 'completed' || (selectedNote.status === 'active' && !isHost);
+                            const checkboxId = `agenda-checkbox-${selectedNote.id}-${i}`;
+                            return (
+                              <div key={`agenda-${selectedNote.id}-${i}`} className="flex items-start gap-3 group">
+                                <Checkbox
+                                  id={checkboxId}
+                                  checked={item.checked}
+                                  onCheckedChange={() => toggleAgendaItem(selectedNote.id, i)}
+                                  className="mt-0.5"
+                                  disabled={isDisabled}
+                                />
+                                <label 
+                                  htmlFor={checkboxId}
+                                  className={`text-sm flex-1 ${item.checked ? 'line-through text-muted-foreground' : 'text-foreground'} ${isDisabled ? 'cursor-default' : 'cursor-pointer'}`}
+                                >
+                                  {i + 1}. {item.text}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Add agenda item manually */}
+                      {selectedNote.status !== 'completed' && (
+                        <div className="flex gap-2 pt-2 border-t">
+                          <Input
+                            placeholder="Add agenda item..."
+                            value={newAgendaItem}
+                            onChange={(e) => setNewAgendaItem(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && addManualAgendaItem()}
+                            className="flex-1"
+                          />
+                          <Button size="sm" onClick={addManualAgendaItem} disabled={!newAgendaItem.trim()}>
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </CardContent>
+                  </CollapsibleContent>
+                </Card>
+              </Collapsible>
 
               {/* Decision Matrix - New component for active meetings */}
               {selectedNote.status === 'active' && (
