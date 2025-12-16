@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause
+  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause, Archive
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -137,7 +137,8 @@ export default function TruckingDashboardPage() {
     : loads;
 
   const openLoads = filteredLoads.filter((l) => l.status === "open");
-  const pendingLeads = leads.filter((l) => l.status === "pending" || l.status === "interested" || l.status === "new");
+  const pendingLeads = leads.filter((l) => (l.status === "pending" || l.status === "interested" || l.status === "new") && !(l as any).is_archived);
+  const archivedLeads = leads.filter((l) => (l as any).is_archived);
   const confirmedLoads = filteredLoads.filter((l) => l.status === "booked");
 
   // Earnings calculations
@@ -191,6 +192,20 @@ export default function TruckingDashboardPage() {
       const { error } = await supabase.from("trucking_carrier_leads").delete().eq("id", id);
       if (error) throw error;
       toast({ title: "Lead deleted" });
+      fetchData();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleArchiveLead = async (lead: Lead) => {
+    try {
+      const { error } = await supabase
+        .from("trucking_carrier_leads")
+        .update({ is_archived: true, archived_at: new Date().toISOString() })
+        .eq("id", lead.id);
+      if (error) throw error;
+      toast({ title: "Lead archived", description: `${lead.company_name || 'Lead'} moved to archive` });
       fetchData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -638,6 +653,10 @@ export default function TruckingDashboardPage() {
                             <DropdownMenuItem onClick={() => handleEditLead(lead)}>
                               <Edit className="h-4 w-4 mr-2" />
                               Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleArchiveLead(lead)}>
+                              <Archive className="h-4 w-4 mr-2" />
+                              Archive
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => handleDeleteLead(lead.id)} className="text-red-600">

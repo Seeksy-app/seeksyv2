@@ -26108,6 +26108,7 @@ export type Database = {
       }
       trucking_carrier_leads: {
         Row: {
+          archived_at: string | null
           call_log_id: string | null
           call_source: string | null
           carrier_id: string | null
@@ -26119,6 +26120,7 @@ export type Database = {
           email: string | null
           eta_to_pickup: string | null
           id: string
+          is_archived: boolean | null
           is_confirmed: boolean | null
           load_id: string | null
           mc_number: string | null
@@ -26134,6 +26136,7 @@ export type Database = {
           voicemail_transcript: string | null
         }
         Insert: {
+          archived_at?: string | null
           call_log_id?: string | null
           call_source?: string | null
           carrier_id?: string | null
@@ -26145,6 +26148,7 @@ export type Database = {
           email?: string | null
           eta_to_pickup?: string | null
           id?: string
+          is_archived?: boolean | null
           is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
@@ -26160,6 +26164,7 @@ export type Database = {
           voicemail_transcript?: string | null
         }
         Update: {
+          archived_at?: string | null
           call_log_id?: string | null
           call_source?: string | null
           carrier_id?: string | null
@@ -26171,6 +26176,7 @@ export type Database = {
           email?: string | null
           eta_to_pickup?: string | null
           id?: string
+          is_archived?: boolean | null
           is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
