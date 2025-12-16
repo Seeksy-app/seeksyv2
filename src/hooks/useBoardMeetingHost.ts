@@ -159,10 +159,15 @@ export function useBoardMeetingHost({
     }
   }, [aiEnabled, wasCapturingBeforeMedia, meetingId, onAudioCaptureStart, onAudioCaptureStop]);
 
-  // Toggle AI enabled state
+  // Toggle AI enabled state and start/stop audio capture
   const toggleAI = useCallback((enabled: boolean) => {
     setAiEnabled(enabled);
-  }, []);
+    if (enabled) {
+      onAudioCaptureStart?.();
+    } else {
+      onAudioCaptureStop?.();
+    }
+  }, [onAudioCaptureStart, onAudioCaptureStop]);
 
   // End meeting as host
   const endMeetingAsHost = useCallback(async () => {

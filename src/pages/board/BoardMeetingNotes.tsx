@@ -783,9 +783,8 @@ export default function BoardMeetingNotes() {
     
     // Enable AI and start audio capture for AI notes when timer starts
     toggleAI(true);
-    if (isVideoConnected) {
-      startAudioCapture();
-    }
+    // Always start audio capture when meeting starts (don't require video connection)
+    startAudioCapture();
     
     queryClient.invalidateQueries({ queryKey: ["board-meeting-notes", activeTenantId] });
   };
