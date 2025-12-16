@@ -22,6 +22,8 @@ import {
   Send,
   PanelRightClose,
   PanelRightOpen,
+  MonitorPlay,
+  Film,
 } from "lucide-react";
 import { toast } from "sonner";
 import DailyIframe from "@daily-co/daily-js";
@@ -54,6 +56,13 @@ interface MeetingInfo {
   agenda_items: any;
 }
 
+interface RemoteParticipant {
+  id: string;
+  name: string;
+  isScreenSharing: boolean;
+  screenTrack?: MediaStreamTrack;
+}
+
 export default function BoardMeetingGuest() {
   const { token } = useParams<{ token: string }>();
   const [guestName, setGuestName] = useState("");
@@ -72,9 +81,17 @@ export default function BoardMeetingGuest() {
   const [isLoadingMeeting, setIsLoadingMeeting] = useState(true);
   const [pollingForRoom, setPollingForRoom] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  // Screen share and media state
+  const [remoteScreenShare, setRemoteScreenShare] = useState<MediaStreamTrack | null>(null);
+  const [screenSharerName, setScreenSharerName] = useState<string>("");
+  const [hostMediaUrl, setHostMediaUrl] = useState<string | null>(null);
+  const [isMediaPlaying, setIsMediaPlaying] = useState(false);
 
   const callFrameRef = useRef<ReturnType<typeof DailyIframe.createCallObject> | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const screenShareVideoRef = useRef<HTMLVideoElement>(null);
+  const mediaVideoRef = useRef<HTMLVideoElement>(null);
 
   const {
     presenterState,
@@ -91,6 +108,34 @@ export default function BoardMeetingGuest() {
       setSidebarOpen(false);
     }
   }, [isConnected]);
+
+  // Attach screen share track to video element
+  useEffect(() => {
+    if (remoteScreenShare && screenShareVideoRef.current) {
+      const stream = new MediaStream([remoteScreenShare]);
+      screenShareVideoRef.current.srcObject = stream;
+    } else if (screenShareVideoRef.current) {
+      screenShareVideoRef.current.srcObject = null;
+    }
+  }, [remoteScreenShare]);
+
+  // Subscribe to host media broadcast
+  useEffect(() => {
+    if (!meetingInfo?.id) return;
+
+    const channel = supabase
+      .channel(`meeting-media:${meetingInfo.id}`)
+      .on('broadcast', { event: 'media-play' }, (payload) => {
+        console.log("[GuestView] Media broadcast received:", payload);
+        setHostMediaUrl(payload.payload.url);
+        setIsMediaPlaying(payload.payload.isPlaying);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [meetingInfo?.id]);
 
   useEffect(() => {
     if (!token) return;
@@ -158,12 +203,10 @@ export default function BoardMeetingGuest() {
 
       setMeetingInfo(meetingData as unknown as MeetingInfo);
 
-      // Parse agenda_items from JSON if available
       if (meetingData.agenda_items && Array.isArray(meetingData.agenda_items)) {
         setAgendaItems(meetingData.agenda_items as unknown as AgendaItem[]);
       }
 
-      // Parse member_questions for guest questions
       if (meetingData.member_questions && Array.isArray(meetingData.member_questions)) {
         setGuestQuestions(meetingData.member_questions as unknown as GuestQuestion[]);
       }
@@ -213,15 +256,30 @@ export default function BoardMeetingGuest() {
         setIsConnected(true);
         setIsJoining(false);
         toast.success("Joined video call");
+        checkForScreenShares();
       });
 
       callFrame.on("left-meeting", () => {
         setIsConnected(false);
+        setRemoteScreenShare(null);
         callFrameRef.current = null;
       });
 
-      callFrame.on("participant-joined", updateParticipantCount);
-      callFrame.on("participant-left", updateParticipantCount);
+      callFrame.on("participant-joined", () => {
+        updateParticipantCount();
+        checkForScreenShares();
+      });
+      
+      callFrame.on("participant-left", () => {
+        updateParticipantCount();
+        checkForScreenShares();
+      });
+
+      callFrame.on("participant-updated", (event: any) => {
+        if (event?.participant && !event.participant.local) {
+          checkForScreenShares();
+        }
+      });
 
       callFrame.on("error", (event) => {
         console.error("Daily error:", event);
@@ -244,6 +302,30 @@ export default function BoardMeetingGuest() {
       const message = err instanceof Error ? err.message : "Failed to join meeting";
       toast.error(message);
       setIsJoining(false);
+    }
+  };
+
+  const checkForScreenShares = () => {
+    if (!callFrameRef.current) return;
+    
+    const participants = callFrameRef.current.participants();
+    let foundScreenShare = false;
+    
+    for (const [id, participant] of Object.entries(participants)) {
+      if (id === 'local') continue;
+      
+      const p = participant as any;
+      if (p.screen && p.tracks?.screenVideo?.track) {
+        setRemoteScreenShare(p.tracks.screenVideo.track);
+        setScreenSharerName(p.user_name || 'Host');
+        foundScreenShare = true;
+        break;
+      }
+    }
+    
+    if (!foundScreenShare) {
+      setRemoteScreenShare(null);
+      setScreenSharerName("");
     }
   };
 
@@ -275,6 +357,7 @@ export default function BoardMeetingGuest() {
       callFrameRef.current = null;
     }
     setIsConnected(false);
+    setRemoteScreenShare(null);
   };
 
   const handleAddQuestion = async () => {
@@ -371,6 +454,7 @@ export default function BoardMeetingGuest() {
   }
 
   const meetingStarted = !!meetingInfo?.room_url;
+  const hasPresentation = remoteScreenShare || hostMediaUrl || presenterState.isPresenting;
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col">
@@ -390,6 +474,18 @@ export default function BoardMeetingGuest() {
               <Users className="h-3.5 w-3.5" />
               <span className="text-xs">{participantCount}</span>
             </div>
+          )}
+          {remoteScreenShare && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              <MonitorPlay className="h-3 w-3" />
+              {screenSharerName} sharing
+            </Badge>
+          )}
+          {hostMediaUrl && (
+            <Badge variant="secondary" className="text-xs gap-1">
+              <Film className="h-3 w-3" />
+              Media playing
+            </Badge>
           )}
         </div>
 
@@ -451,9 +547,114 @@ export default function BoardMeetingGuest() {
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Presentation Area - Full width when sidebar collapsed */}
-        <div className={`flex-1 p-4 transition-all duration-200 ${sidebarOpen ? '' : 'pr-4'}`}>
-          {isConnected ? (
-            <div className="relative w-full h-full bg-slate-800 rounded-lg overflow-hidden">
+        <div className={`flex-1 flex flex-col p-4 gap-4 transition-all duration-200`}>
+          
+          {/* Screen Share Display - Priority 1 */}
+          {remoteScreenShare && (
+            <div className="flex-1 relative bg-black rounded-lg overflow-hidden min-h-[300px]">
+              <video
+                ref={screenShareVideoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <MonitorPlay className="h-4 w-4 text-green-400" />
+                <span className="text-sm text-white">{screenSharerName}'s Screen</span>
+              </div>
+            </div>
+          )}
+
+          {/* Media Playback Display - Priority 2 */}
+          {hostMediaUrl && !remoteScreenShare && (
+            <div className="flex-1 relative bg-black rounded-lg overflow-hidden min-h-[300px]">
+              <video
+                ref={mediaVideoRef}
+                src={hostMediaUrl}
+                autoPlay={isMediaPlaying}
+                controls
+                className="w-full h-full object-contain"
+              />
+              <div className="absolute top-3 left-3 bg-black/70 px-3 py-1.5 rounded-md flex items-center gap-2">
+                <Film className="h-4 w-4 text-primary" />
+                <span className="text-sm text-white">Host Media</span>
+              </div>
+            </div>
+          )}
+
+          {/* Presenter Mode Content - Priority 3 */}
+          {presenterState.isPresenting && !remoteScreenShare && !hostMediaUrl && meetingInfo?.id && (
+            <div className="flex-1">
+              <GuestPresenterView
+                meetingId={meetingInfo.id}
+                presenterState={presenterState}
+                isFollowing={isFollowing}
+                onToggleFollowing={toggleFollowing}
+              />
+            </div>
+          )}
+
+          {/* Default Video View when no presentation */}
+          {!hasPresentation && (
+            <div className="flex-1 relative bg-slate-800 rounded-lg overflow-hidden min-h-[300px]">
+              {isConnected ? (
+                <>
+                  {!isVideoOff ? (
+                    <video
+                      ref={localVideoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="w-24 h-24 rounded-full bg-slate-600 flex items-center justify-center">
+                        <VideoOff className="h-12 w-12 text-slate-400" />
+                      </div>
+                    </div>
+                  )}
+                  <Badge className="absolute bottom-4 left-4 bg-black/60">
+                    {guestName} (You)
+                  </Badge>
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  {meetingStarted ? (
+                    <div className="text-center">
+                      <Video className="h-16 w-16 text-slate-500 mx-auto mb-4" />
+                      <p className="text-slate-400 mb-4">Ready to join video?</p>
+                      <Button onClick={handleJoinVideo} disabled={isJoining} size="lg">
+                        {isJoining ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Joining...
+                          </>
+                        ) : (
+                          <>
+                            <Video className="h-4 w-4 mr-2" />
+                            Join Video Call
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <Clock className="h-16 w-16 text-slate-500 mx-auto mb-4" />
+                      <p className="text-slate-400 text-lg">Waiting for host to start the meeting...</p>
+                      {pollingForRoom && (
+                        <p className="text-xs text-slate-500 mt-2">Checking every few seconds</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Video thumbnail when showing presentation */}
+          {hasPresentation && isConnected && (
+            <div className="relative w-48 h-36 bg-slate-800 rounded-lg overflow-hidden flex-shrink-0">
               {!isVideoOff ? (
                 <video
                   ref={localVideoRef}
@@ -464,55 +665,14 @@ export default function BoardMeetingGuest() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-slate-600 flex items-center justify-center">
-                    <VideoOff className="h-10 w-10 text-slate-400" />
+                  <div className="w-12 h-12 rounded-full bg-slate-600 flex items-center justify-center">
+                    <VideoOff className="h-6 w-6 text-slate-400" />
                   </div>
                 </div>
               )}
-              <Badge className="absolute bottom-3 left-3 bg-black/60">
-                {guestName} (You)
-              </Badge>
-            </div>
-          ) : (
-            <div className="w-full h-full min-h-[400px] bg-slate-800 rounded-lg flex items-center justify-center">
-              {meetingStarted ? (
-                <div className="text-center">
-                  <Video className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-                  <p className="text-slate-400 mb-4">Ready to join video?</p>
-                  <Button onClick={handleJoinVideo} disabled={isJoining}>
-                    {isJoining ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Joining...
-                      </>
-                    ) : (
-                      <>
-                        <Video className="h-4 w-4 mr-2" />
-                        Join Video Call
-                      </>
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <Clock className="h-12 w-12 text-slate-500 mx-auto mb-3" />
-                  <p className="text-slate-400">Waiting for host to start the meeting...</p>
-                  {pollingForRoom && (
-                    <p className="text-xs text-slate-500 mt-2">Checking every few seconds</p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {meetingInfo?.id && presenterState.isPresenting && (
-            <div className="mt-4">
-              <GuestPresenterView
-                meetingId={meetingInfo.id}
-                presenterState={presenterState}
-                isFollowing={isFollowing}
-                onToggleFollowing={toggleFollowing}
-              />
+              <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white">
+                You
+              </div>
             </div>
           )}
         </div>
