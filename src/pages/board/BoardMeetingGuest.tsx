@@ -177,8 +177,14 @@ export default function BoardMeetingGuest() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-sm text-destructive">
-                {error}
+              <div className={`p-3 rounded-lg text-sm ${
+                error.toLowerCase().includes('not started') || error.toLowerCase().includes('wait for the host')
+                  ? 'bg-amber-500/10 border border-amber-500/20 text-amber-600'
+                  : 'bg-destructive/10 border border-destructive/20 text-destructive'
+              }`}>
+                {error.toLowerCase().includes('not started') || error.toLowerCase().includes('wait for the host')
+                  ? '⏳ The meeting hasn\'t started yet. Please wait for the host to begin the video call, then try again.'
+                  : error}
               </div>
             )}
             <div className="space-y-2">
