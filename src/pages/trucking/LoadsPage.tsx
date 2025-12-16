@@ -448,9 +448,27 @@ export default function LoadsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get next load number by incrementing the highest existing number
+      const { data: lastLoads } = await supabase
+        .from("trucking_loads")
+        .select("load_number")
+        .order("created_at", { ascending: false })
+        .limit(1);
+      
+      let nextLoadNumber = "1001";
+      if (lastLoads && lastLoads.length > 0) {
+        const lastNumber = lastLoads[0].load_number;
+        const numericMatch = lastNumber?.match(/(\d+)/);
+        if (numericMatch) {
+          const nextNum = parseInt(numericMatch[1]) + 1;
+          const prefix = lastNumber.replace(/\d+.*$/, '');
+          nextLoadNumber = prefix ? `${prefix}${nextNum}` : String(nextNum);
+        }
+      }
+
       const newLoad = {
         owner_id: user.id,
-        load_number: `${load.load_number}-COPY`,
+        load_number: nextLoadNumber,
         reference: load.reference,
         origin_city: load.origin_city,
         origin_state: load.origin_state,
@@ -751,7 +769,7 @@ export default function LoadsPage() {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleDuplicateLoad(load)}>
                     <Copy className="h-4 w-4 mr-2" />
-                    Copy load
+                    Duplicate
                   </DropdownMenuItem>
                   {showConfirmButton && (
                     <DropdownMenuItem onClick={() => handleConfirmLoad(load.id)}>

@@ -141,7 +141,7 @@ export default function TruckingProfilePage() {
                   value={profile.preferred_margin_percent}
                   onChange={(e) => setProfile({ ...profile, preferred_margin_percent: Number(e.target.value) })}
                 />
-                <p className="text-xs text-muted-foreground">Jess will try to keep this margin when negotiating rates.</p>
+                <p className="text-xs text-muted-foreground">Jess starts at target rate, then offers +$25 increments up to ceiling when drivers want more.</p>
               </div>
               <div className="space-y-2">
                 <Label>Absolute Rate Floor (per load)</Label>
