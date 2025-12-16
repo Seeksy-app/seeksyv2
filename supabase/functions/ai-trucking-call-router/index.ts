@@ -320,6 +320,7 @@ async function handleNegotiateRate(supabase: any, body: any) {
 async function handleCreateLead(supabase: any, body: any) {
   const { 
     load_id, 
+    load_number, // Also accept load_number directly
     company_name, 
     mc_number, 
     contact_name, 
@@ -327,7 +328,7 @@ async function handleCreateLead(supabase: any, body: any) {
     rate_offered 
   } = body;
 
-  console.log("[create_lead] Creating lead:", { load_id, company_name, mc_number, contact_name, phone, rate_offered });
+  console.log("[create_lead] Creating lead:", { load_id, load_number, company_name, mc_number, contact_name, phone, rate_offered });
 
   // CRITICAL: Phone number is REQUIRED
   if (!phone) {
@@ -341,8 +342,9 @@ async function handleCreateLead(supabase: any, body: any) {
     );
   }
 
-  // Load ID is required to book a specific load
-  if (!load_id) {
+  // Need either load_id (UUID) or load_number to identify the load
+  const loadIdentifier = load_id || load_number;
+  if (!loadIdentifier) {
     return new Response(
       JSON.stringify({ 
         success: false, 
@@ -353,12 +355,36 @@ async function handleCreateLead(supabase: any, body: any) {
     );
   }
 
-  // Get load details and owner info
-  const { data: load, error: loadError } = await supabase
-    .from('trucking_loads')
-    .select('*, trucking_profiles!trucking_loads_owner_id_fkey(auto_notify_email, contact_name, company_name)')
-    .eq('id', load_id)
-    .single();
+  // Check if load_id is a valid UUID (36 chars with dashes)
+  const isUUID = typeof loadIdentifier === 'string' && 
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(loadIdentifier);
+
+  let load = null;
+  let loadError = null;
+
+  if (isUUID) {
+    // Search by UUID directly
+    console.log("[create_lead] Searching by UUID:", loadIdentifier);
+    const result = await supabase
+      .from('trucking_loads')
+      .select('*, trucking_profiles!trucking_loads_owner_id_fkey(auto_notify_email, contact_name, company_name)')
+      .eq('id', loadIdentifier)
+      .single();
+    load = result.data;
+    loadError = result.error;
+  } else {
+    // Search by load_number (ElevenLabs likely passes load_number, not UUID)
+    const normalizedLoadNumber = String(loadIdentifier).replace(/[^a-zA-Z0-9]/g, '');
+    console.log("[create_lead] Searching by load_number:", normalizedLoadNumber);
+    const result = await supabase
+      .from('trucking_loads')
+      .select('*, trucking_profiles!trucking_loads_owner_id_fkey(auto_notify_email, contact_name, company_name)')
+      .ilike('load_number', `%${normalizedLoadNumber}%`)
+      .limit(1)
+      .single();
+    load = result.data;
+    loadError = result.error;
+  }
 
   if (loadError || !load) {
     console.error("[create_lead] Load not found:", loadError);
@@ -369,11 +395,12 @@ async function handleCreateLead(supabase: any, body: any) {
   }
 
   // Create the carrier lead - MC is NULLABLE
+  // CRITICAL: Use load.id (the actual UUID from DB lookup), NOT load_id (the input which might be a load_number string)
   const { data: lead, error: leadError } = await supabase
     .from('trucking_carrier_leads')
     .insert({
       owner_id: load.owner_id,
-      load_id: load_id,
+      load_id: load.id, // Use the actual UUID from the database, not the input parameter
       company_name: company_name || 'Unknown Company',
       mc_number: mc_number || null, // MC is optional
       contact_name: contact_name,
@@ -381,7 +408,7 @@ async function handleCreateLead(supabase: any, body: any) {
       rate_offered: rate_offered || load.target_rate,
       status: 'interested',
       source: 'ai_call',
-      notes: `AI agent booking. Rate: $${rate_offered || load.target_rate}${!mc_number ? ' | MC pending - dispatch to confirm' : ''}`,
+      notes: `AI agent booking. Load #${load.load_number}. Rate: $${rate_offered || load.target_rate}${!mc_number ? ' | MC pending - dispatch to confirm' : ''}`,
       mc_pending: !mc_number
     })
     .select()
