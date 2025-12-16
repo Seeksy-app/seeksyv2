@@ -192,15 +192,15 @@ serve(async (req: Request): Promise<Response> => {
       inviteId = newInvite.id;
     }
 
-    // Generate join URL
+    // Generate join URL - FIXED: Use correct route path
     const baseUrl = Deno.env.get("SITE_URL") || "https://seeksy.io";
-    const joinUrl = `${baseUrl}/board/meetings/join/${invite_token}`;
+    const joinUrl = `${baseUrl}/board/meeting-guest/${invite_token}`;
 
     // Generate ICS content
     const icsContent = generateICS(meeting, joinUrl);
     const icsBase64 = btoa(icsContent);
 
-    // Format meeting date
+    // Format meeting date for display
     const meetingDate = new Date(`${meeting.meeting_date}T${meeting.start_time || '10:00:00'}`);
     const formattedDate = meetingDate.toLocaleDateString('en-US', {
       weekday: 'long',
@@ -212,6 +212,34 @@ serve(async (req: Request): Promise<Response> => {
       hour: 'numeric',
       minute: '2-digit',
     });
+
+    // Generate calendar links (no tracking wrapping)
+    const meetingTitle = encodeURIComponent(meeting.title || 'Board Meeting');
+    const meetingDescription = encodeURIComponent(`Join the meeting: ${joinUrl}\n\nClick the link to join when the meeting starts.`);
+    const meetingLocation = encodeURIComponent(joinUrl);
+    
+    // Format dates for calendar URLs (YYYYMMDDTHHMMSSZ format)
+    const startTimeStr = meeting.start_time || '10:00:00';
+    const durationMinutes = meeting.duration_minutes || 60;
+    const [startHours, startMinutes] = startTimeStr.split(':').map(Number);
+    
+    // Create date objects for start and end
+    const startDate = new Date(`${meeting.meeting_date}T${startTimeStr}`);
+    // Add 5 hours for EST to UTC conversion (simplified)
+    const startUTC = new Date(startDate.getTime() + 5 * 60 * 60 * 1000);
+    const endUTC = new Date(startUTC.getTime() + durationMinutes * 60 * 1000);
+    
+    const formatForGoogle = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const googleStartTime = formatForGoogle(startUTC);
+    const googleEndTime = formatForGoogle(endUTC);
+    
+    // Google Calendar link (direct, no tracking)
+    const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${meetingTitle}&dates=${googleStartTime}/${googleEndTime}&details=${meetingDescription}&location=${meetingLocation}&ctz=America/New_York`;
+    
+    // Outlook.com Calendar link (direct, no tracking)
+    const outlookStartTime = `${meeting.meeting_date}T${startTimeStr}`;
+    const outlookEndTime = new Date(startDate.getTime() + durationMinutes * 60 * 1000).toISOString().slice(0, 19);
+    const outlookCalendarUrl = `https://outlook.live.com/calendar/0/action/compose?subject=${meetingTitle}&startdt=${outlookStartTime}&enddt=${outlookEndTime}&body=${meetingDescription}&location=${meetingLocation}`;
 
     // Tutorial video link (placeholder)
     const tutorialUrl = `${baseUrl}/board/help/meeting-guide`;
@@ -238,13 +266,19 @@ serve(async (req: Request): Promise<Response> => {
             .meeting-detail strong { color: #64748b; min-width: 80px; }
             .buttons { text-align: center; margin: 28px 0; }
             .btn-primary { display: inline-block; background: #2C6BED; color: white !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 6px; }
-            .btn-secondary { display: inline-block; background: white; color: #2C6BED !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid #2C6BED; margin: 6px; }
+            .btn-secondary { display: inline-block; background: white; color: #2C6BED !important; padding: 14px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid #2C6BED; margin: 6px; font-size: 14px; }
+            .calendar-options { text-align: center; margin: 20px 0; padding: 16px; background: #f8fafc; border-radius: 8px; }
+            .calendar-options p { margin: 0 0 12px 0; font-size: 14px; color: #64748b; }
+            .calendar-links { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+            .calendar-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; background: white; border: 1px solid #e2e8f0; border-radius: 6px; text-decoration: none; color: #374151; font-size: 13px; font-weight: 500; }
+            .calendar-link:hover { background: #f1f5f9; }
             .info-box { background: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; font-size: 14px; color: #1e40af; }
             .info-box strong { display: block; margin-bottom: 4px; }
             .tutorial-link { background: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; text-align: center; }
             .tutorial-link a { color: #15803d; font-weight: 600; text-decoration: none; }
             .tutorial-link p { margin: 4px 0 0 0; font-size: 13px; color: #166534; }
             .footer { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+            .ics-note { text-align: center; font-size: 12px; color: #94a3b8; margin-top: 8px; }
           </style>
         </head>
         <body>
@@ -265,7 +299,19 @@ serve(async (req: Request): Promise<Response> => {
               
               <div class="buttons">
                 <a href="${joinUrl}" class="btn-primary">Join Meeting</a>
-                <a href="data:text/calendar;base64,${icsBase64}" download="board-meeting.ics" class="btn-secondary">Add to Calendar</a>
+              </div>
+              
+              <div class="calendar-options">
+                <p>📅 Add to your calendar:</p>
+                <div class="calendar-links">
+                  <a href="${googleCalendarUrl}" target="_blank" class="calendar-link">
+                    <span>📆</span> Google Calendar
+                  </a>
+                  <a href="${outlookCalendarUrl}" target="_blank" class="calendar-link">
+                    <span>📧</span> Outlook
+                  </a>
+                </div>
+                <p class="ics-note">Or download the attached .ics file for Apple Calendar / other apps</p>
               </div>
               
               <div class="info-box">
