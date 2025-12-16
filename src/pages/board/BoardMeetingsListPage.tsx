@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Video, Search, Clock } from "lucide-react";
+import { Calendar, MapPin, Video, Search, Clock, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface BoardMeeting {
   id: string;
@@ -30,6 +31,7 @@ const statusColors: Record<string, string> = {
 
 export default function BoardMeetingsListPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
@@ -53,6 +55,31 @@ export default function BoardMeetingsListPage() {
       return data as BoardMeeting[];
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (meetingId: string) => {
+      const { error } = await supabase
+        .from("board_meetings")
+        .delete()
+        .eq("id", meetingId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["board-meetings"] });
+      toast.success("Meeting deleted");
+    },
+    onError: (error) => {
+      toast.error("Failed to delete meeting");
+      console.error(error);
+    },
+  });
+
+  const handleDelete = (e: React.MouseEvent, meetingId: string) => {
+    e.stopPropagation(); // Prevent card click navigation
+    if (confirm("Delete this meeting?")) {
+      deleteMutation.mutate(meetingId);
+    }
+  };
 
   const filteredMeetings = meetings.filter((m) =>
     m.title.toLowerCase().includes(search.toLowerCase())
@@ -124,9 +151,19 @@ export default function BoardMeetingsListPage() {
                           )}
                         </div>
                       </div>
-                      <Badge className={statusColors[meeting.status] || "bg-muted"}>
-                        {meeting.status.replace("_", " ")}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={statusColors[meeting.status] || "bg-muted"}>
+                          {meeting.status.replace("_", " ")}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={(e) => handleDelete(e, meeting.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
