@@ -73,7 +73,7 @@ interface MeetingInfo {
   host_has_started: boolean;
 }
 
-// Component to render remote participant with video track
+// Component to render remote participant with video track (thumbnail)
 const RemoteParticipantTile = memo(({ participant }: { participant: { id: string; name: string; videoTrack?: MediaStreamTrack | null } }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   
@@ -112,6 +112,31 @@ const RemoteParticipantTile = memo(({ participant }: { participant: { id: string
 });
 
 RemoteParticipantTile.displayName = 'RemoteParticipantTile';
+
+// Component to render remote participant video (full-size for grid)
+const RemoteParticipantVideo = memo(({ participant }: { participant: { id: string; name: string; videoTrack?: MediaStreamTrack | null } }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  
+  useEffect(() => {
+    if (videoRef.current && participant.videoTrack) {
+      const stream = new MediaStream([participant.videoTrack]);
+      videoRef.current.srcObject = stream;
+      console.log('Attached full video track for participant:', participant.name);
+    }
+  }, [participant.videoTrack, participant.name]);
+  
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted
+      className="w-full h-full object-cover"
+    />
+  );
+});
+
+RemoteParticipantVideo.displayName = 'RemoteParticipantVideo';
 
 export default function BoardMeetingGuest() {
   const { token } = useParams<{ token: string }>();
@@ -639,47 +664,72 @@ export default function BoardMeetingGuest() {
         </div>
       </div>
 
-      {/* Main content - full width */}
+      {/* Main content - full screen when connected */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Sticky Video Thumbnails (when connected) */}
+        {/* Full-screen Video Grid (when connected) */}
         {isConnected && (
-          <div className="sticky top-0 z-10 bg-slate-900 p-4 flex gap-3 overflow-x-auto border-b border-slate-800">
-            {/* Local video thumbnail */}
-            <div className="relative flex-shrink-0 w-48 h-36 bg-slate-700 rounded-lg overflow-hidden">
-              {!isVideoOff ? (
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <div className="w-14 h-14 rounded-full bg-slate-600 flex items-center justify-center">
-                    <VideoOff className="h-7 w-7 text-slate-400" />
+          <div className="flex-1 bg-slate-900 p-4 flex flex-col">
+            {/* Main video grid */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0">
+              {/* Local video - larger */}
+              <div className="relative bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center">
+                {!isVideoOff ? (
+                  <video
+                    ref={localVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center">
+                    <div className="w-24 h-24 rounded-full bg-slate-700 flex items-center justify-center">
+                      <span className="text-3xl font-semibold text-white">
+                        {guestName.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                <div className="absolute bottom-3 left-3 bg-black/70 px-3 py-1.5 rounded-lg text-sm text-white font-medium">
+                  You ({guestName})
+                </div>
+                {isMuted && (
+                  <div className="absolute top-3 right-3 bg-red-500/80 p-1.5 rounded-full">
+                    <MicOff className="h-4 w-4 text-white" />
+                  </div>
+                )}
+              </div>
+
+              {/* Remote participants - larger */}
+              {remoteParticipants.map((participant) => (
+                <div key={participant.id} className="relative bg-slate-800 rounded-xl overflow-hidden flex items-center justify-center">
+                  {participant.videoTrack ? (
+                    <RemoteParticipantVideo participant={participant} />
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <div className="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-3xl font-semibold text-primary">
+                          {participant.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="absolute bottom-3 left-3 bg-black/70 px-3 py-1.5 rounded-lg text-sm text-white font-medium">
+                    {participant.name}
+                  </div>
+                </div>
+              ))}
+
+              {/* Empty slot when waiting for host/others */}
+              {remoteParticipants.length === 0 && (
+                <div className="relative bg-slate-800/50 rounded-xl border-2 border-dashed border-slate-600 flex items-center justify-center">
+                  <div className="text-center">
+                    <Users className="h-12 w-12 text-slate-500 mx-auto mb-2" />
+                    <span className="text-slate-400">Waiting for host...</span>
                   </div>
                 </div>
               )}
-              <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-xs text-white">
-                You ({guestName})
-              </div>
             </div>
-
-            {/* Remote participants */}
-            {remoteParticipants.map((participant) => (
-              <RemoteParticipantTile
-                key={participant.id}
-                participant={participant}
-              />
-            ))}
-
-            {/* Empty slot indicator when waiting for others */}
-            {remoteParticipants.length === 0 && (
-              <div className="flex-shrink-0 w-48 h-36 bg-slate-700/50 rounded-lg border-2 border-dashed border-slate-600 flex items-center justify-center">
-                <span className="text-sm text-slate-500">Waiting for others...</span>
-              </div>
-            )}
           </div>
         )}
 
