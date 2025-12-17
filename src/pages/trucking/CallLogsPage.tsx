@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Phone, PhoneOff, Voicemail, Clock, DollarSign, Search, ExternalLink, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard } from "@/components/trucking/TruckingPageWrapper";
@@ -87,12 +86,6 @@ export default function CallLogsPage() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
-
-  const formatCost = (cost: number | null) => {
-    if (!cost || cost === 0) return "—";
-    if (cost < 0.01) return "< $0.01";
-    return `$${cost.toFixed(2)}`;
   };
 
   const getOutcome = (log: CallLog): string => {
@@ -189,15 +182,10 @@ export default function CallLogsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Load</TableHead>
+                  <TableHead>Load #</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>Outcome</TableHead>
-                  <TableHead>Rate</TableHead>
-                  <TableHead>Sentiment</TableHead>
-                  <TableHead>Cost</TableHead>
-                  <TableHead>Summary</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -253,76 +241,6 @@ export default function CallLogsPage() {
                             {transcript.negotiation_outcome}
                           </div>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {transcript?.rate_discussed ? (
-                          <div className="font-medium text-green-600">
-                            ${transcript.rate_discussed.toLocaleString()}
-                          </div>
-                        ) : "—"}
-                      </TableCell>
-                      <TableCell>
-                        {transcript?.sentiment ? (
-                          <Badge className={
-                            transcript.sentiment === 'positive' ? 'bg-green-100 text-green-700' :
-                            transcript.sentiment === 'negative' ? 'bg-red-100 text-red-700' :
-                            'bg-slate-100 text-slate-700'
-                          }>
-                            {transcript.sentiment}
-                          </Badge>
-                        ) : "—"}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1 text-sm">
-                          <DollarSign className="h-3 w-3 text-slate-400" />
-                          {formatCost(log.estimated_cost_usd)}
-                        </div>
-                        {log.total_characters && (
-                          <div className="text-xs text-slate-400">
-                            {log.total_characters.toLocaleString()} chars
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="max-w-xs">
-                        <p className="text-sm text-slate-600 truncate">
-                          {log.routed_to_voicemail && log.voicemail_transcript
-                            ? log.voicemail_transcript
-                            : log.summary || "—"
-                          }
-                        </p>
-                        {transcript?.key_topics && transcript.key_topics.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {transcript.key_topics.slice(0, 3).map((topic, i) => (
-                              <Badge key={i} variant="outline" className="text-xs">
-                                {topic}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {log.transcript_url && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => window.open(log.transcript_url!, "_blank")}
-                            >
-                              <ExternalLink className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {log.recording_url && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => window.open(log.recording_url!, "_blank")}
-                            >
-                              <Phone className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
                       </TableCell>
                     </TableRow>
                   );
