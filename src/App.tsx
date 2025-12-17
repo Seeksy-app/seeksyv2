@@ -74,6 +74,7 @@ import TruckingSettingsPage from "./pages/trucking/TruckingSettingsPage";
 import AITruckingConsolePage from "./pages/trucking/AITruckingConsolePage";
 import TruckingContactsPage from "./pages/trucking/TruckingContactsPage";
 import CallLogsPage from "./pages/trucking/CallLogsPage";
+import TruckingAnalyticsPage from "./pages/trucking/TruckingAnalyticsPage";
 import TruckingCitiesPage from "./pages/trucking/TruckingCitiesPage";
 import TruckingLayout from "./components/trucking/TruckingLayout";
 import AdminMeetings from "./pages/admin/AdminMeetings";
@@ -824,6 +825,7 @@ const AppContent = () => {
         <Route path="/trucking/profile" element={<TruckingLayout><TruckingProfilePage /></TruckingLayout>} />
         <Route path="/trucking/contacts" element={<TruckingLayout><TruckingContactsPage /></TruckingLayout>} />
         <Route path="/trucking/call-logs" element={<TruckingLayout><CallLogsPage /></TruckingLayout>} />
+        <Route path="/trucking/analytics" element={<TruckingLayout><TruckingAnalyticsPage /></TruckingLayout>} />
       </Routes>
     );
   }
