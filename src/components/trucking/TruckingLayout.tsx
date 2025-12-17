@@ -26,6 +26,7 @@ import {
   ChevronRight,
   CheckCircle2,
   ClipboardList,
+  BarChart3,
   Sun,
   Moon
 } from "lucide-react";
@@ -60,6 +61,7 @@ const navItems = [
   { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard },
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch },
   { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList },
+  { label: "Analytics", href: "/trucking/analytics", icon: BarChart3 },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser },
   { label: "Settings", href: "/trucking/settings", icon: Settings },
 ];
