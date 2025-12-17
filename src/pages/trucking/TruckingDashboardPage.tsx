@@ -9,15 +9,17 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw
+  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw, Upload
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useTheme } from "next-themes";
 import LoadFormDialog from "@/components/trucking/LoadFormDialog";
+import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 
 interface Load {
   id: string;
@@ -87,6 +89,7 @@ export default function TruckingDashboardPage() {
   const [ownerFilter, setOwnerFilter] = useState<"all" | "mine">("all");
   const [activeTab, setActiveTab] = useState("open");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingLoadId, setEditingLoadId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [aiCallsEnabled, setAiCallsEnabled] = useState(true);
@@ -393,6 +396,14 @@ export default function TruckingDashboardPage() {
               My Loads
             </Button>
           </div>
+          <Button 
+            variant="outline"
+            className="gap-2"
+            onClick={() => setImportDialogOpen(true)}
+          >
+            <Upload className="h-4 w-4" />
+            Import CSV
+          </Button>
           <Button 
             className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
             onClick={() => setDialogOpen(true)}
@@ -972,6 +983,21 @@ export default function TruckingDashboardPage() {
         }}
         editingLoadId={editingLoadId || undefined}
       />
+
+      {/* Import CSV Dialog */}
+      <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Import Loads from CSV/Excel</DialogTitle>
+          </DialogHeader>
+          <LoadCSVUploadForm 
+            onUploadSuccess={() => {
+              fetchData();
+              setImportDialogOpen(false);
+            }} 
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
