@@ -84,10 +84,22 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
   const costStats = useTruckingCostStats();
-  const { isOwner, loading: roleLoading } = useTruckingRole();
+  const { isOwner, isAuthorized, loading: roleLoading } = useTruckingRole();
 
   // Filter nav items based on role
   const navItems = allNavItems.filter(item => !item.ownerOnly || isOwner);
+
+  // Redirect unauthorized users
+  useEffect(() => {
+    if (!roleLoading && !isAuthorized && user) {
+      toast({ 
+        title: "Access Denied", 
+        description: "You don't have access to the AITrucking system. Please contact an admin for an invitation.",
+        variant: "destructive"
+      });
+      navigate("/trucking");
+    }
+  }, [roleLoading, isAuthorized, user, navigate, toast]);
 
   const formatCost = (cost: number) => {
     if (cost === 0) return "—";
@@ -110,6 +122,18 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
   };
 
   const userInitials = user?.email?.slice(0, 2).toUpperCase() || "DL";
+
+  // Show loading while checking authorization
+  if (roleLoading || (user && !isAuthorized)) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center" style={{ backgroundColor: theme.sidebar.bg }}>
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500" />
+          <span className="text-white text-sm">Checking access...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden" style={{ backgroundColor: theme.sidebar.bg }}>
