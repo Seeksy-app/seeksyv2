@@ -400,6 +400,7 @@ export default function LoadsPage() {
       temp_max_f: formData.temp_max_f,
       weight_lbs: formData.weight_lbs,
       length_ft: formData.length_ft,
+      tarp_required: formData.tarp_required || false,
       miles: formData.miles,
       rate_type: formData.rate_type,
       target_rate: formData.target_rate,

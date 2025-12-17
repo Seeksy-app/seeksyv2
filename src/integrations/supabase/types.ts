@@ -26937,6 +26937,7 @@ export type Database = {
           status: string | null
           target_rate: number | null
           target_rate_per_mile: number | null
+          tarp_required: boolean | null
           temp_max_f: number | null
           temp_min_f: number | null
           temp_required: boolean | null
@@ -27020,6 +27021,7 @@ export type Database = {
           status?: string | null
           target_rate?: number | null
           target_rate_per_mile?: number | null
+          tarp_required?: boolean | null
           temp_max_f?: number | null
           temp_min_f?: number | null
           temp_required?: boolean | null
@@ -27103,6 +27105,7 @@ export type Database = {
           status?: string | null
           target_rate?: number | null
           target_rate_per_mile?: number | null
+          tarp_required?: boolean | null
           temp_max_f?: number | null
           temp_min_f?: number | null
           temp_required?: boolean | null

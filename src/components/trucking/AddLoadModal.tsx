@@ -19,7 +19,7 @@ const US_STATES = [
 ];
 
 const equipmentTypes = ["Dry Van", "Reefer", "Flatbed", "Step Deck", "Power Only", "Hotshot", "Conestoga", "Double Drop", "RGN"];
-const truckSizes = ["48 foot", "53 foot"];
+const truckSizes = ["20 foot", "30 foot", "40 foot", "48 foot", "53 foot"];
 
 interface AddLoadModalProps {
   open: boolean;
@@ -44,11 +44,12 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
     destination_zip: "",
     pickup_window_start: "",
     pickup_window_end: "",
-    equipment_type: "Dry Van",
-    truck_size: "53 foot",
+    equipment_type: "Flatbed", // Aldhelpia default
+    truck_size: "40 foot",
+    tarp_required: false,
     weight_lbs: "",
     miles: "",
-    commodity: "",
+    commodity: "REBAR", // Aldhelpia default
     rate_type: "flat" as "flat" | "per_ton",
     target_rate: "",
     floor_rate: "",
@@ -77,11 +78,12 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
         destination_zip: editingLoad.destination_zip || "",
         pickup_window_start: editingLoad.pickup_window_start || "",
         pickup_window_end: editingLoad.pickup_window_end || "",
-        equipment_type: editingLoad.equipment_type || "Dry Van",
-        truck_size: editingLoad.length_ft ? `${editingLoad.length_ft} foot` : "53 foot",
+        equipment_type: editingLoad.equipment_type || "Flatbed",
+        truck_size: editingLoad.length_ft ? `${editingLoad.length_ft} foot` : "40 foot",
+        tarp_required: editingLoad.tarp_required || false,
         weight_lbs: editingLoad.weight_lbs?.toString() || "",
         miles: editingLoad.miles?.toString() || "",
-        commodity: editingLoad.commodity || "",
+        commodity: editingLoad.commodity || "REBAR",
         rate_type: editingLoad.rate_type || "flat",
         target_rate: editingLoad.target_rate?.toString() || "",
         floor_rate: editingLoad.floor_rate?.toString() || "",
@@ -106,11 +108,12 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
         destination_zip: "",
         pickup_window_start: "",
         pickup_window_end: "",
-        equipment_type: "Dry Van",
-        truck_size: "53 foot",
+        equipment_type: "Flatbed", // Aldhelpia default
+        truck_size: "40 foot",
+        tarp_required: false,
         weight_lbs: "",
         miles: "",
-        commodity: "",
+        commodity: "REBAR", // Aldhelpia default
         rate_type: "flat",
         target_rate: "",
         floor_rate: "",
@@ -126,14 +129,11 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
     }
   }, [open, editingLoad]);
 
-  // Smart default: update truck size based on equipment type
-  useEffect(() => {
-    if (formData.equipment_type === "Flatbed" || formData.equipment_type === "Step Deck") {
-      setFormData(prev => ({ ...prev, truck_size: "48 foot" }));
-    } else if (formData.equipment_type === "Dry Van" || formData.equipment_type === "Reefer") {
-      setFormData(prev => ({ ...prev, truck_size: "53 foot" }));
-    }
-  }, [formData.equipment_type]);
+  // Auto-convert 20 foot to 40 foot (Aldhelpia rule)
+  const getActualLength = (truckSize: string) => {
+    const length = parseInt(truckSize) || 40;
+    return length === 20 ? 40 : length;
+  };
 
   // Auto-calculate tons from weight
   const calculatedTons = formData.weight_lbs ? (parseFloat(formData.weight_lbs) / 2000).toFixed(2) : "";
@@ -149,7 +149,8 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
       // Transform data for submission
       const submitData = {
         ...formData,
-        length_ft: parseInt(formData.truck_size) || 53,
+        length_ft: getActualLength(formData.truck_size),
+        tarp_required: formData.tarp_required,
         weight_lbs: formData.weight_lbs ? parseFloat(formData.weight_lbs) : null,
         miles: formData.miles ? parseInt(formData.miles) : null,
         target_rate: formData.target_rate ? parseFloat(formData.target_rate) : null,
@@ -380,12 +381,21 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                   </Button>
                 </div>
               </FormField>
+              <FormField label="Tarp Required">
+                <div className="flex items-center h-10">
+                  <Switch
+                    checked={formData.tarp_required}
+                    onCheckedChange={(checked) => setFormData({ ...formData, tarp_required: checked })}
+                  />
+                  <span className="ml-2 text-sm text-muted-foreground">{formData.tarp_required ? "Yes" : "No"}</span>
+                </div>
+              </FormField>
             </div>
             <FormField label="Commodity" className="mt-4">
               <Input
                 value={formData.commodity}
                 onChange={(e) => setFormData({ ...formData, commodity: e.target.value })}
-                placeholder="e.g., General Freight"
+                placeholder="e.g., REBAR"
                 className="border-2 border-border hover:border-purple-500/50 focus:border-purple-500 transition-colors bg-background"
               />
             </FormField>
