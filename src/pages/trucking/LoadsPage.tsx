@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter, UserPlus, UserMinus } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,7 @@ import { useTruckingFieldLabels } from "@/hooks/useTruckingFieldLabels";
 import { formatPhoneNumber } from "@/utils/phoneFormat";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
+import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
@@ -101,6 +102,9 @@ interface Load {
   status: string;
   is_active: boolean;
   broker_commission: number;
+  // Assignment fields
+  assigned_agent_id: string | null;
+  assigned_at: string | null;
 }
 
 const equipmentTypes = ["Dry Van", "Reefer", "Flatbed", "Step Deck", "Power Only", "Hotshot", "Conestoga", "Double Drop", "RGN"];
@@ -119,9 +123,11 @@ export default function LoadsPage() {
   const [loadToDelete, setLoadToDelete] = useState<string | null>(null);
   const [estimatingMiles, setEstimatingMiles] = useState(false);
   const [deletedLoads, setDeletedLoads] = useState<Load[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
   const { getRecentValues, addRecentValue } = useTruckingRecentValues();
   const { labels } = useTruckingFieldLabels();
+  const { takeLoad, releaseLoad, loading: assignmentLoading } = useLoadAssignment();
 
   const [formData, setFormData] = useState({
     load_number: "",
@@ -192,6 +198,7 @@ export default function LoadsPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setCurrentUserId(user.id);
 
       // Fetch active loads (not soft deleted)
       const { data, error } = await supabase
@@ -947,7 +954,20 @@ export default function LoadsPage() {
               })()}
             </TableCell>
             <TableCell>
-              <Badge className={getStatusBadge(load.status)}>{load.status}</Badge>
+              <div className="flex flex-col gap-1">
+                <Badge className={getStatusBadge(load.status)}>{load.status}</Badge>
+                {load.status === "pending" && load.assigned_agent_id && (
+                  <Badge 
+                    variant="outline" 
+                    className={load.assigned_agent_id === currentUserId 
+                      ? "text-green-600 border-green-600 text-xs" 
+                      : "text-orange-500 border-orange-500 text-xs"
+                    }
+                  >
+                    {load.assigned_agent_id === currentUserId ? "Mine" : "Taken"}
+                  </Badge>
+                )}
+              </div>
             </TableCell>
             <TableCell className="text-right">
               <DropdownMenu>
@@ -981,6 +1001,26 @@ export default function LoadsPage() {
                   )}
                   {tabType === 'pending' && (
                     <>
+                      {/* Take/Release load - only for pending */}
+                      {!load.assigned_agent_id && (
+                        <DropdownMenuItem 
+                          onClick={() => takeLoad(load.id, fetchLoads)}
+                          disabled={assignmentLoading === load.id}
+                        >
+                          <UserPlus className="h-4 w-4 mr-2 text-green-500" />
+                          {assignmentLoading === load.id ? "Taking..." : "Take Load"}
+                        </DropdownMenuItem>
+                      )}
+                      {load.assigned_agent_id === currentUserId && (
+                        <DropdownMenuItem 
+                          onClick={() => releaseLoad(load.id, fetchLoads)}
+                          disabled={assignmentLoading === load.id}
+                        >
+                          <UserMinus className="h-4 w-4 mr-2 text-orange-500" />
+                          {assignmentLoading === load.id ? "Releasing..." : "Release Load"}
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => handleUnarchiveLoad(load.id)}>
                         <ArchiveRestore className="h-4 w-4 mr-2" />
                         Move to Open

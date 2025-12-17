@@ -26864,6 +26864,8 @@ export type Database = {
       }
       trucking_loads: {
         Row: {
+          assigned_agent_id: string | null
+          assigned_at: string | null
           auto_approve_band_flat: number | null
           auto_approve_band_per_mile: number | null
           broker_commission: number | null
@@ -26945,6 +26947,8 @@ export type Database = {
           weight_lbs: number | null
         }
         Insert: {
+          assigned_agent_id?: string | null
+          assigned_at?: string | null
           auto_approve_band_flat?: number | null
           auto_approve_band_per_mile?: number | null
           broker_commission?: number | null
@@ -27026,6 +27030,8 @@ export type Database = {
           weight_lbs?: number | null
         }
         Update: {
+          assigned_agent_id?: string | null
+          assigned_at?: string | null
           auto_approve_band_flat?: number | null
           auto_approve_band_per_mile?: number | null
           broker_commission?: number | null
