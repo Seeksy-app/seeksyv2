@@ -115,6 +115,7 @@ export default function LoadsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [loadToDelete, setLoadToDelete] = useState<string | null>(null);
   const [estimatingMiles, setEstimatingMiles] = useState(false);
+  const [deletedLoads, setDeletedLoads] = useState<Load[]>([]);
   const { toast } = useToast();
   const { getRecentValues, addRecentValue } = useTruckingRecentValues();
   const { labels } = useTruckingFieldLabels();
@@ -189,14 +190,27 @@ export default function LoadsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Fetch active loads (not soft deleted)
       const { data, error } = await supabase
         .from("trucking_loads")
         .select("*")
         .eq("owner_id", user.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       setLoads((data as Load[]) || []);
+
+      // Fetch deleted loads
+      const { data: deletedData, error: deletedError } = await supabase
+        .from("trucking_loads")
+        .select("*")
+        .eq("owner_id", user.id)
+        .not("deleted_at", "is", null)
+        .order("deleted_at", { ascending: false });
+
+      if (deletedError) throw deletedError;
+      setDeletedLoads((deletedData as Load[]) || []);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -485,15 +499,44 @@ export default function LoadsPage() {
     if (!loadToDelete) return;
     
     try {
-      const { error } = await supabase.from("trucking_loads").delete().eq("id", loadToDelete);
+      // Soft delete - set deleted_at timestamp instead of actual delete
+      const { error } = await supabase
+        .from("trucking_loads")
+        .update({ deleted_at: new Date().toISOString() })
+        .eq("id", loadToDelete);
       if (error) throw error;
-      toast({ title: "Load deleted" });
+      toast({ title: "Load moved to trash", description: "You can restore it from the Deleted tab" });
       fetchLoads();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setDeleteDialogOpen(false);
       setLoadToDelete(null);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("trucking_loads")
+        .update({ deleted_at: null, status: "open" })
+        .eq("id", id);
+      if (error) throw error;
+      toast({ title: "Load restored" });
+      fetchLoads();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    try {
+      const { error } = await supabase.from("trucking_loads").delete().eq("id", id);
+      if (error) throw error;
+      toast({ title: "Load permanently deleted" });
+      fetchLoads();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -1618,6 +1661,11 @@ export default function LoadsPage() {
             Archived
             <Badge variant="secondary">{archivedLoads.length}</Badge>
           </TabsTrigger>
+          <TabsTrigger value="deleted" className="gap-2">
+            <Trash2 className="h-4 w-4" />
+            Deleted
+            {deletedLoads.length > 0 && <Badge variant="secondary">{deletedLoads.length}</Badge>}
+          </TabsTrigger>
           <TabsTrigger value="import" className="gap-2">
             <Upload className="h-4 w-4" />
             Import CSV
@@ -1680,6 +1728,70 @@ export default function LoadsPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="deleted">
+          <Card>
+            <CardContent className="p-0">
+              {deletedLoads.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  No deleted loads. Deleted loads can be restored from here.
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Load #</TableHead>
+                      <TableHead>Lane</TableHead>
+                      <TableHead>Distance</TableHead>
+                      <TableHead>Rate</TableHead>
+                      <TableHead>Deleted</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {deletedLoads.map((load) => (
+                      <TableRow key={load.id} className="opacity-60">
+                        <TableCell className="font-medium">{load.load_number}</TableCell>
+                        <TableCell>
+                          <div>{load.origin_city}, {load.origin_state} → {load.destination_city}, {load.destination_state}</div>
+                        </TableCell>
+                        <TableCell>
+                          {load.miles ? `${load.miles.toLocaleString()} mi` : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {load.target_rate ? `$${load.target_rate.toLocaleString()}` : "—"}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {(load as any).deleted_at ? new Date((load as any).deleted_at).toLocaleDateString() : "—"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleRestore(load.id)}
+                              className="gap-1"
+                            >
+                              <ArchiveRestore className="h-4 w-4" />
+                              Restore
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handlePermanentDelete(load.id)}
+                            >
+                              Delete Forever
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="import">
           <LoadCSVUploadForm onUploadSuccess={() => { fetchLoads(); setActiveTab("open"); }} />
         </TabsContent>
@@ -1689,15 +1801,15 @@ export default function LoadsPage() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this load?</AlertDialogTitle>
+            <AlertDialogTitle>Move to trash?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will remove the load from your board. This cannot be undone.
+              This load will be moved to the Deleted tab. You can restore it later if needed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Delete
+              Move to Trash
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

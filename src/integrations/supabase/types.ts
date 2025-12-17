@@ -26657,6 +26657,7 @@ export type Database = {
           contact_name: string | null
           contact_phone: string | null
           created_at: string | null
+          deleted_at: string | null
           delivery_address: string | null
           delivery_appointment_required: boolean | null
           delivery_contact_name: string | null
@@ -26737,6 +26738,7 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           delivery_address?: string | null
           delivery_appointment_required?: boolean | null
           delivery_contact_name?: string | null
@@ -26817,6 +26819,7 @@ export type Database = {
           contact_name?: string | null
           contact_phone?: string | null
           created_at?: string | null
+          deleted_at?: string | null
           delivery_address?: string | null
           delivery_appointment_required?: boolean | null
           delivery_contact_name?: string | null
