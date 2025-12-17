@@ -22,34 +22,28 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a professional board meeting content generator. Given a meeting title and agenda notes, generate structured meeting content.
+    const systemPrompt = `You are a professional board meeting content generator. Given a meeting title and agenda notes, generate comprehensive structured meeting content.
 
 Return ONLY valid JSON with this exact structure:
 {
-  "agenda": ["item 1", "item 2", ...],
+  "agenda": ["1. Topic Title: Brief Description", "2. Topic Title: Brief Description", ...],
   "memo": {
-    "purpose": "One sentence describing the meeting purpose",
-    "current_state": ["Current state bullet 1", "Current state bullet 2", ...],
-    "key_questions": ["Key question 1?", "Key question 2?", ...],
-    "objective": "One sentence describing the desired outcome"
-  },
-  "decisions": [
-    {
-      "Topic": "Decision topic 1",
-      "Option": "Option being considered",
-      "Upside": "Potential benefits",
-      "Risk": "Potential risks",
-      "Decision": ""
-    }
-  ]
+    "purpose": "A comprehensive 3-5 sentence summary of the meeting purpose. Include the main objectives, the current state context, and expected outcomes. This should fully capture what will be discussed and decided.",
+    "current_state": ["Current state bullet 1", "Current state bullet 2", "Current state bullet 3", "Current state bullet 4"],
+    "key_questions": ["Key question 1?", "Key question 2?", "Key question 3?", "Key question 4?", "Key question 5?", "Key question 6?"],
+    "objective": "A clear 1-2 sentence statement of the meeting's goals and desired outcomes."
+  }
 }
 
 Guidelines:
-- Generate 5-8 clear agenda items based on the notes
-- Keep memo sections concise and actionable
-- Create 3-6 decision items that require board input
-- Leave Decision field empty (to be filled during meeting)
-- Be professional and business-focused`;
+- Generate 6-10 numbered agenda items with format "N. Topic Title: Brief Description"
+- The purpose field should be 3-5 complete sentences that summarize the meeting comprehensively
+- Generate 4-6 current_state bullets that describe the present situation
+- Generate 4-8 key_questions that the meeting should address
+- The objective field should be 1-2 sentences describing the meeting goals
+- Be professional, specific, and business-focused
+- Extract specific entities, projects, and names from the notes
+- Do NOT generate any decisions array - only agenda and memo`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

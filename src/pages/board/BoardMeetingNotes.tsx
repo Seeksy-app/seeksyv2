@@ -1691,36 +1691,7 @@ export default function BoardMeetingNotes() {
                 </Card>
               </Collapsible>
 
-              {/* Decision Matrix - Collapsible (collapsed by default) */}
-              {(selectedNote.status === 'active' || selectedNote.status === 'completed' || (selectedNote.status === 'upcoming' && selectedNote.decision_table.length > 0)) && (
-                <Collapsible open={decisionMatrixOpen} onOpenChange={setDecisionMatrixOpen}>
-                  <Card id="decision-matrix-section">
-                    <CollapsibleTrigger asChild>
-                      <CardHeader className="cursor-pointer hover:bg-muted/50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle className="text-lg">Decision Matrix</CardTitle>
-                            {selectedNote.status === 'completed' && (
-                              <Lock className="w-4 h-4 text-muted-foreground" />
-                            )}
-                          </div>
-                          {decisionMatrixOpen ? <ChevronUp className="w-5 h-5 text-muted-foreground" /> : <ChevronDown className="w-5 h-5 text-muted-foreground" />}
-                        </div>
-                      </CardHeader>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <CardContent>
-                        <DecisionMatrixTable 
-                          meetingId={selectedNote.id}
-                          isHost={true}
-                          isCompleted={selectedNote.status === 'completed'}
-                          meetingStatus={selectedNote.status}
-                        />
-                      </CardContent>
-                    </CollapsibleContent>
-                  </Card>
-                </Collapsible>
-              )}
+              {/* Decision Matrix removed per user request */}
 
               {/* Meeting Recording (for completed meetings) */}
               {selectedNote.status === 'completed' && (selectedNote.recording_url || selectedNote.audio_file_url) && (

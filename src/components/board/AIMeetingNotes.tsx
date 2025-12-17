@@ -260,65 +260,7 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
           </div>
         )}
 
-        {/* Action Items with Checkboxes */}
-        {localActionItems.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="font-semibold text-sm flex items-center gap-2">
-                <div className="p-1 rounded bg-blue-500/10">
-                  <ListTodo className="w-4 h-4 text-blue-600" />
-                </div>
-                Action Items
-              </h4>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">
-                  {completedCount} of {totalActionItems} completed
-                </span>
-                <div className="w-20 h-1.5 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-blue-500 rounded-full transition-all duration-300"
-                    style={{ width: `${totalActionItems > 0 ? (completedCount / totalActionItems) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {localActionItems.map((item, i) => (
-                <div 
-                  key={i} 
-                  className={`bg-card border rounded-xl p-4 transition-all duration-200 ${item.completed ? 'opacity-60 bg-muted/30' : 'hover:border-blue-500/30'}`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={item.completed || false}
-                      onCheckedChange={() => handleActionItemToggle(i)}
-                      className="mt-0.5 h-5 w-5 rounded border-2"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground font-medium'}`}>
-                        {item.task}
-                      </p>
-                      <div className="flex items-center gap-4 mt-2 text-xs flex-wrap">
-                        {item.owner && (
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <User className="w-3 h-3" />
-                            {item.owner}
-                          </span>
-                        )}
-                        {item.timeline && (
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Calendar className="w-3 h-3" />
-                            {item.timeline}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Action Items removed per user request */}
 
         {/* Agenda Recap */}
         {aiAgendaRecap && aiAgendaRecap.length > 0 && (
