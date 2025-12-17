@@ -920,7 +920,7 @@ export default function LoadsPage() {
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-background z-50">
                   <DropdownMenuItem onClick={() => handleEditWithNewModal(load)}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit load

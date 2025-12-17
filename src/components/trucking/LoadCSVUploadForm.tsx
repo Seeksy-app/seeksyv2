@@ -82,6 +82,8 @@ const ADELPHIA_HEADERS = ["PICK UP AT", "RATE", "DESTINATION", "READY", "WEIGHT"
 // Aljex TMS standard format detection (Status, Pro, Customer, Pick Up, Consignee, etc.)
 const ALJEX_TMS_HEADERS = ["Status", "Pro", "Customer", "Pick Up", "Consignee", "Ship Date", "Type", "Weight"];
 
+type ImportTemplate = "auto" | "adelphia" | "aljex" | "standard";
+
 export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -91,6 +93,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
   const [step, setStep] = useState<"upload" | "map" | "preview" | "done">("upload");
   const [importResults, setImportResults] = useState<{ success: number; failed: number }>({ success: 0, failed: 0 });
   const [isAdelphiaFormat, setIsAdelphiaFormat] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ImportTemplate>("auto");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -123,38 +126,52 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
         return;
       }
 
-      // Detect Adelphia Metals format by looking for specific headers
-      const isAdelphi = detectAdelphiaFormat(rawData);
-      const isAljexTMS = detectAljexTMSFormat(rawData);
-      setIsAdelphiaFormat(isAdelphi || isAljexTMS);
-
-      if (isAdelphi) {
+      // Use selected template or auto-detect
+      if (selectedTemplate === "adelphia") {
+        setIsAdelphiaFormat(true);
         parseAdelphiaFormat(rawData);
-      } else if (isAljexTMS) {
+      } else if (selectedTemplate === "aljex") {
+        setIsAdelphiaFormat(true);
         parseAljexTMSFormat(rawData);
+      } else if (selectedTemplate === "standard") {
+        parseStandardFormat(rawData);
       } else {
-        // Standard format - first row is headers
-        const headers = rawData[0].map(h => String(h || '').trim());
-        const data = rawData.slice(1)
-          .filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== ''))
-          .map(row => {
-            const obj: Record<string, string> = {};
-            headers.forEach((h, i) => {
-              obj[h] = row[i] !== undefined ? String(row[i]) : '';
-            });
-            return obj;
-          });
+        // Auto-detect format
+        const isAdelphi = detectAdelphiaFormat(rawData);
+        const isAljexTMS = detectAljexTMSFormat(rawData);
+        setIsAdelphiaFormat(isAdelphi || isAljexTMS);
 
-        setCsvHeaders(headers);
-        setCsvData(data);
-        autoMapColumns(headers);
-        setStep("map");
-        toast.success(`Found ${data.length} rows and ${headers.length} columns`);
+        if (isAdelphi) {
+          parseAdelphiaFormat(rawData);
+        } else if (isAljexTMS) {
+          parseAljexTMSFormat(rawData);
+        } else {
+          parseStandardFormat(rawData);
+        }
       }
     } catch (error) {
       console.error("XLSX parse error:", error);
       toast.error("Failed to parse Excel file");
     }
+  };
+
+  const parseStandardFormat = (rawData: any[][]) => {
+    const headers = rawData[0].map(h => String(h || '').trim());
+    const data = rawData.slice(1)
+      .filter(row => row.some(cell => cell !== null && cell !== undefined && cell !== ''))
+      .map(row => {
+        const obj: Record<string, string> = {};
+        headers.forEach((h, i) => {
+          obj[h] = row[i] !== undefined ? String(row[i]) : '';
+        });
+        return obj;
+      });
+
+    setCsvHeaders(headers);
+    setCsvData(data);
+    autoMapColumns(headers);
+    setStep("map");
+    toast.success(`Found ${data.length} rows and ${headers.length} columns`);
   };
 
   const detectAljexTMSFormat = (rawData: any[][]): boolean => {
@@ -745,6 +762,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     setStep("upload");
     setImportResults({ success: 0, failed: 0 });
     setIsAdelphiaFormat(false);
+    setSelectedTemplate("auto");
     const fileInput = document.getElementById('csv-file-input') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
   };
@@ -757,12 +775,33 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
           Import Loads from Spreadsheet
         </CardTitle>
         <CardDescription>
-          Upload a CSV or Excel file (including Adelphia Metals format) to bulk import loads
+          Select a template format and upload your spreadsheet
         </CardDescription>
       </CardHeader>
       <CardContent>
         {step === "upload" && (
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Import Template</Label>
+              <Select value={selectedTemplate} onValueChange={(val: ImportTemplate) => setSelectedTemplate(val)}>
+                <SelectTrigger className="w-full bg-background">
+                  <SelectValue placeholder="Select template..." />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  <SelectItem value="auto">Auto-detect format</SelectItem>
+                  <SelectItem value="adelphia">Adelphia Metals</SelectItem>
+                  <SelectItem value="aljex">Aljex TMS</SelectItem>
+                  <SelectItem value="standard">Standard CSV/Excel</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {selectedTemplate === "adelphia" && "Expects columns: PICK UP AT, RATE, DESTINATION, READY, WEIGHT, LENGTH, TARP"}
+                {selectedTemplate === "aljex" && "Expects columns: Status, Pro, Customer, Pick Up, Consignee, Ship Date, Type, Weight"}
+                {selectedTemplate === "standard" && "First row should contain column headers"}
+                {selectedTemplate === "auto" && "Will automatically detect Adelphia, Aljex, or standard format"}
+              </p>
+            </div>
+            
             <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 text-center">
               <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-4" />
               <Label htmlFor="csv-file-input" className="cursor-pointer">
