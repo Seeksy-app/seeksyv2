@@ -4907,6 +4907,7 @@ export type Database = {
           host_has_started: boolean | null
           host_user_id: string | null
           id: string
+          meeting_agenda: string | null
           meeting_date: string
           member_notes: Json | null
           member_questions: Json | null
@@ -4950,6 +4951,7 @@ export type Database = {
           host_has_started?: boolean | null
           host_user_id?: string | null
           id?: string
+          meeting_agenda?: string | null
           meeting_date: string
           member_notes?: Json | null
           member_questions?: Json | null
@@ -4993,6 +4995,7 @@ export type Database = {
           host_has_started?: boolean | null
           host_user_id?: string | null
           id?: string
+          meeting_agenda?: string | null
           meeting_date?: string
           member_notes?: Json | null
           member_questions?: Json | null

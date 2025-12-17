@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { Upload, FileText, Mic, Sparkles, Loader2 } from "lucide-react";
+import { Upload, FileText, Mic, Sparkles, Loader2, ClipboardList } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -30,6 +30,7 @@ export function UploadPastMeetingModal({
   const [title, setTitle] = useState("");
   const [meetingDate, setMeetingDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [transcript, setTranscript] = useState("");
+  const [agenda, setAgenda] = useState("");
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingNotes, setIsGeneratingNotes] = useState(false);
@@ -44,6 +45,19 @@ export function UploadPastMeetingModal({
       toast.success("Transcript loaded");
     } catch (error) {
       toast.error("Failed to read transcript file");
+    }
+  };
+
+  const handleAgendaFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      setAgenda(text);
+      toast.success("Agenda loaded");
+    } catch (error) {
+      toast.error("Failed to read agenda file");
     }
   };
 
@@ -80,6 +94,7 @@ export function UploadPastMeetingModal({
           title: title.trim(),
           meeting_date: meetingDate,
           audio_transcript: hasTextTranscript ? transcript.trim() : null,
+          meeting_agenda: agenda.trim() || null,
           ai_notes_status: hasTextTranscript ? "transcribed" : "pending",
           status: "completed",
           duration_minutes: 60, // default
@@ -152,6 +167,7 @@ export function UploadPastMeetingModal({
       // Reset and close
       setTitle("");
       setTranscript("");
+      setAgenda("");
       setAudioFile(null);
       setMeetingDate(format(new Date(), "yyyy-MM-dd"));
       onOpenChange(false);
@@ -199,6 +215,37 @@ export function UploadPastMeetingModal({
                 onChange={(e) => setMeetingDate(e.target.value)}
               />
             </div>
+          </div>
+
+          {/* Agenda Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="agenda" className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4" />
+                Meeting Agenda (Optional)
+              </Label>
+              <label className="cursor-pointer">
+                <Input
+                  type="file"
+                  accept=".txt,.md,.doc,.docx"
+                  className="hidden"
+                  onChange={handleAgendaFileUpload}
+                />
+                <span className="text-sm text-primary hover:underline">
+                  Upload file
+                </span>
+              </label>
+            </div>
+            <Textarea
+              id="agenda"
+              placeholder="Paste your meeting agenda here to help AI generate better structured notes..."
+              className="min-h-[100px] text-sm"
+              value={agenda}
+              onChange={(e) => setAgenda(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Providing an agenda helps AI generate more accurate key topics and action items
+            </p>
           </div>
 
           {/* Transcript Section */}

@@ -1767,6 +1767,7 @@ export default function BoardMeetingNotes() {
                 transcript={selectedNote.audio_transcript}
                 aiNotesStatus={selectedNote.ai_notes_status}
                 generatedAt={selectedNote.ai_notes_generated_at}
+                audioUrl={selectedNote.audio_file_url}
               />
 
               {/* Bottom Complete Meeting button removed - duplicate with top End Meeting action */}

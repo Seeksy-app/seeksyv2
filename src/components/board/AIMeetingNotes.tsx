@@ -15,6 +15,7 @@ import {
   CheckSquare,
   User,
   Calendar,
+  Volume2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +48,7 @@ interface AIMeetingNotesProps {
   transcript: string | null;
   aiNotesStatus: string | null;
   generatedAt: string | null;
+  audioUrl?: string | null;
   onActionItemToggle?: (index: number, completed: boolean) => void;
 }
 
@@ -60,11 +62,43 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
   transcript,
   aiNotesStatus,
   generatedAt,
+  audioUrl,
   onActionItemToggle,
 }) => {
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [localActionItems, setLocalActionItems] = useState<ActionItem[]>(aiActionItems || []);
+
+  // Format transcript with better structure
+  const formatTranscript = (text: string) => {
+    if (!text) return [];
+    
+    // Split by common speaker patterns or double newlines
+    const lines = text.split(/\n\n|\n(?=[A-Z][a-z]*:)|(?<=\.)\s*(?=[A-Z][a-z]*\s+[A-Z][a-z]*:)/g);
+    
+    return lines.map((line, index) => {
+      const trimmed = line.trim();
+      if (!trimmed) return null;
+      
+      // Check if line starts with a speaker name pattern (e.g., "John:", "Speaker 1:", "John Smith:")
+      const speakerMatch = trimmed.match(/^([A-Z][a-zA-Z\s]*?):\s*(.*)$/s);
+      
+      if (speakerMatch) {
+        return {
+          type: 'speaker' as const,
+          speaker: speakerMatch[1].trim(),
+          content: speakerMatch[2].trim(),
+          key: index,
+        };
+      }
+      
+      return {
+        type: 'text' as const,
+        content: trimmed,
+        key: index,
+      };
+    }).filter(Boolean);
+  };
 
   const hasAnyNotes = aiSummary || (aiDecisions && aiDecisions.length > 0) || 
     (aiActionItems && aiActionItems.length > 0) || transcript;
@@ -347,7 +381,7 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
 
         <Separator />
 
-        {/* Transcript (Collapsible) */}
+        {/* Audio Player + Transcript (Collapsible) */}
         {transcript && (
           <Collapsible open={transcriptOpen} onOpenChange={setTranscriptOpen}>
             <CollapsibleTrigger asChild>
@@ -359,10 +393,56 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
                 {transcriptOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent>
-              <ScrollArea className="h-[300px] mt-2">
-                <div className="bg-muted/30 border rounded-xl p-4 text-sm text-muted-foreground whitespace-pre-wrap font-mono leading-relaxed">
-                  {transcript}
+            <CollapsibleContent className="space-y-4 mt-2">
+              {/* Audio Player */}
+              {audioUrl && (
+                <div className="bg-card border rounded-xl p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Volume2 className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium">Meeting Recording</span>
+                  </div>
+                  <audio
+                    controls
+                    className="w-full h-10 rounded-lg"
+                    src={audioUrl}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
+              
+              {/* Formatted Transcript */}
+              <ScrollArea className="h-[400px]">
+                <div className="bg-muted/30 border rounded-xl p-4 space-y-4">
+                  {formatTranscript(transcript).map((segment) => {
+                    if (!segment) return null;
+                    
+                    if (segment.type === 'speaker') {
+                      return (
+                        <div key={segment.key} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <div className="p-1 rounded-full bg-primary/10">
+                              <User className="w-3 h-3 text-primary" />
+                            </div>
+                            <span className="text-sm font-semibold text-foreground">
+                              {segment.speaker}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground pl-7 leading-relaxed">
+                            {segment.content}
+                          </p>
+                        </div>
+                      );
+                    }
+                    
+                    return (
+                      <p key={segment.key} className="text-sm text-muted-foreground leading-relaxed">
+                        {segment.content}
+                      </p>
+                    );
+                  })}
                 </div>
               </ScrollArea>
             </CollapsibleContent>

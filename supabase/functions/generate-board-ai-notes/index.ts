@@ -171,6 +171,7 @@ serve(async (req) => {
     // Build context for AI
     const agendaItems = meeting.agenda_items || [];
     const memberQuestions = meeting.member_questions || [];
+    const meetingAgenda = meeting.meeting_agenda || '';
     
     const userPrompt = `Generate structured meeting notes from this board meeting.
 
@@ -179,7 +180,10 @@ MEETING METADATA:
 - Date: ${meeting.meeting_date}
 - Duration: ${meeting.duration_minutes || 45} minutes
 
-AGENDA ITEMS:
+${meetingAgenda ? `MEETING AGENDA (PROVIDED BY HOST):
+${meetingAgenda}
+
+` : ''}AGENDA ITEMS:
 ${agendaItems.map((item: any, i: number) => `${i + 1}. ${typeof item === 'string' ? item : item.text} ${item.checked === false ? '(UNCHECKED - carry forward)' : ''}`).join('\n') || 'No agenda items defined'}
 
 PRE-MEETING QUESTIONS FROM PARTICIPANTS:
