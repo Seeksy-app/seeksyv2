@@ -502,7 +502,8 @@ serve(async (req) => {
       }
     }
 
-    // Also create legacy call log for backward compatibility
+    // Try to find and UPDATE existing call log first (created by call-router at call start)
+    // Then fall back to INSERT if not found
     let callNotes = notes || '';
     if (lead_status === 'failed' || lead_error) {
       callNotes += `\n[Lead creation failed: ${lead_error || 'unknown error'}]`;
@@ -511,39 +512,123 @@ serve(async (req) => {
       if (callerPhone) callNotes += `\nCallback: ${callerPhone}`;
     }
 
-    const callLogData: Record<string, unknown> = {
-      owner_id,
-      load_id: actualLoadId,
-      carrier_phone: callerPhone,
-      call_started_at: callStarted || new Date().toISOString(),
+    // Try to find existing call log by conversation_id or recent caller phone
+    let existingCallLog = null;
+    const conversationIdToMatch = conversation_id || call_id;
+    
+    if (conversationIdToMatch) {
+      // First try to match by conversation_id stored in metadata or notes
+      const { data: byConversation } = await supabase
+        .from('trucking_call_logs')
+        .select('id')
+        .or(`notes.ilike.%${conversationIdToMatch}%,summary.ilike.%${conversationIdToMatch}%`)
+        .gte('call_started_at', new Date(Date.now() - 60 * 60 * 1000).toISOString()) // Within last hour
+        .order('call_started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (byConversation) {
+        existingCallLog = byConversation;
+        console.log('Found existing call log by conversation_id:', existingCallLog.id);
+      }
+    }
+
+    // If not found by conversation_id, try by phone number and duration = 0
+    if (!existingCallLog && callerPhone && owner_id) {
+      const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
+      const phoneVariants = [cleanPhone, `+1${cleanPhone}`, cleanPhone.slice(-10)];
+      
+      const { data: byPhone } = await supabase
+        .from('trucking_call_logs')
+        .select('id')
+        .eq('owner_id', owner_id)
+        .in('carrier_phone', phoneVariants)
+        .eq('duration_seconds', 0) // Only match calls with 0 duration (not yet updated)
+        .gte('call_started_at', new Date(Date.now() - 30 * 60 * 1000).toISOString()) // Within last 30 min
+        .order('call_started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (byPhone) {
+        existingCallLog = byPhone;
+        console.log('Found existing call log by phone (duration=0):', existingCallLog.id);
+      }
+    }
+
+    const callLogUpdateData: Record<string, unknown> = {
       call_ended_at: callEnded || new Date().toISOString(),
       duration_seconds: callDuration || 0,
       outcome: callOutcome,
       call_outcome: callOutcome,
       summary: summary || callNotes || null,
       transcript: callTranscript,
-      is_demo: false,
-      total_characters: callTranscript ? callTranscript.length : null,
-      call_direction: 'inbound'
     };
 
     if (lead_id) {
-      callLogData.lead_id = lead_id;
+      callLogUpdateData.lead_id = lead_id;
     }
 
-    const { data: callLog, error } = await supabase
-      .from('trucking_call_logs')
-      .insert(callLogData)
-      .select()
-      .maybeSingle();
+    let callLog = null;
+    let error = null;
+
+    if (existingCallLog) {
+      // UPDATE existing call log
+      console.log('Updating existing call log:', existingCallLog.id, 'with duration:', callDuration);
+      const result = await supabase
+        .from('trucking_call_logs')
+        .update(callLogUpdateData)
+        .eq('id', existingCallLog.id)
+        .select()
+        .maybeSingle();
+      
+      callLog = result.data;
+      error = result.error;
+      
+      if (!error && callLog) {
+        callLogId = callLog.id;
+        console.log('Call log UPDATED successfully:', callLog.id, 'duration:', callLog.duration_seconds);
+      }
+    } else {
+      // INSERT new call log (fallback)
+      const callLogData: Record<string, unknown> = {
+        owner_id,
+        load_id: actualLoadId,
+        carrier_phone: callerPhone,
+        call_started_at: callStarted || new Date().toISOString(),
+        call_ended_at: callEnded || new Date().toISOString(),
+        duration_seconds: callDuration || 0,
+        outcome: callOutcome,
+        call_outcome: callOutcome,
+        summary: summary || callNotes || null,
+        transcript: callTranscript,
+        is_demo: false,
+        total_characters: callTranscript ? callTranscript.length : null,
+        call_direction: 'inbound'
+      };
+
+      if (lead_id) {
+        callLogData.lead_id = lead_id;
+      }
+
+      const result = await supabase
+        .from('trucking_call_logs')
+        .insert(callLogData)
+        .select()
+        .maybeSingle();
+
+      callLog = result.data;
+      error = result.error;
+      
+      if (!error && callLog) {
+        callLogId = callLog.id;
+        console.log('Call log INSERTED successfully:', callLog.id);
+      }
+    }
 
     if (error) {
-      console.error('Database error creating call log:', error);
+      console.error('Database error with call log:', error);
       logError = error.message;
     } else if (callLog) {
-      callLogId = callLog.id;
-      console.log('Call logged successfully:', callLog.id);
-
       if (lead_id) {
         await supabase
           .from('trucking_carrier_leads')
