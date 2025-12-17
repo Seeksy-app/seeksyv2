@@ -1,6 +1,8 @@
-import { Shield } from "lucide-react";
+import { Shield, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { exportSecurityOverviewPDF } from "@/lib/utils/exportSecurityPDF";
 
 export default function AdminSecurityOverview() {
   const currentDate = new Date().toLocaleDateString('en-US', { 
@@ -12,15 +14,21 @@ export default function AdminSecurityOverview() {
   return (
     <div className="container mx-auto py-8 max-w-5xl space-y-8">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Shield className="h-8 w-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Seeksy Security & Data Protection Overview</h1>
-          <p className="text-muted-foreground">
-            Audience: Internal (Founders, Admins, Engineering, Security Reviewers)
-          </p>
-          <p className="text-sm text-muted-foreground">Last Updated: {currentDate}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Shield className="h-8 w-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Seeksy Security & Data Protection Overview</h1>
+            <p className="text-muted-foreground">
+              Audience: Internal (Founders, Admins, Engineering, Security Reviewers)
+            </p>
+            <p className="text-sm text-muted-foreground">Last Updated: {currentDate}</p>
+          </div>
         </div>
+        <Button onClick={exportSecurityOverviewPDF} className="gap-2">
+          <Download className="h-4 w-4" />
+          Export PDF
+        </Button>
       </div>
 
       {/* Section 1 */}

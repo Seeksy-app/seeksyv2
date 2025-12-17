@@ -1,9 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Printer, Code, Database, Cloud, Lock, Zap, Cpu } from "lucide-react";
+import { exportTechStackPDF } from "@/lib/utils/exportSecurityPDF";
 
 export default function TechStack() {
-  const handleDownloadPDF = () => {
+  const handlePrint = () => {
     window.print();
   };
 
@@ -77,11 +78,11 @@ export default function TechStack() {
             </p>
           </div>
           <div className="flex gap-2 print:hidden">
-            <Button onClick={handleDownloadPDF} variant="outline" size="sm">
+            <Button onClick={handlePrint} variant="outline" size="sm">
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button onClick={handleDownloadPDF} size="sm">
+            <Button onClick={exportTechStackPDF} size="sm">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
