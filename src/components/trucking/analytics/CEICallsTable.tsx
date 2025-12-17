@@ -4,10 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Flag, CheckCircle, AlertTriangle, Phone, Loader2 } from 'lucide-react';
+import { Eye, Flag, CheckCircle, AlertTriangle, Phone, Loader2, Play, Clock } from 'lucide-react';
 import { TruckingCall } from '@/hooks/trucking/useTruckingCalls';
 import { getCEIBandInfo, CALL_OUTCOMES } from '@/constants/ceiScoring';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds || seconds === 0) return '—';
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
 
 interface CEICallsTableProps {
   calls: TruckingCall[];
@@ -58,7 +66,17 @@ export function CEICallsTable({ calls, isLoading, onSelectCall }: CEICallsTableP
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[50px]"></TableHead>
                   <TableHead className="w-[80px]">Time</TableHead>
+                  <TableHead className="w-[70px]">
+                    <Tooltip>
+                      <TooltipTrigger className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        Dur
+                      </TooltipTrigger>
+                      <TooltipContent>Call duration in minutes:seconds</TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                   <TableHead className="w-[100px]">
                     <Tooltip>
                       <TooltipTrigger>Outcome</TooltipTrigger>
@@ -103,8 +121,28 @@ export function CEICallsTable({ calls, isLoading, onSelectCall }: CEICallsTableP
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => onSelectCall(call)}
                     >
+                      <TableCell>
+                        {call.audio_url ? (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-primary hover:text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectCall(call);
+                            }}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                        ) : (
+                          <span className="text-muted-foreground/50 pl-2">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-xs font-mono">
                         {format(new Date(call.created_at), 'HH:mm')}
+                      </TableCell>
+                      <TableCell className="text-xs font-mono">
+                        {formatDuration(call.call_duration_seconds)}
                       </TableCell>
                       <TableCell>
                         <Badge

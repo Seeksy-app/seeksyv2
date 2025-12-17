@@ -26621,6 +26621,8 @@ export type Database = {
       trucking_calls: {
         Row: {
           agent_name: string
+          audio_url: string | null
+          call_duration_seconds: number | null
           call_external_id: string | null
           call_outcome: string
           call_provider: string | null
@@ -26643,10 +26645,13 @@ export type Database = {
           primary_load_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          time_to_handoff_seconds: number | null
           transcript_text: string | null
         }
         Insert: {
           agent_name?: string
+          audio_url?: string | null
+          call_duration_seconds?: number | null
           call_external_id?: string | null
           call_outcome?: string
           call_provider?: string | null
@@ -26669,10 +26674,13 @@ export type Database = {
           primary_load_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          time_to_handoff_seconds?: number | null
           transcript_text?: string | null
         }
         Update: {
           agent_name?: string
+          audio_url?: string | null
+          call_duration_seconds?: number | null
           call_external_id?: string | null
           call_outcome?: string
           call_provider?: string | null
@@ -26695,6 +26703,7 @@ export type Database = {
           primary_load_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          time_to_handoff_seconds?: number | null
           transcript_text?: string | null
         }
         Relationships: []

@@ -27,6 +27,9 @@ export interface TruckingCall {
   reviewed_by: string | null;
   flagged_for_coaching: boolean | null;
   internal_notes: string | null;
+  call_duration_seconds: number | null;
+  audio_url: string | null;
+  time_to_handoff_seconds: number | null;
 }
 
 export interface TruckingCallEvent {
@@ -174,29 +177,28 @@ export function useUpdateCallNotes() {
 export function useTruckingCallsStats(date: Date) {
   const { data: calls, isLoading } = useTruckingCalls(date);
   
+  const emptyStats = {
+    isLoading,
+    totalCalls: 0,
+    resolvedWithoutHandoffPct: 0,
+    handoffRequestedPct: 0,
+    leadCreatedPct: 0,
+    avgCeiScore: 0,
+    ceiBandBreakdown: { '90-100': 0, '75-89': 0, '50-74': 0, '25-49': 0, '0-24': 0 },
+    // Engagement metrics
+    avgDurationSeconds: 0,
+    engagedCallsCount: 0,
+    quickHangupsCount: 0,
+    avgTimeToHandoffSeconds: null as number | null,
+  };
+
   if (isLoading || !calls) {
-    return {
-      isLoading,
-      totalCalls: 0,
-      resolvedWithoutHandoffPct: 0,
-      handoffRequestedPct: 0,
-      leadCreatedPct: 0,
-      avgCeiScore: 0,
-      ceiBandBreakdown: { '90-100': 0, '75-89': 0, '50-74': 0, '25-49': 0, '0-24': 0 },
-    };
+    return emptyStats;
   }
   
   const totalCalls = calls.length;
   if (totalCalls === 0) {
-    return {
-      isLoading: false,
-      totalCalls: 0,
-      resolvedWithoutHandoffPct: 0,
-      handoffRequestedPct: 0,
-      leadCreatedPct: 0,
-      avgCeiScore: 0,
-      ceiBandBreakdown: { '90-100': 0, '75-89': 0, '50-74': 0, '25-49': 0, '0-24': 0 },
-    };
+    return { ...emptyStats, isLoading: false };
   }
   
   const resolvedWithoutHandoff = calls.filter(c => !c.handoff_requested).length;
@@ -208,6 +210,20 @@ export function useTruckingCallsStats(date: Date) {
     acc[c.cei_band] = (acc[c.cei_band] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
+  
+  // Engagement metrics
+  const callsWithDuration = calls.filter(c => c.call_duration_seconds != null && c.call_duration_seconds > 0);
+  const avgDurationSeconds = callsWithDuration.length > 0 
+    ? callsWithDuration.reduce((sum, c) => sum + (c.call_duration_seconds || 0), 0) / callsWithDuration.length
+    : 0;
+  
+  const engagedCallsCount = calls.filter(c => (c.call_duration_seconds || 0) > 90).length;
+  const quickHangupsCount = calls.filter(c => (c.call_duration_seconds || 0) < 30 && (c.call_duration_seconds || 0) > 0).length;
+  
+  const callsWithHandoff = calls.filter(c => c.handoff_requested && c.time_to_handoff_seconds != null);
+  const avgTimeToHandoffSeconds = callsWithHandoff.length > 0
+    ? callsWithHandoff.reduce((sum, c) => sum + (c.time_to_handoff_seconds || 0), 0) / callsWithHandoff.length
+    : null;
   
   return {
     isLoading: false,
@@ -223,5 +239,10 @@ export function useTruckingCallsStats(date: Date) {
       '25-49': ceiBandBreakdown['25-49'] || 0,
       '0-24': ceiBandBreakdown['0-24'] || 0,
     },
+    // Engagement metrics
+    avgDurationSeconds,
+    engagedCallsCount,
+    quickHangupsCount,
+    avgTimeToHandoffSeconds,
   };
 }

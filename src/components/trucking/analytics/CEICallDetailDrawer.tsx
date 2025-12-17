@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -6,11 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, CheckCircle, Flag, AlertTriangle, Phone, Clock, Package } from 'lucide-react';
+import { Loader2, CheckCircle, Flag, AlertTriangle, Phone, Clock, Package, Play, Pause, Volume2 } from 'lucide-react';
 import { TruckingCall, TruckingCallEvent, useTruckingCallEvents, useMarkCallReviewed, useFlagCallForCoaching, useUpdateCallNotes } from '@/hooks/trucking/useTruckingCalls';
 import { getCEIBandInfo, CALL_OUTCOMES, EVENT_TYPES, getEventDelta } from '@/constants/ceiScoring';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+
+function formatDuration(seconds: number | null): string {
+  if (!seconds || seconds === 0) return '—';
+  if (seconds < 60) return `${Math.round(seconds)}s`;
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60);
+  return `${mins}m ${secs}s`;
+}
 
 interface CEICallDetailDrawerProps {
   call: TruckingCall | null;
@@ -26,6 +34,8 @@ export function CEICallDetailDrawer({ call, open, onOpenChange }: CEICallDetailD
   const { toast } = useToast();
   const [notes, setNotes] = useState(call?.internal_notes || '');
   const [userId, setUserId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Get user ID
   useState(() => {
@@ -33,6 +43,16 @@ export function CEICallDetailDrawer({ call, open, onOpenChange }: CEICallDetailD
       setUserId(data.user?.id || null);
     });
   });
+
+  const togglePlayback = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   if (!call) return null;
 
@@ -94,6 +114,12 @@ export function CEICallDetailDrawer({ call, open, onOpenChange }: CEICallDetailD
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
                     {format(new Date(call.created_at), 'MMM d, yyyy HH:mm')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Duration:</span>
+                  <span className="text-sm font-medium">
+                    {formatDuration(call.call_duration_seconds)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -163,6 +189,43 @@ export function CEICallDetailDrawer({ call, open, onOpenChange }: CEICallDetailD
                 </div>
               )}
             </div>
+
+            {/* Audio Playback Section */}
+            {call.audio_url && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Call Recording
+                  </h3>
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-10 w-10 rounded-full"
+                      onClick={togglePlayback}
+                    >
+                      {isPlaying ? (
+                        <Pause className="h-5 w-5" />
+                      ) : (
+                        <Play className="h-5 w-5" />
+                      )}
+                    </Button>
+                    <div className="flex-1">
+                      <audio
+                        ref={audioRef}
+                        src={call.audio_url}
+                        onEnded={() => setIsPlaying(false)}
+                        onPause={() => setIsPlaying(false)}
+                        onPlay={() => setIsPlaying(true)}
+                        className="w-full"
+                        controls
+                      />
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
 
             <Separator />
 

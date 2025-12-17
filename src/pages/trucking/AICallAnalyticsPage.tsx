@@ -7,6 +7,7 @@ import { CalendarIcon, BarChart3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TruckingPageWrapper } from '@/components/trucking/TruckingPageWrapper';
 import { CEIKPICards } from '@/components/trucking/analytics/CEIKPICards';
+import { CEIEngagementCards } from '@/components/trucking/analytics/CEIEngagementCards';
 import { CEIBandChart } from '@/components/trucking/analytics/CEIBandChart';
 import { CEICallsTable } from '@/components/trucking/analytics/CEICallsTable';
 import { CEICallDetailDrawer } from '@/components/trucking/analytics/CEICallDetailDrawer';
@@ -56,13 +57,23 @@ export default function AICallAnalyticsPage() {
       }
     >
       <div className="space-y-6">
-        {/* KPI Cards */}
+        {/* Primary KPI Cards */}
         <CEIKPICards
           totalCalls={stats.totalCalls}
           resolvedWithoutHandoffPct={stats.resolvedWithoutHandoffPct}
           handoffRequestedPct={stats.handoffRequestedPct}
           leadCreatedPct={stats.leadCreatedPct}
           avgCeiScore={stats.avgCeiScore}
+          isLoading={stats.isLoading}
+        />
+
+        {/* Engagement Metrics Row */}
+        <CEIEngagementCards
+          avgDurationSeconds={stats.avgDurationSeconds}
+          engagedCallsCount={stats.engagedCallsCount}
+          quickHangupsCount={stats.quickHangupsCount}
+          avgTimeToHandoffSeconds={stats.avgTimeToHandoffSeconds}
+          totalCalls={stats.totalCalls}
           isLoading={stats.isLoading}
         />
 
