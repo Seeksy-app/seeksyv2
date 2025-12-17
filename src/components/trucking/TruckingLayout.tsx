@@ -1,7 +1,7 @@
 import { useState, ReactNode, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
 import { useTruckingRole } from "@/hooks/trucking/useTruckingRole";
 import { useTheme } from "next-themes";
+import seeksyLogo from "@/assets/seeksy-logo-orange.png";
 
 // Theme colors for dark sidebar
 const theme = {
@@ -56,14 +57,13 @@ const theme = {
   },
 };
 
-// Base nav items - filtered based on role
+// Base nav items - filtered based on role (removed Settings - now in user dropdown)
 const allNavItems = [
   { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard, ownerOnly: false },
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch, ownerOnly: false },
   { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList, ownerOnly: false },
   { label: "Analytics", href: "/trucking/analytics", icon: BarChart3, ownerOnly: true },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser, ownerOnly: false },
-  { label: "Settings", href: "/trucking/settings", icon: Settings, ownerOnly: false },
 ];
 
 // Admin nav items - only shown for owners
@@ -83,6 +83,7 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null);
   const costStats = useTruckingCostStats();
   const { isOwner, isAuthorized, loading: roleLoading } = useTruckingRole();
 
@@ -111,6 +112,7 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      setProfileImageUrl(user?.user_metadata?.profile_image_url || null);
     };
     getUser();
   }, []);
@@ -152,10 +154,10 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
         >
           <div className="flex items-center gap-3 min-w-0">
             <div 
-              className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0"
+              className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden"
               style={{ backgroundColor: theme.sidebar.hover }}
             >
-              <Truck className="h-5 w-5" style={{ color: theme.accent.yellow }} />
+              <img src={seeksyLogo} alt="Seeksy" className="h-8 w-8 object-contain" />
             </div>
             {!collapsed && (
               <div className="flex flex-col min-w-0">
@@ -324,6 +326,7 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
                 )}
               >
                 <Avatar className="h-9 w-9">
+                  <AvatarImage src={profileImageUrl || undefined} alt="Profile" />
                   <AvatarFallback 
                     className="text-white text-xs font-medium"
                     style={{ backgroundColor: theme.accent.blue }}
@@ -346,6 +349,12 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
                 <NavLink to="/trucking/profile" className="cursor-pointer">
                   <User className="h-4 w-4 mr-2" />
                   My Profile
+                </NavLink>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <NavLink to="/trucking/settings" className="cursor-pointer">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
                 </NavLink>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -374,10 +383,10 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
           </Button>
           <div className="flex items-center gap-2">
             <div 
-              className="h-9 w-9 rounded-xl flex items-center justify-center"
+              className="h-9 w-9 rounded-xl flex items-center justify-center overflow-hidden"
               style={{ backgroundColor: theme.sidebar.hover }}
             >
-              <Truck className="h-5 w-5" style={{ color: theme.accent.yellow }} />
+              <img src={seeksyLogo} alt="Seeksy" className="h-7 w-7 object-contain" />
             </div>
             <span className="font-semibold text-white">AITrucking</span>
           </div>
@@ -386,6 +395,7 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
               <Avatar className="h-8 w-8">
+                <AvatarImage src={profileImageUrl || undefined} alt="Profile" />
                 <AvatarFallback style={{ backgroundColor: theme.accent.blue }} className="text-white text-xs">
                   {userInitials}
                 </AvatarFallback>
@@ -397,6 +407,12 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
               <NavLink to="/trucking/profile">
                 <User className="h-4 w-4 mr-2" />
                 My Profile
+              </NavLink>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <NavLink to="/trucking/settings">
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
               </NavLink>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

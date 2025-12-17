@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import TruckingLayout from "@/components/trucking/TruckingLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,145 +113,143 @@ export default function TruckingProfilePage() {
     : profile.email?.slice(0, 2).toUpperCase() || "DL";
 
   return (
-    <TruckingLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold" style={{ color: '#1D3557' }}>My Profile</h1>
-          <p className="text-muted-foreground">Manage your account settings and notifications.</p>
-        </div>
-
-        <div className="grid gap-6">
-          {/* Account Info */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" style={{ color: '#FF9F1C' }} />
-                Account
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Profile Image */}
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={profile.profile_image_url} alt={profile.full_name} />
-                    <AvatarFallback className="text-xl" style={{ backgroundColor: '#3B82F6', color: 'white' }}>
-                      {userInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploadingImage}
-                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
-                  >
-                    {uploadingImage ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
-                    ) : (
-                      <Camera className="h-4 w-4 text-slate-500" />
-                    )}
-                  </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">{profile.full_name || 'Your Name'}</p>
-                  <p className="text-sm text-slate-500">{profile.email}</p>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Full Name</Label>
-                  <Input
-                    value={profile.full_name}
-                    onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Company Name</Label>
-                  <Input
-                    value={profile.company_name}
-                    onChange={(e) => setProfile({ ...profile, company_name: e.target.value })}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Email</Label>
-                  <Input value={profile.email} disabled className="bg-muted" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Mobile Number</Label>
-                  <Input
-                    value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    placeholder="+1 (555) 000-0000"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Notifications */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="h-5 w-5" style={{ color: '#FF9F1C' }} />
-                Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Email me when a driver wants a load</Label>
-                </div>
-                <Switch
-                  checked={profile.notify_new_lead_email}
-                  onCheckedChange={(v) => setProfile({ ...profile, notify_new_lead_email: v })}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Text me new lead alerts</Label>
-                </div>
-                <Switch
-                  checked={profile.notify_new_lead_sms}
-                  onCheckedChange={(v) => setProfile({ ...profile, notify_new_lead_sms: v })}
-                />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label>Alert me when a call fails or hangs up</Label>
-                </div>
-                <Switch
-                  checked={profile.notify_failed_calls}
-                  onCheckedChange={(v) => setProfile({ ...profile, notify_failed_calls: v })}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center justify-between pt-4">
-          <Button variant="ghost" onClick={handleLogout} className="text-red-600 hover:text-red-700 hover:bg-red-50">
-            <LogOut className="h-4 w-4 mr-2" />
-            Log Out
-          </Button>
-          <Button onClick={handleSave} disabled={saving} style={{ backgroundColor: '#FF9F1C' }}>
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
+    <div className="max-w-3xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold" style={{ color: '#1D3557' }}>My Profile</h1>
+        <p className="text-muted-foreground">Manage your account settings and notifications.</p>
       </div>
-    </TruckingLayout>
+
+      <div className="grid gap-6">
+        {/* Account Info */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" style={{ color: '#FF9F1C' }} />
+              Account
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Profile Image */}
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={profile.profile_image_url} alt={profile.full_name} />
+                  <AvatarFallback className="text-xl" style={{ backgroundColor: '#3B82F6', color: 'white' }}>
+                    {userInitials}
+                  </AvatarFallback>
+                </Avatar>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
+                >
+                  {uploadingImage ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
+                  ) : (
+                    <Camera className="h-4 w-4 text-slate-500" />
+                  )}
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </div>
+              <div>
+                <p className="font-medium text-slate-900">{profile.full_name || 'Your Name'}</p>
+                <p className="text-sm text-slate-500">{profile.email}</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Full Name</Label>
+                <Input
+                  value={profile.full_name}
+                  onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Company Name</Label>
+                <Input
+                  value={profile.company_name}
+                  onChange={(e) => setProfile({ ...profile, company_name: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input value={profile.email} disabled className="bg-muted" />
+              </div>
+              <div className="space-y-2">
+                <Label>Mobile Number</Label>
+                <Input
+                  value={profile.phone}
+                  onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Notifications */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" style={{ color: '#FF9F1C' }} />
+              Notifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Email me when a driver wants a load</Label>
+              </div>
+              <Switch
+                checked={profile.notify_new_lead_email}
+                onCheckedChange={(v) => setProfile({ ...profile, notify_new_lead_email: v })}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Text me new lead alerts</Label>
+              </div>
+              <Switch
+                checked={profile.notify_new_lead_sms}
+                onCheckedChange={(v) => setProfile({ ...profile, notify_new_lead_sms: v })}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Alert me when a call fails or hangs up</Label>
+              </div>
+              <Switch
+                checked={profile.notify_failed_calls}
+                onCheckedChange={(v) => setProfile({ ...profile, notify_failed_calls: v })}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-between pt-4">
+        <Button variant="ghost" onClick={handleLogout} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+          <LogOut className="h-4 w-4 mr-2" />
+          Log Out
+        </Button>
+        <Button onClick={handleSave} disabled={saving} style={{ backgroundColor: '#FF9F1C' }}>
+          <Save className="h-4 w-4 mr-2" />
+          {saving ? "Saving..." : "Save Changes"}
+        </Button>
+      </div>
+    </div>
   );
 }
