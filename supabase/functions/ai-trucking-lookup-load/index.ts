@@ -233,14 +233,25 @@ serve(async (req) => {
     }
 
     // Format loads with ALL rate fields for voice agent
+    // Rate Model:
+    // - floor_rate in DB = Customer Invoice Rate (what we receive from carrier, e.g., $800)
+    // - target_rate in DB = What we want to pay driver (80% of invoice = 20% commission, e.g., $640)
+    // - max_driver_pay = floor_rate × 0.85 = Maximum we'll pay driver (15% min commission, e.g., $680)
+    // 
+    // Example: Invoice $800
+    //   - Target Pay (20% commission): $800 × 0.80 = $640, Commission = $160
+    //   - Max Pay (15% commission): $800 × 0.85 = $680, Commission = $120
+    //   - If driver wants more than $680, connect them to dispatch
     const formattedLoads = loads.slice(0, 3).map(load => {
       const rateType = load.rate_type || 'flat';
       let rateDisplay = 'Rate negotiable';
       
-      // Always use target_rate for quoting
+      // Customer Invoice Rate (what carrier pays us)
+      const customerInvoice = load.floor_rate ? Math.round(load.floor_rate) : null;
+      // Target Rate = 80% of invoice (20% commission) - START HERE
       const targetRate = load.target_rate ? Math.round(load.target_rate) : null;
-      const ceilingRate = load.floor_rate ? Math.round(load.floor_rate) : null; // floor_rate in DB = ceiling for agent
-      const floorRate = load.desired_rate ? Math.round(load.desired_rate) : targetRate; // desired_rate in DB = floor
+      // Max Driver Pay = 85% of invoice (15% min commission) - NEVER EXCEED THIS
+      const maxDriverPay = customerInvoice ? Math.round(customerInvoice * 0.85) : null;
       
       if (rateType === 'per_ton') {
         const tons = load.tons || (load.weight_lbs ? load.weight_lbs / 2000 : 0);
@@ -265,19 +276,23 @@ serve(async (req) => {
         destination_city: load.destination_city,
         destination_state: load.destination_state,
         pickup_date: load.pickup_date,
-        // Rate fields - agent quotes target_rate, never exceeds ceiling_rate
+        // Rate fields for AI agent negotiation
         rate_type: rateType,
         rate: rateDisplay,
-        target_rate: targetRate,        // Starting offer / quote this first
-        ceiling_rate: ceilingRate,      // Never go above this
-        floor_rate: floorRate,          // Minimum acceptable (for reference)
+        // Negotiation guide:
+        target_rate: targetRate,           // Quote this first (80% of invoice, 20% commission)
+        max_driver_pay: maxDriverPay,      // NEVER exceed this (85% of invoice, 15% commission)
+        customer_invoice: customerInvoice, // Internal reference only - do not disclose
+        // Commission info for agent
+        target_commission: customerInvoice && targetRate ? customerInvoice - targetRate : null,
+        min_commission: customerInvoice && maxDriverPay ? customerInvoice - maxDriverPay : null,
         // Load details
         miles: load.miles,
         weight: load.weight_lbs ? `${load.weight_lbs} lbs` : null,
         weight_lbs: load.weight_lbs,
-        equipment_type: load.equipment_type || 'Dry Van',
+        equipment_type: load.equipment_type || 'Flatbed',
         truck_size: load.truck_size || null,
-        commodity: load.commodity || 'General freight',
+        commodity: load.commodity || 'REBAR',
         status: load.status
       };
     });

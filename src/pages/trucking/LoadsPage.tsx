@@ -889,25 +889,37 @@ export default function LoadsPage() {
         total: desiredTotal ? `≈ $${desiredTotal.toLocaleString()}` : '',
         negotiated: negotiatedTotal ? `Neg: $${negotiatedTotal.toLocaleString()}` : null,
         commission: null,
+        floorRate: null,
       };
     }
-    // Flat rate - calculate commission from floor_rate (customer/invoice rate)
-    const customerRate = load.floor_rate;
-    const targetRate = load.target_rate;
-    let commissionInfo = null;
     
-    if (customerRate && targetRate) {
-      const commission = customerRate - targetRate;
-      const commissionPct = ((commission / customerRate) * 100).toFixed(0);
-      commissionInfo = `$${commission.toLocaleString()} (${commissionPct}%)`;
+    // Flat rate pricing model:
+    // - floor_rate = Customer Invoice Rate (what carrier pays us, e.g., $800)
+    // - target_rate = Driver Pay at 20% commission (floor_rate × 0.80, e.g., $640)
+    // - maxDriverPay = Driver Pay at 15% min commission (floor_rate × 0.85, e.g., $680)
+    const customerInvoice = load.floor_rate; // e.g., $800
+    const targetRate = load.target_rate; // e.g., $640 (20% commission)
+    const maxDriverPay = customerInvoice ? Math.round(customerInvoice * 0.85) : null; // e.g., $680 (15% commission)
+    
+    let commissionInfo = null;
+    let floorRateInfo = null;
+    
+    if (customerInvoice && targetRate) {
+      const targetCommission = customerInvoice - targetRate; // e.g., $160
+      const minCommission = customerInvoice && maxDriverPay ? customerInvoice - maxDriverPay : null; // e.g., $120
+      commissionInfo = `$${targetCommission.toLocaleString()} (20%)`;
+      if (maxDriverPay && minCommission) {
+        floorRateInfo = `Max: $${maxDriverPay.toLocaleString()} (15% = $${minCommission})`;
+      }
     }
     
     return {
-      primary: load.target_rate ? `$${load.target_rate.toLocaleString()}` : '—',
+      primary: targetRate ? `$${targetRate.toLocaleString()}` : '—',
       secondary: formatRatePerMile(load) ? `~$${formatRatePerMile(load)}/mi` : '',
-      total: customerRate ? `Invoice: $${customerRate.toLocaleString()}` : '',
+      total: customerInvoice ? `Invoice: $${customerInvoice.toLocaleString()}` : '',
       negotiated: load.negotiated_rate ? `Neg: $${load.negotiated_rate.toLocaleString()}` : null,
       commission: commissionInfo,
+      floorRate: floorRateInfo,
     };
   };
 
@@ -961,7 +973,8 @@ export default function LoadsPage() {
                                       {rateInfo.secondary && <span className="text-xs text-muted-foreground">{rateInfo.secondary}</span>}
                                     </div>
                                     {rateInfo.total && <div className="text-xs text-muted-foreground">{rateInfo.total}</div>}
-                                    {rateInfo.commission && <div className="text-xs text-green-600 font-medium">Commission: {rateInfo.commission}</div>}
+                                    {rateInfo.commission && <div className="text-xs text-green-600 font-medium">Target: {rateInfo.commission}</div>}
+                                    {rateInfo.floorRate && <div className="text-xs text-amber-600">{rateInfo.floorRate}</div>}
                                     {rateInfo.negotiated && <div className="text-xs text-blue-600">{rateInfo.negotiated}</div>}
                                   </div>
                                 );
