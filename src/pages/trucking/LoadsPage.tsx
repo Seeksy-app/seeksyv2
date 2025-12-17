@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,7 +111,10 @@ export default function LoadsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
-  const [activeTab, setActiveTab] = useState("open");
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [equipmentFilter, setEquipmentFilter] = useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [loadToDelete, setLoadToDelete] = useState<string | null>(null);
   const [estimatingMiles, setEstimatingMiles] = useState(false);
@@ -813,10 +816,43 @@ export default function LoadsPage() {
     return colors[status] || "bg-gray-500/10 text-gray-500";
   };
 
-  const openLoads = loads.filter(l => l.status === "open");
-  const pendingLoads = loads.filter(l => l.status === "pending");
-  const confirmedLoads = loads.filter(l => l.status === "booked" || l.status === "confirmed");
-  const archivedLoads = loads.filter(l => l.status === "archived");
+  // Filter loads based on search query and filters
+  const filterLoads = (loadsToFilter: Load[]) => {
+    return loadsToFilter.filter(load => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          load.load_number?.toLowerCase().includes(query) ||
+          load.origin_city?.toLowerCase().includes(query) ||
+          load.origin_state?.toLowerCase().includes(query) ||
+          load.destination_city?.toLowerCase().includes(query) ||
+          load.destination_state?.toLowerCase().includes(query) ||
+          load.commodity?.toLowerCase().includes(query) ||
+          load.equipment_type?.toLowerCase().includes(query);
+        if (!matchesSearch) return false;
+      }
+      
+      // Equipment filter
+      if (equipmentFilter !== "all" && load.equipment_type !== equipmentFilter) {
+        return false;
+      }
+      
+      return true;
+    });
+  };
+  
+  // All active loads (not deleted) - for All tab
+  const allLoads = filterLoads(
+    statusFilter === "all" 
+      ? loads 
+      : loads.filter(l => l.status === statusFilter)
+  );
+  
+  const openLoads = filterLoads(loads.filter(l => l.status === "open"));
+  const pendingLoads = filterLoads(loads.filter(l => l.status === "pending"));
+  const confirmedLoads = filterLoads(loads.filter(l => l.status === "booked" || l.status === "confirmed"));
+  const archivedLoads = filterLoads(loads.filter(l => l.status === "archived"));
 
   if (loading) {
     return (
@@ -992,7 +1028,7 @@ export default function LoadsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Loads</h1>
-          <p className="text-muted-foreground">Manage your freight loads for Jess to share with carriers</p>
+          <p className="text-muted-foreground">Master list of all freight loads across all statuses</p>
         </div>
         <div className="flex items-center gap-2">
           <FieldLabelsSettings />
@@ -1000,7 +1036,48 @@ export default function LoadsPage() {
             <Plus className="h-4 w-4 mr-2" />
             Add Load
           </Button>
-          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by load #, city, state, commodity..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="open">Open</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="booked">Confirmed</SelectItem>
+            <SelectItem value="archived">Archived</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={equipmentFilter} onValueChange={setEquipmentFilter}>
+          <SelectTrigger className="w-[160px]">
+            <Truck className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Equipment" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Equipment</SelectItem>
+            {equipmentTypes.map(type => (
+              <SelectItem key={type} value={type}>{type}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editingLoad ? "Edit Load" : "Add New Load"}</DialogTitle>
@@ -1640,11 +1717,13 @@ export default function LoadsPage() {
             </form>
           </DialogContent>
         </Dialog>
-        </div>
-      </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="all" className="gap-2">
+            All
+            <Badge variant="secondary">{allLoads.length}</Badge>
+          </TabsTrigger>
           <TabsTrigger value="open" className="gap-2">
             Open
             <Badge variant="secondary">{openLoads.length}</Badge>
@@ -1671,6 +1750,22 @@ export default function LoadsPage() {
             Import CSV
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="all">
+          <Card>
+            <CardContent className="p-0">
+              {allLoads.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  {searchQuery || statusFilter !== "all" || equipmentFilter !== "all" 
+                    ? "No loads match your search or filters." 
+                    : "No loads yet. Add your first load to get started."}
+                </div>
+              ) : (
+                <LoadsTable loadsData={allLoads} tabType="open" />
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="open">
           <Card>
@@ -1793,7 +1888,7 @@ export default function LoadsPage() {
         </TabsContent>
 
         <TabsContent value="import">
-          <LoadCSVUploadForm onUploadSuccess={() => { fetchLoads(); setActiveTab("open"); }} />
+          <LoadCSVUploadForm onUploadSuccess={() => { fetchLoads(); setActiveTab("all"); }} />
         </TabsContent>
       </Tabs>
 
