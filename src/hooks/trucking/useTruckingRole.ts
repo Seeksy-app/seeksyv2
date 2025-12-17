@@ -7,6 +7,7 @@ interface TruckingRoleInfo {
   role: TruckingRole;
   isOwner: boolean;
   isAgent: boolean;
+  isAuthorized: boolean;
   ownerId: string | null;
   loading: boolean;
 }
@@ -14,6 +15,7 @@ interface TruckingRoleInfo {
 export function useTruckingRole(): TruckingRoleInfo {
   const [role, setRole] = useState<TruckingRole>(null);
   const [ownerId, setOwnerId] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,6 +30,22 @@ export function useTruckingRole(): TruckingRoleInfo {
         return;
       }
 
+      // Check if user is in trucking_admin_users (authorized)
+      const { data: adminRecord } = await supabase
+        .from("trucking_admin_users")
+        .select("role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (adminRecord) {
+        // User is an admin - they're authorized and are owners
+        setIsAuthorized(true);
+        setRole("owner");
+        setOwnerId(user.id);
+        setLoading(false);
+        return;
+      }
+
       // Check if user is an agent under any owner
       const { data: agentRecord } = await supabase
         .from("trucking_agents")
@@ -37,29 +55,21 @@ export function useTruckingRole(): TruckingRoleInfo {
         .maybeSingle();
 
       if (agentRecord) {
-        // User is an agent
+        // User is an agent - authorized
+        setIsAuthorized(true);
         setRole("agent");
         setOwnerId(agentRecord.owner_id);
-      } else {
-        // Check if user owns any loads (meaning they're an owner)
-        const { data: loads } = await supabase
-          .from("trucking_loads")
-          .select("id")
-          .eq("owner_id", user.id)
-          .limit(1);
-
-        if (loads && loads.length > 0) {
-          setRole("owner");
-          setOwnerId(user.id);
-        } else {
-          // Default to owner for new users
-          setRole("owner");
-          setOwnerId(user.id);
-        }
+        setLoading(false);
+        return;
       }
+
+      // User is not authorized
+      setIsAuthorized(false);
+      setRole(null);
+      setOwnerId(null);
     } catch (error) {
       console.error("Error checking trucking role:", error);
-      setRole("owner"); // Default to owner on error
+      setIsAuthorized(false);
     } finally {
       setLoading(false);
     }
@@ -69,6 +79,7 @@ export function useTruckingRole(): TruckingRoleInfo {
     role,
     isOwner: role === "owner",
     isAgent: role === "agent",
+    isAuthorized,
     ownerId,
     loading,
   };
