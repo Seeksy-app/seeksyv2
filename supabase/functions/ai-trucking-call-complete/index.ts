@@ -3,8 +3,45 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, elevenlabs-signature',
 };
+
+// HMAC signature verification for ElevenLabs webhooks
+async function verifyHmacSignature(payload: string, signature: string | null, secret: string | null): Promise<boolean> {
+  if (!secret) {
+    console.log('No ELEVENLABS_WEBHOOK_SECRET configured, skipping HMAC verification');
+    return true; // Allow if no secret configured (for backwards compatibility)
+  }
+  if (!signature) {
+    console.log('No ElevenLabs-Signature header provided');
+    return false;
+  }
+  
+  try {
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payload));
+    const expectedSignature = Array.from(new Uint8Array(sig))
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
+    
+    // ElevenLabs may send signature with or without prefix
+    const cleanSignature = signature.replace(/^sha256=/, '').toLowerCase();
+    const isValid = cleanSignature === expectedSignature.toLowerCase();
+    
+    console.log('HMAC verification:', isValid ? 'PASSED' : 'FAILED');
+    return isValid;
+  } catch (err) {
+    console.error('HMAC verification error:', err);
+    return false;
+  }
+}
 
 // CEI Scoring Rules - Base Score and Event-Based Adjustments
 const CEI_BASE_SCORE = 100;
@@ -297,11 +334,29 @@ serve(async (req) => {
   try {
     console.log('=== POST CALL WEBHOOK (CEI) ===');
     
+    // Get raw body for HMAC verification
+    const rawBody = await req.text();
+    
+    // Verify HMAC signature if configured
+    const webhookSecret = Deno.env.get('ELEVENLABS_WEBHOOK_SECRET');
+    const signature = req.headers.get('elevenlabs-signature') || req.headers.get('x-elevenlabs-signature');
+    
+    if (webhookSecret) {
+      const isValid = await verifyHmacSignature(rawBody, signature, webhookSecret);
+      if (!isValid) {
+        console.error('HMAC signature verification failed');
+        return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const body = await req.json();
+    const body = JSON.parse(rawBody);
     console.log('Raw body:', JSON.stringify(body, null, 2));
 
     const params = body.parameters || body;
