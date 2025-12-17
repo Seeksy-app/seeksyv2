@@ -13,10 +13,7 @@ import {
   Truck, 
   LayoutDashboard, 
   PackageSearch, 
-  PhoneCall,
-  Users, 
   BookUser,
-  Network,
   Settings, 
   User,
   LogOut,
@@ -24,15 +21,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
   ClipboardList,
   BarChart3,
   Sun,
   Moon,
-  UserPlus,
   Shield,
-  Phone,
-  Mic,
   Calculator
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -76,10 +69,7 @@ const allNavItems = [
 // Admin nav items - only shown for owners
 const adminNavItems = [
   { label: "Users", href: "/trucking/admin/users", icon: Shield },
-  { label: "Agents", href: "/trucking/admin/agents", icon: UserPlus },
   { label: "Rate Preferences", href: "/trucking/admin/rate-preferences", icon: Calculator },
-  { label: "AI Voice", href: "/trucking/admin/voice", icon: Mic },
-  { label: "Phone Numbers", href: "/trucking/admin/phone-numbers", icon: Phone },
 ];
 
 interface TruckingLayoutProps {
