@@ -3,7 +3,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2, FileText, Headphones } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard } from "@/components/trucking/TruckingPageWrapper";
@@ -55,6 +57,8 @@ export default function CallLogsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -186,12 +190,16 @@ export default function CallLogsPage() {
                   <TableHead>Time</TableHead>
                   <TableHead>Duration</TableHead>
                   <TableHead>Outcome</TableHead>
+                  <TableHead className="w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredLogs.map((log) => {
                   const outcome = getOutcome(log);
                   const transcript = log.trucking_call_transcripts?.[0];
+                  const hasTranscript = transcript?.transcript_text || log.voicemail_transcript;
+                  const hasRecording = log.recording_url;
+                  
                   return (
                     <TableRow key={log.id}>
                       <TableCell className="font-mono text-sm">
@@ -236,11 +244,37 @@ export default function CallLogsPage() {
                         {log.is_demo && (
                           <Badge variant="outline" className="ml-1 text-xs">DEMO</Badge>
                         )}
-                        {transcript?.negotiation_outcome && (
-                          <div className="text-xs text-slate-500 mt-1">
-                            {transcript.negotiation_outcome}
-                          </div>
-                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            disabled={!hasTranscript}
+                            onClick={() => {
+                              setSelectedLog(log);
+                              setShowTranscript(true);
+                            }}
+                            title={hasTranscript ? "View transcript" : "No transcript available"}
+                          >
+                            <FileText className={`h-4 w-4 ${hasTranscript ? 'text-blue-500' : 'text-muted-foreground/40'}`} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            disabled={!hasRecording}
+                            onClick={() => {
+                              if (hasRecording) {
+                                window.open(log.recording_url!, '_blank');
+                              }
+                            }}
+                            title={hasRecording ? "Listen to recording" : "No recording available"}
+                          >
+                            <Headphones className={`h-4 w-4 ${hasRecording ? 'text-green-500' : 'text-muted-foreground/40'}`} />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -250,6 +284,49 @@ export default function CallLogsPage() {
           )}
         </div>
       </TruckingContentCard>
+
+      {/* Transcript Modal */}
+      <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Call Transcript
+            </DialogTitle>
+          </DialogHeader>
+          {selectedLog && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>{selectedLog.carrier_phone || "Unknown"}</span>
+                <span>•</span>
+                <span>{selectedLog.call_started_at ? format(new Date(selectedLog.call_started_at), "MMM d, yyyy h:mm a") : "—"}</span>
+                {selectedLog.duration_seconds && selectedLog.duration_seconds > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>{formatDuration(selectedLog.duration_seconds)}</span>
+                  </>
+                )}
+              </div>
+              
+              {selectedLog.recording_url && (
+                <div className="bg-muted/50 rounded-lg p-3">
+                  <audio controls className="w-full" src={selectedLog.recording_url}>
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
+              
+              <div className="prose prose-sm max-w-none">
+                <div className="bg-muted/30 rounded-lg p-4 whitespace-pre-wrap text-sm leading-relaxed">
+                  {selectedLog.trucking_call_transcripts?.[0]?.transcript_text || 
+                   selectedLog.voicemail_transcript || 
+                   "No transcript available for this call."}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </TruckingPageWrapper>
   );
 }
