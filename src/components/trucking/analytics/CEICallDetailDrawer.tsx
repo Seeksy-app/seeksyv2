@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -6,9 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, CheckCircle, Flag, AlertTriangle, Phone, Clock, Package, Play, Pause, Volume2 } from 'lucide-react';
+import { Loader2, CheckCircle, Flag, AlertTriangle, Phone, Clock, Package, Play, Pause, TrendingDown, TrendingUp, Minus, Calculator } from 'lucide-react';
 import { TruckingCall, TruckingCallEvent, useTruckingCallEvents, useMarkCallReviewed, useFlagCallForCoaching, useUpdateCallNotes } from '@/hooks/trucking/useTruckingCalls';
-import { getCEIBandInfo, CALL_OUTCOMES, EVENT_TYPES, getEventDelta } from '@/constants/ceiScoring';
+import { getCEIBandInfo, CALL_OUTCOMES, EVENT_TYPES, CEI_BASE_SCORE, CEI_PENALTIES, CEI_BONUSES, CEI_DURATION_PENALTIES, getEventDelta } from '@/constants/ceiScoring';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,6 +18,149 @@ function formatDuration(seconds: number | null): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.round(seconds % 60);
   return `${mins}m ${secs}s`;
+}
+
+// CEI Rule descriptions for tooltips
+const CEI_RULE_DESCRIPTIONS: Record<string, string> = {
+  // Duration
+  quick_hangup_under_30s: 'Call lasted less than 30 seconds',
+  short_call_30_to_90s: 'Call lasted 30-90 seconds',
+  early_handoff_request_under_60s: 'Caller requested handoff within first 60 seconds',
+  // Handoff
+  dispatch_requested: 'Caller asked for dispatch',
+  human_requested: 'Caller asked for a human/agent',
+  repeat_human_request: 'Caller asked for human multiple times',
+  // Frustration
+  impatience_phrase_detected: 'Detected impatience phrases',
+  confusion_correction_detected: 'Caller corrected the AI',
+  hard_frustration_detected: 'Detected frustration keywords',
+  // Failures
+  load_lookup_failed: 'Failed to find requested load',
+  lead_create_failed: 'Failed to create lead record',
+  // Bonuses
+  caller_thanked: 'Caller expressed thanks',
+  booking_interest_confirmed: 'Caller confirmed interest in booking',
+  call_resolved_without_handoff: 'Call completed without requesting human',
+  alternate_load_provided: 'Offered alternative load option',
+  ai_verified_phone: 'AI successfully verified phone number',
+  ai_repeated_info_correctly: 'AI repeated info back correctly',
+  lead_created: 'Successfully created lead record',
+  load_confirmed: 'Load was confirmed/booked',
+};
+
+interface CEIBreakdownItem {
+  rule: string;
+  label: string;
+  description: string;
+  delta: number;
+  category: 'duration' | 'handoff' | 'frustration' | 'failure' | 'bonus';
+  trigger?: string;
+}
+
+function buildCEIBreakdown(call: TruckingCall, events: TruckingCallEvent[]): CEIBreakdownItem[] {
+  const breakdown: CEIBreakdownItem[] = [];
+  
+  // Duration bucket
+  const duration = call.call_duration_seconds || 0;
+  if (duration > 0 && duration < 30) {
+    breakdown.push({
+      rule: 'quick_hangup_under_30s',
+      label: 'Quick Hangup',
+      description: CEI_RULE_DESCRIPTIONS.quick_hangup_under_30s,
+      delta: CEI_DURATION_PENALTIES.quick_hangup_under_30s,
+      category: 'duration',
+      trigger: `${Math.round(duration)}s call`,
+    });
+  } else if (duration >= 30 && duration < 90) {
+    breakdown.push({
+      rule: 'short_call_30_to_90s',
+      label: 'Short Call',
+      description: CEI_RULE_DESCRIPTIONS.short_call_30_to_90s,
+      delta: CEI_DURATION_PENALTIES.short_call_30_to_90s,
+      category: 'duration',
+      trigger: `${Math.round(duration)}s call`,
+    });
+  }
+  
+  // Early handoff timing
+  const handoffTime = call.time_to_handoff_seconds;
+  if (handoffTime && handoffTime < 60) {
+    breakdown.push({
+      rule: 'early_handoff_request_under_60s',
+      label: 'Early Handoff Request',
+      description: CEI_RULE_DESCRIPTIONS.early_handoff_request_under_60s,
+      delta: CEI_DURATION_PENALTIES.early_handoff_request_under_60s,
+      category: 'handoff',
+      trigger: `${Math.round(handoffTime)}s into call`,
+    });
+  }
+  
+  // Process events for penalties and bonuses
+  const seenRules = new Set<string>();
+  for (const event of events) {
+    const eventType = event.event_type;
+    if (seenRules.has(eventType)) continue;
+    
+    if (CEI_PENALTIES[eventType] !== undefined) {
+      const delta = CEI_PENALTIES[eventType];
+      // Skip duration penalties already handled above
+      if (['quick_hangup_under_30s', 'short_call_30_to_90s', 'early_handoff_request_under_60s'].includes(eventType)) {
+        continue;
+      }
+      
+      let category: CEIBreakdownItem['category'] = 'failure';
+      if (['dispatch_requested', 'human_requested', 'repeat_human_request'].includes(eventType)) {
+        category = 'handoff';
+      } else if (['impatience_phrase_detected', 'confusion_correction_detected', 'hard_frustration_detected'].includes(eventType)) {
+        category = 'frustration';
+      }
+      
+      breakdown.push({
+        rule: eventType,
+        label: EVENT_TYPES[eventType as keyof typeof EVENT_TYPES]?.label || eventType,
+        description: CEI_RULE_DESCRIPTIONS[eventType] || eventType,
+        delta,
+        category,
+        trigger: event.phrase || undefined,
+      });
+      seenRules.add(eventType);
+    }
+    
+    if (CEI_BONUSES[eventType] !== undefined) {
+      breakdown.push({
+        rule: eventType,
+        label: EVENT_TYPES[eventType as keyof typeof EVENT_TYPES]?.label || eventType,
+        description: CEI_RULE_DESCRIPTIONS[eventType] || eventType,
+        delta: CEI_BONUSES[eventType],
+        category: 'bonus',
+      });
+      seenRules.add(eventType);
+    }
+  }
+  
+  // Check lead_created and load_confirmed from call record
+  if (call.lead_created && !seenRules.has('lead_created')) {
+    breakdown.push({
+      rule: 'lead_created',
+      label: 'Lead Created',
+      description: CEI_RULE_DESCRIPTIONS.lead_created,
+      delta: CEI_BONUSES.lead_created,
+      category: 'bonus',
+    });
+  }
+  
+  // Check for no handoff bonus
+  if (!call.handoff_requested && !seenRules.has('call_resolved_without_handoff') && duration > 30) {
+    breakdown.push({
+      rule: 'call_resolved_without_handoff',
+      label: 'AI-Resolved',
+      description: CEI_RULE_DESCRIPTIONS.call_resolved_without_handoff,
+      delta: CEI_BONUSES.call_resolved_without_handoff,
+      category: 'bonus',
+    });
+  }
+  
+  return breakdown;
 }
 
 interface CEICallDetailDrawerProps {
@@ -53,6 +196,20 @@ export function CEICallDetailDrawer({ call, open, onOpenChange }: CEICallDetailD
     }
     setIsPlaying(!isPlaying);
   };
+
+  // Build CEI breakdown
+  const ceiBreakdown = useMemo(() => {
+    if (!call) return [];
+    return buildCEIBreakdown(call, events || []);
+  }, [call, events]);
+
+  const calculatedScore = useMemo(() => {
+    let score = CEI_BASE_SCORE;
+    for (const item of ceiBreakdown) {
+      score += item.delta;
+    }
+    return Math.max(0, Math.min(100, score));
+  }, [ceiBreakdown]);
 
   if (!call) return null;
 
@@ -190,7 +347,96 @@ export function CEICallDetailDrawer({ call, open, onOpenChange }: CEICallDetailD
               )}
             </div>
 
-            {/* Audio Playback Section */}
+            {/* CEI Reason Breakdown Section */}
+            <Separator />
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                <Calculator className="h-4 w-4" />
+                CEI Score Breakdown
+              </h3>
+              
+              {/* Base Score */}
+              <div className="p-3 rounded-lg bg-muted/30 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Base Score</span>
+                  <span className="text-sm font-mono font-medium">{CEI_BASE_SCORE}</span>
+                </div>
+                
+                {/* Applied Rules */}
+                {ceiBreakdown.length > 0 ? (
+                  <div className="space-y-2 border-t border-border pt-3">
+                    {ceiBreakdown.map((item, idx) => (
+                      <div 
+                        key={`${item.rule}-${idx}`}
+                        className="flex items-start justify-between gap-2"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            {item.delta < 0 ? (
+                              <TrendingDown className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
+                            ) : (
+                              <TrendingUp className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+                            )}
+                            <span className="text-sm font-medium">{item.label}</span>
+                            <Badge 
+                              variant="outline" 
+                              className={`text-[10px] px-1.5 py-0 ${
+                                item.category === 'duration' ? 'border-blue-500/50 text-blue-500' :
+                                item.category === 'handoff' ? 'border-amber-500/50 text-amber-500' :
+                                item.category === 'frustration' ? 'border-red-500/50 text-red-500' :
+                                item.category === 'failure' ? 'border-red-500/50 text-red-500' :
+                                'border-green-500/50 text-green-500'
+                              }`}
+                            >
+                              {item.category}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5 pl-5">
+                            {item.description}
+                            {item.trigger && (
+                              <span className="italic"> — "{item.trigger}"</span>
+                            )}
+                          </p>
+                        </div>
+                        <span className={`text-sm font-mono font-medium flex-shrink-0 ${
+                          item.delta < 0 ? 'text-red-500' : 'text-green-500'
+                        }`}>
+                          {item.delta > 0 ? '+' : ''}{item.delta}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="border-t border-border pt-3">
+                    <p className="text-xs text-muted-foreground flex items-center gap-2">
+                      <Minus className="h-3.5 w-3.5" />
+                      No adjustments applied
+                    </p>
+                  </div>
+                )}
+                
+                {/* Final Score */}
+                <div className="flex items-center justify-between border-t border-border pt-3">
+                  <span className="text-sm font-semibold">Final Score</span>
+                  <div className="flex items-center gap-2">
+                    <span 
+                      className="text-lg font-bold font-mono"
+                      style={{ color: ceiBand.color }}
+                    >
+                      {call.cei_score}
+                    </span>
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs"
+                      style={{ borderColor: ceiBand.color, color: ceiBand.color }}
+                    >
+                      {ceiBand.label}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {call.audio_url && (
               <>
                 <Separator />
