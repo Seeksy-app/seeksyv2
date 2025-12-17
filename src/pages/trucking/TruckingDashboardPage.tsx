@@ -79,12 +79,29 @@ interface CallLog {
   voicemail_transcript?: string;
   routed_to_voicemail?: boolean;
   created_at: string;
+  load_id?: string;
+  duration_seconds?: number;
+  summary?: string;
+}
+
+interface CallTranscript {
+  id: string;
+  load_id: string;
+  caller_phone?: string;
+  transcript_text: string;
+  summary?: string;
+  duration_seconds?: number;
+  rate_discussed?: number;
+  negotiation_outcome?: string;
+  created_at: string;
 }
 
 export default function TruckingDashboardPage() {
   const [loads, setLoads] = useState<Load[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [voicemails, setVoicemails] = useState<CallLog[]>([]);
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [transcripts, setTranscripts] = useState<CallTranscript[]>([]);
   const [callsToday, setCallsToday] = useState(0);
   const [loading, setLoading] = useState(true);
   const [ownerFilter, setOwnerFilter] = useState<"all" | "mine">("all");
@@ -130,11 +147,13 @@ export default function TruckingDashboardPage() {
 
   const fetchData = async () => {
     try {
-      const [loadsRes, leadsRes, callsRes, voicemailRes] = await Promise.all([
+      const [loadsRes, leadsRes, callsRes, voicemailRes, allCallsRes, transcriptsRes] = await Promise.all([
         supabase.from("trucking_loads").select("*").order("created_at", { ascending: false }),
         supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date)").order("created_at", { ascending: false }),
         supabase.from("trucking_call_logs").select("id").gte("created_at", new Date().toISOString().split("T")[0]),
-        supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, recording_url, voicemail_transcript, routed_to_voicemail, created_at").eq("routed_to_voicemail", true).order("created_at", { ascending: false }).limit(10)
+        supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, recording_url, voicemail_transcript, routed_to_voicemail, created_at").eq("routed_to_voicemail", true).order("created_at", { ascending: false }).limit(10),
+        supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, load_id, duration_seconds, summary, created_at").order("created_at", { ascending: false }).limit(100),
+        supabase.from("trucking_call_transcripts").select("*").order("created_at", { ascending: false }).limit(100)
       ]);
 
       if (loadsRes.error) throw loadsRes.error;
@@ -144,6 +163,8 @@ export default function TruckingDashboardPage() {
       setLeads((leadsRes.data as unknown as Lead[]) || []);
       setCallsToday(callsRes.data?.length || 0);
       setVoicemails((voicemailRes.data as unknown as CallLog[]) || []);
+      setCallLogs((allCallsRes.data as unknown as CallLog[]) || []);
+      setTranscripts((transcriptsRes.data as unknown as CallTranscript[]) || []);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
@@ -938,29 +959,124 @@ export default function TruckingDashboardPage() {
                     {expandedLoadId === load.id && (
                       <TableRow key={`${load.id}-details`} className="bg-slate-50">
                         <TableCell colSpan={9} className="p-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <p className="text-slate-500 text-xs">Commodity</p>
-                              <p className="font-medium">{load.commodity || "General Freight"}</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-xs">Weight</p>
-                              <p className="font-medium">{load.weight_lbs ? `${load.weight_lbs.toLocaleString()} lbs` : "—"}</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-xs">Floor Rate</p>
-                              <p className="font-medium">{load.floor_rate ? `$${load.floor_rate.toLocaleString()}` : "—"}</p>
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-xs">Commission</p>
-                              <p className="font-medium">{load.broker_commission ? `$${load.broker_commission.toLocaleString()}` : "—"}</p>
-                            </div>
-                            {load.notes && (
-                              <div className="col-span-4">
-                                <p className="text-slate-500 text-xs">Notes</p>
-                                <p className="font-medium">{load.notes}</p>
+                          <div className="space-y-4">
+                            {/* Load Details */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                              <div>
+                                <p className="text-slate-500 text-xs">Commodity</p>
+                                <p className="font-medium">{load.commodity || "General Freight"}</p>
                               </div>
-                            )}
+                              <div>
+                                <p className="text-slate-500 text-xs">Weight</p>
+                                <p className="font-medium">{load.weight_lbs ? `${load.weight_lbs.toLocaleString()} lbs` : "—"}</p>
+                              </div>
+                              <div>
+                                <p className="text-slate-500 text-xs">Floor Rate</p>
+                                <p className="font-medium">{load.floor_rate ? `$${load.floor_rate.toLocaleString()}` : "—"}</p>
+                              </div>
+                              <div>
+                                <p className="text-slate-500 text-xs">Commission</p>
+                                <p className="font-medium">{load.broker_commission ? `$${load.broker_commission.toLocaleString()}` : "—"}</p>
+                              </div>
+                              {load.notes && (
+                                <div className="col-span-4">
+                                  <p className="text-slate-500 text-xs">Notes</p>
+                                  <p className="font-medium">{load.notes}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Call Transcripts Section */}
+                            {(() => {
+                              const loadCalls = callLogs.filter(c => c.load_id === load.id);
+                              const loadTranscripts = transcripts.filter(t => t.load_id === load.id);
+                              
+                              if (loadCalls.length === 0 && loadTranscripts.length === 0) {
+                                return (
+                                  <div className="border-t pt-4">
+                                    <p className="text-slate-500 text-xs mb-2">Call History</p>
+                                    <p className="text-sm text-slate-400 italic">No calls recorded for this load yet</p>
+                                  </div>
+                                );
+                              }
+                              
+                              return (
+                                <div className="border-t pt-4 space-y-3">
+                                  <p className="text-slate-500 text-xs font-medium">Call History & Transcripts ({loadCalls.length + loadTranscripts.length})</p>
+                                  
+                                  {loadCalls.map((call) => (
+                                    <div key={call.id} className="bg-white rounded-lg p-3 border border-slate-200">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <Phone className="h-4 w-4 text-slate-400" />
+                                          <span className="font-medium text-sm">{call.carrier_phone || "Unknown"}</span>
+                                          <Badge variant="outline" className={
+                                            call.call_outcome === 'completed' || call.call_outcome === 'confirmed' 
+                                              ? 'bg-green-50 text-green-700 border-green-200'
+                                              : call.call_outcome === 'callback_requested'
+                                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                              : 'bg-slate-50 text-slate-700'
+                                          }>
+                                            {call.call_outcome || "—"}
+                                          </Badge>
+                                        </div>
+                                        <span className="text-xs text-slate-500">
+                                          {format(new Date(call.created_at), "MMM d, h:mm a")}
+                                          {call.duration_seconds ? ` • ${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` : ""}
+                                        </span>
+                                      </div>
+                                      {call.summary && (
+                                        <p className="text-sm text-slate-600 italic">"{call.summary}"</p>
+                                      )}
+                                    </div>
+                                  ))}
+                                  
+                                  {loadTranscripts.map((transcript) => (
+                                    <div key={transcript.id} className="bg-white rounded-lg p-3 border border-slate-200">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <Phone className="h-4 w-4 text-blue-500" />
+                                          <span className="font-medium text-sm">{transcript.caller_phone || "Carrier Call"}</span>
+                                          {transcript.negotiation_outcome && (
+                                            <Badge variant="outline" className={
+                                              transcript.negotiation_outcome === 'accepted' || transcript.negotiation_outcome === 'confirmed'
+                                                ? 'bg-green-50 text-green-700 border-green-200'
+                                                : transcript.negotiation_outcome === 'counter_offered'
+                                                ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                                : transcript.negotiation_outcome === 'rejected'
+                                                ? 'bg-red-50 text-red-700 border-red-200'
+                                                : 'bg-slate-50 text-slate-700'
+                                            }>
+                                              {transcript.negotiation_outcome}
+                                            </Badge>
+                                          )}
+                                          {transcript.rate_discussed && (
+                                            <span className="text-xs text-slate-500">
+                                              Rate discussed: ${transcript.rate_discussed.toLocaleString()}
+                                            </span>
+                                          )}
+                                        </div>
+                                        <span className="text-xs text-slate-500">
+                                          {format(new Date(transcript.created_at), "MMM d, h:mm a")}
+                                          {transcript.duration_seconds ? ` • ${Math.floor(transcript.duration_seconds / 60)}m ${transcript.duration_seconds % 60}s` : ""}
+                                        </span>
+                                      </div>
+                                      {transcript.summary && (
+                                        <p className="text-sm text-slate-600 mb-2 italic">"{transcript.summary}"</p>
+                                      )}
+                                      {transcript.transcript_text && (
+                                        <details className="text-xs">
+                                          <summary className="cursor-pointer text-blue-600 hover:text-blue-700">View full transcript</summary>
+                                          <p className="mt-2 p-2 bg-slate-50 rounded text-slate-600 whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                            {transcript.transcript_text}
+                                          </p>
+                                        </details>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </TableCell>
                       </TableRow>
