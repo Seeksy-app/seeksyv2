@@ -443,6 +443,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
           "Length": length,
           "Tarp": tarp,
           "Commodity": "REBAR", // All Adelphia loads are Rebar
+          "Equipment Type": "Flatbed", // All Adelphia loads are Flatbed
         });
       }
     }
@@ -453,7 +454,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     }
 
     // Set up with pre-parsed headers
-    const headers = ["Origin City", "Origin State", "Destination City", "Destination State", "Customer Rate", "Target Rate", "Pickup Date", "Weight", "Length", "Tarp", "Commodity"];
+    const headers = ["Origin City", "Origin State", "Destination City", "Destination State", "Customer Rate", "Target Rate", "Pickup Date", "Weight", "Length", "Tarp", "Commodity", "Equipment Type"];
     setCsvHeaders(headers);
     setCsvData(parsedData);
     
@@ -470,6 +471,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       "Length": "length_ft",
       "Tarp": "equipment_notes",
       "Commodity": "commodity",
+      "Equipment Type": "equipment_type",
     });
     
     setStep("map");
