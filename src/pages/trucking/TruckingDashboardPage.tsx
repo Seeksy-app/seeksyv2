@@ -20,6 +20,7 @@ import { format } from "date-fns";
 import { useTheme } from "next-themes";
 import LoadFormDialog from "@/components/trucking/LoadFormDialog";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
+import TruckingAnalytics from "@/components/trucking/TruckingAnalytics";
 
 interface Load {
   id: string;
@@ -447,6 +448,9 @@ export default function TruckingDashboardPage() {
           </div>
         </div>
       </Card>
+
+      {/* Analytics Section */}
+      <TruckingAnalytics />
 
       {/* Earnings Row */}
       <div className="flex items-center justify-between text-sm text-slate-500">
