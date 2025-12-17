@@ -78,10 +78,7 @@ import TruckingAnalyticsPage from "./pages/trucking/TruckingAnalyticsPage";
 import TruckingCitiesPage from "./pages/trucking/TruckingCitiesPage";
 import TruckingAgentsPage from "./pages/trucking/TruckingAgentsPage";
 import TruckingAdminUsersPage from "./pages/trucking/admin/TruckingAdminUsersPage";
-import TruckingAdminAgentsPage from "./pages/trucking/admin/TruckingAdminAgentsPage";
 import TruckingAdminRatePreferencesPage from "./pages/trucking/admin/TruckingAdminRatePreferencesPage";
-import TruckingAdminVoicePage from "./pages/trucking/admin/TruckingAdminVoicePage";
-import TruckingAdminPhoneNumbersPage from "./pages/trucking/admin/TruckingAdminPhoneNumbersPage";
 import TruckingLayout from "./components/trucking/TruckingLayout";
 import AdminMeetings from "./pages/admin/AdminMeetings";
 import AdminMeetingsDashboard from "./pages/admin/meetings/AdminMeetingsDashboard";
@@ -834,10 +831,7 @@ const AppContent = () => {
         <Route path="/trucking/analytics" element={<TruckingLayout><TruckingAnalyticsPage /></TruckingLayout>} />
         <Route path="/trucking/agents" element={<TruckingLayout><TruckingAgentsPage /></TruckingLayout>} />
         <Route path="/trucking/admin/users" element={<TruckingLayout><TruckingAdminUsersPage /></TruckingLayout>} />
-        <Route path="/trucking/admin/agents" element={<TruckingLayout><TruckingAdminAgentsPage /></TruckingLayout>} />
         <Route path="/trucking/admin/rate-preferences" element={<TruckingLayout><TruckingAdminRatePreferencesPage /></TruckingLayout>} />
-        <Route path="/trucking/admin/voice" element={<TruckingLayout><TruckingAdminVoicePage /></TruckingLayout>} />
-        <Route path="/trucking/admin/phone-numbers" element={<TruckingLayout><TruckingAdminPhoneNumbersPage /></TruckingLayout>} />
       </Routes>
     );
   }

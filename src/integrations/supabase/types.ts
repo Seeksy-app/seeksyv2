@@ -31038,12 +31038,17 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      is_trucking_admin: { Args: { check_user_id: string }; Returns: boolean }
       is_trucking_agent: {
         Args: { _owner_id: string; _user_id: string }
         Returns: boolean
       }
       is_trucking_owner: {
         Args: { _owner_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_trucking_super_admin: {
+        Args: { check_user_id: string }
         Returns: boolean
       }
       log_security_alert: {
