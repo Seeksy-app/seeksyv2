@@ -17,7 +17,7 @@ interface BoardNotification {
   title: string;
   message: string;
   type: string;
-  read: boolean;
+  is_read: boolean;
   created_at: string;
 }
 
@@ -67,13 +67,13 @@ export function BoardNotificationBell() {
     };
   }, [queryClient]);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const markAsReadMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('board_notifications' as any)
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('id', id);
       
       if (error) throw error;
@@ -85,12 +85,12 @@ export function BoardNotificationBell() {
 
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      const unreadIds = notifications.filter(n => !n.read).map(n => n.id);
+      const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
       if (unreadIds.length === 0) return;
       
       const { error } = await supabase
         .from('board_notifications' as any)
-        .update({ read: true })
+        .update({ is_read: true })
         .in('id', unreadIds);
       
       if (error) throw error;
@@ -158,16 +158,16 @@ export function BoardNotificationBell() {
                   key={notification.id}
                   onClick={() => markAsReadMutation.mutate(notification.id)}
                   className={`w-full flex items-start gap-3 p-4 hover:bg-muted/50 transition-colors text-left ${
-                    !notification.read ? 'bg-primary/5' : ''
+                    !notification.is_read ? 'bg-primary/5' : ''
                   }`}
                 >
                   <span className="text-lg flex-shrink-0">{getTypeIcon(notification.type)}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className={`text-sm font-medium ${!notification.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                      <p className={`text-sm font-medium ${!notification.is_read ? 'text-foreground' : 'text-muted-foreground'}`}>
                         {notification.title}
                       </p>
-                      {!notification.read && (
+                      {!notification.is_read && (
                         <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
                       )}
                     </div>
