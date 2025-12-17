@@ -154,6 +154,9 @@ import DocInstances from "./pages/admin/legal/DocInstances";
 import DocCreatePage from "./pages/admin/legal/DocCreatePage";
 import StyleGuidePage from "./pages/admin/StyleGuidePage";
 import PendingInvestments from "./pages/admin/legal/PendingInvestments";
+import AdminSharePagesPage from "./pages/admin/AdminSharePagesPage";
+import AdminSharePageEditorPage from "./pages/admin/AdminSharePageEditorPage";
+import SharePageViewerPage from "./pages/public/SharePageViewerPage";
 import SignerFormPage from "./pages/sign/SignerFormPage";
 import SignerReviewPage from "./pages/sign/SignerReviewPage";
 import SignedConfirmation from "./pages/legal/SignedConfirmation";
@@ -1166,6 +1169,8 @@ const AppContent = () => {
             <Route path="/admin/legal" element={<AdminLegal />} />
             <Route path="/admin/legal/templates" element={<LegalTemplatesLibrary />} />
             <Route path="/admin/content/style-guide" element={<StyleGuidePage />} />
+            <Route path="/admin/share" element={<AdminSharePagesPage />} />
+            <Route path="/admin/share/:id" element={<AdminSharePageEditorPage />} />
             <Route path="/admin/legal/generate-docx" element={<StockAgreementGenerator />} />
             <Route path="/admin/legal/pending-investments" element={<PendingInvestments />} />
             <Route path="/admin/legal/docs/new" element={<DocCreatePage />} />
@@ -1515,6 +1520,7 @@ const AppContent = () => {
             <Route path="/proforma/events-awards/share" element={<ProFormaSharePage />} />
             <Route path="/proforma/events-awards/view/:token" element={<ProFormaPublicView />} />
             <Route path="/proforma/combined/share" element={<ProFormaSharePage />} />
+            <Route path="/share/:slug" element={<SharePageViewerPage />} />
             <Route path="/tech-stack" element={<TechStack />} />
             <Route path="/sales-dashboard" element={<SalesDashboard />} />
             <Route path="/sales/ad-library" element={<SalesAdLibrary />} />
