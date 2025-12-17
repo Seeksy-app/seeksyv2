@@ -462,8 +462,32 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     return value.replace(/[$,]/g, '').trim();
   };
 
+  // Convert Excel serial date to YYYY-MM-DD
+  const parseExcelSerialDate = (value: any): string => {
+    if (!value) return '';
+    
+    // Check if it's a number (Excel serial date)
+    const numValue = typeof value === 'number' ? value : parseFloat(String(value));
+    if (!isNaN(numValue) && numValue > 40000 && numValue < 60000) {
+      // Excel serial date: days since 1900-01-01 (with a bug where 1900 is treated as leap year)
+      // Excel epoch is 1899-12-30 to account for the leap year bug
+      const excelEpoch = new Date(1899, 11, 30);
+      const resultDate = new Date(excelEpoch.getTime() + numValue * 24 * 60 * 60 * 1000);
+      const year = resultDate.getFullYear();
+      const month = String(resultDate.getMonth() + 1).padStart(2, '0');
+      const day = String(resultDate.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    return '';
+  };
+
   const parseShortDate = (value: string): string => {
     if (!value) return '';
+    
+    // First try Excel serial date conversion
+    const excelDate = parseExcelSerialDate(value);
+    if (excelDate) return excelDate;
+    
     // Handle formats like "12-Dec", "15-Dec", etc.
     const months: Record<string, string> = {
       'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'may': '05', 'jun': '06',
@@ -539,7 +563,13 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const mapped: Record<string, any> = {};
       for (const [csvCol, dbField] of Object.entries(columnMapping)) {
         if (dbField) {
-          mapped[dbField] = row[csvCol];
+          let value = row[csvCol];
+          // Convert Excel serial dates for date fields in preview
+          if (["pickup_date", "delivery_date"].includes(dbField)) {
+            const excelDate = parseExcelSerialDate(value);
+            if (excelDate) value = excelDate;
+          }
+          mapped[dbField] = value;
         }
       }
       return mapped;
@@ -583,6 +613,10 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       return value;
     }
+    // Try Excel serial date conversion first
+    const excelDate = parseExcelSerialDate(value);
+    if (excelDate) return excelDate;
+    
     try {
       const date = new Date(value);
       if (isNaN(date.getTime())) return null;
