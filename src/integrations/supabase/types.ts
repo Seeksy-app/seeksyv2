@@ -2079,6 +2079,7 @@ export type Database = {
           long_term_index: Json
           missed_calls: number
           org_id: string | null
+          owner_id: string | null
           per_load: Json
           repeat_callers: number
           short_term_recs: Json
@@ -2107,6 +2108,7 @@ export type Database = {
           long_term_index?: Json
           missed_calls?: number
           org_id?: string | null
+          owner_id?: string | null
           per_load?: Json
           repeat_callers?: number
           short_term_recs?: Json
@@ -2135,6 +2137,7 @@ export type Database = {
           long_term_index?: Json
           missed_calls?: number
           org_id?: string | null
+          owner_id?: string | null
           per_load?: Json
           repeat_callers?: number
           short_term_recs?: Json
@@ -26437,6 +26440,7 @@ export type Database = {
           routed_to_voicemail: boolean | null
           summary: string | null
           total_characters: number | null
+          transcript: string | null
           transcript_url: string | null
           voicemail_transcript: string | null
         }
@@ -26461,6 +26465,7 @@ export type Database = {
           routed_to_voicemail?: boolean | null
           summary?: string | null
           total_characters?: number | null
+          transcript?: string | null
           transcript_url?: string | null
           voicemail_transcript?: string | null
         }
@@ -26485,6 +26490,7 @@ export type Database = {
           routed_to_voicemail?: boolean | null
           summary?: string | null
           total_characters?: number | null
+          transcript?: string | null
           transcript_url?: string | null
           voicemail_transcript?: string | null
         }

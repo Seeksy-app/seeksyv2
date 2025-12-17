@@ -164,11 +164,15 @@ serve(async (req) => {
       if (callerPhone) callNotes += `\nCallback: ${callerPhone}`;
     }
 
+    // Extract transcript from various possible locations
+    const callTranscript = transcript || analysis.transcript || body.transcript || null;
+    console.log('Transcript available:', !!callTranscript, callTranscript ? `(${callTranscript.length} chars)` : '');
+
     // Build call log entry - THIS ALWAYS GETS CREATED
     // Using actual schema columns: id, owner_id, carrier_phone, load_id, call_direction, 
     // summary, transcript_url, recording_url, call_started_at, call_ended_at, created_at,
     // language, outcome, lead_id, duration_seconds, failure_reason, total_characters,
-    // estimated_cost_usd, is_demo, call_outcome, routed_to_voicemail, voicemail_transcript
+    // estimated_cost_usd, is_demo, call_outcome, routed_to_voicemail, voicemail_transcript, transcript
     const callLogData: Record<string, unknown> = {
       owner_id,
       load_id: actualLoadId,
@@ -179,8 +183,9 @@ serve(async (req) => {
       outcome: callOutcome,
       call_outcome: callOutcome,
       summary: summary || callNotes || null,
+      transcript: callTranscript,
       is_demo: false,
-      total_characters: transcript ? transcript.length : null,
+      total_characters: callTranscript ? callTranscript.length : null,
       call_direction: 'inbound'
     };
 

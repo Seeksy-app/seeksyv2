@@ -539,3 +539,6 @@ verify_jwt = true
 
 [functions.aljex-webhook]
 verify_jwt = false
+
+[functions.ai-trucking-generate-daily-brief]
+verify_jwt = true
