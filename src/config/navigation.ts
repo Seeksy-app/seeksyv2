@@ -137,6 +137,20 @@ export const NAVIGATION_CONFIG: {
     },
 
     {
+      "group": "Share",
+      "description": "Private share pages for demos and proposals",
+      "collapsible": true,
+      "items": [
+        {
+          "id": "admin_share_pages",
+          "label": "Share Pages",
+          "icon": "share-2",
+          "path": "/admin/share",
+          "roles": ["admin", "super_admin", "cfo", "cmo"]
+        }
+      ]
+    },
+    {
       "group": "Admin Legal",
       "description": "Legal agreements and document management",
       "collapsible": true,

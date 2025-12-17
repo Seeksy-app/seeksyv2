@@ -1319,6 +1319,130 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_share_page_access_logs: {
+        Row: {
+          accessed_at: string
+          id: string
+          ip_hash: string | null
+          page_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          accessed_at?: string
+          id?: string
+          ip_hash?: string | null
+          page_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          accessed_at?: string
+          id?: string
+          ip_hash?: string | null
+          page_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_share_page_access_logs_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "admin_share_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_share_page_blocks: {
+        Row: {
+          block_type: string
+          content: Json
+          created_at: string
+          display_order: number
+          id: string
+          is_visible: boolean | null
+          page_id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          block_type: string
+          content?: Json
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_visible?: boolean | null
+          page_id: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          block_type?: string
+          content?: Json
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_visible?: boolean | null
+          page_id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_share_page_blocks_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "admin_share_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_share_pages: {
+        Row: {
+          branding_color: string | null
+          branding_logo_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          password_hash: string | null
+          slug: string
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          branding_color?: string | null
+          branding_logo_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          password_hash?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          branding_color?: string | null
+          branding_logo_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          password_hash?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       admin_view_mode: {
         Row: {
           id: string
