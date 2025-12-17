@@ -70,14 +70,17 @@ export function UploadPastMeetingModal({
     if (generateNotes) setIsGeneratingNotes(true);
 
     try {
-      // 1. Create the meeting record with transcript
+      const hasTextTranscript = transcript.trim().length > 0;
+      const needsAudioTranscription = !hasTextTranscript && audioFile;
+
+      // 1. Create the meeting record
       const { data: meeting, error: createError } = await supabase
         .from("board_meeting_notes")
         .insert({
           title: title.trim(),
           meeting_date: meetingDate,
-          audio_transcript: transcript.trim(),
-          ai_notes_status: "transcribed",
+          audio_transcript: hasTextTranscript ? transcript.trim() : null,
+          ai_notes_status: hasTextTranscript ? "transcribed" : "pending",
           status: "completed",
           duration_minutes: 60, // default
         })
@@ -86,9 +89,11 @@ export function UploadPastMeetingModal({
 
       if (createError) throw createError;
 
+      let audioPath: string | null = null;
+
       // 2. Upload audio file if provided
       if (audioFile && meeting) {
-        const audioPath = `${meeting.id}/${audioFile.name}`;
+        audioPath = `${meeting.id}/${audioFile.name}`;
         const { error: uploadError } = await supabase.storage
           .from("meeting-recordings")
           .upload(audioPath, audioFile);
@@ -96,6 +101,7 @@ export function UploadPastMeetingModal({
         if (uploadError) {
           console.error("Audio upload failed:", uploadError);
           toast.warning("Meeting created but audio upload failed");
+          audioPath = null;
         } else {
           // Update meeting with audio path
           await supabase
@@ -105,9 +111,29 @@ export function UploadPastMeetingModal({
         }
       }
 
+      // 3. Transcribe audio if no text transcript was provided
+      if (needsAudioTranscription && audioPath && meeting) {
+        toast.info("Transcribing audio...");
+        
+        const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke(
+          "transcribe-meeting-audio",
+          { body: { meetingNoteId: meeting.id, audioFilePath: audioPath } }
+        );
+
+        if (transcribeError || transcribeData?.error) {
+          console.error("Transcription failed:", transcribeError || transcribeData?.error);
+          toast.error("Failed to transcribe audio: " + (transcribeData?.error || transcribeError?.message));
+          setIsSubmitting(false);
+          setIsGeneratingNotes(false);
+          return;
+        }
+        
+        toast.success("Audio transcribed successfully");
+      }
+
       toast.success("Meeting uploaded successfully");
 
-      // 3. Generate AI notes if requested
+      // 4. Generate AI notes if requested
       if (generateNotes && meeting) {
         toast.info("Generating AI notes...");
         
