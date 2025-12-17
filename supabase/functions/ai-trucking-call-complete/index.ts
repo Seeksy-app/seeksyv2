@@ -29,6 +29,11 @@ serve(async (req) => {
 
     // Extract ALL possible fields - everything is OPTIONAL except we try to get call_outcome
     const params = body.parameters || body;
+    
+    // ElevenLabs sends analysis data nested - extract it
+    const analysis = body.analysis || params.analysis || {};
+    console.log('Analysis object:', JSON.stringify(analysis, null, 2));
+    
     const {
       // OWNER ID - can be passed directly from ElevenLabs agent config
       owner_id: direct_owner_id,
@@ -70,6 +75,10 @@ serve(async (req) => {
       confirmed_load_number,
       final_rate
     } = params;
+    
+    // Extract duration from ElevenLabs analysis object (where they actually send it)
+    const elevenLabsDuration = analysis.call_duration || analysis.duration || 
+                               body.call_duration || body.duration;
 
     // Normalize call outcome - use call_outcome first, then outcome, then status
     const callOutcome = call_outcome || outcome || status || 'completed';
@@ -78,13 +87,18 @@ serve(async (req) => {
     const callerPhone = callback_phone || contact_number || phone || 
                         caller_number || phone_number || from_number || caller_id || null;
     
-    // Calculate duration from various possible sources
-    let callDuration = duration_seconds || duration || call_duration;
+    // Calculate duration from various possible sources (including ElevenLabs analysis)
+    let callDuration = elevenLabsDuration || duration_seconds || duration || call_duration;
     if (!callDuration && started_at && ended_at) {
       const start = new Date(started_at);
       const end = new Date(ended_at);
       callDuration = Math.round((end.getTime() - start.getTime()) / 1000);
     }
+    // ElevenLabs may send duration in seconds as a float, round it
+    if (callDuration && typeof callDuration === 'number') {
+      callDuration = Math.round(callDuration);
+    }
+    console.log('Calculated call duration:', callDuration);
 
     // Try to get owner_id and load_id
     // Priority: 1) Direct param, 2) From lead, 3) From recent lead by phone, 4) Fallback from loads
