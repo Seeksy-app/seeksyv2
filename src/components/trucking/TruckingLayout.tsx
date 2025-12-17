@@ -62,7 +62,7 @@ const allNavItems = [
   { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard, ownerOnly: false },
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch, ownerOnly: false },
   { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList, ownerOnly: false },
-  { label: "Analytics", href: "/trucking/analytics", icon: BarChart3, ownerOnly: true },
+  { label: "AI Call Analytics", href: "/trucking/ai-analytics", icon: BarChart3, ownerOnly: true },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser, ownerOnly: false },
 ];
 
