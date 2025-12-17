@@ -26418,6 +26418,50 @@ export type Database = {
           },
         ]
       }
+      trucking_call_events: {
+        Row: {
+          call_id: string
+          cei_delta: number | null
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          phrase: string | null
+          severity: string
+          source: string
+        }
+        Insert: {
+          call_id: string
+          cei_delta?: number | null
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          phrase?: string | null
+          severity?: string
+          source?: string
+        }
+        Update: {
+          call_id?: string
+          cei_delta?: number | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          phrase?: string | null
+          severity?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_call_events_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trucking_call_logs: {
         Row: {
           call_direction: string | null
@@ -26573,6 +26617,87 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      trucking_calls: {
+        Row: {
+          agent_name: string
+          call_external_id: string | null
+          call_outcome: string
+          call_provider: string | null
+          caller_phone: string | null
+          cei_band: string
+          cei_reasons: Json | null
+          cei_score: number
+          company_name: string | null
+          created_at: string
+          flagged_for_coaching: boolean | null
+          handoff_reason: string | null
+          handoff_requested: boolean
+          id: string
+          internal_notes: string | null
+          lead_create_error: string | null
+          lead_created: boolean
+          load_ids_discussed: Json | null
+          mc_number: string | null
+          owner_id: string | null
+          primary_load_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          transcript_text: string | null
+        }
+        Insert: {
+          agent_name?: string
+          call_external_id?: string | null
+          call_outcome?: string
+          call_provider?: string | null
+          caller_phone?: string | null
+          cei_band?: string
+          cei_reasons?: Json | null
+          cei_score?: number
+          company_name?: string | null
+          created_at?: string
+          flagged_for_coaching?: boolean | null
+          handoff_reason?: string | null
+          handoff_requested?: boolean
+          id?: string
+          internal_notes?: string | null
+          lead_create_error?: string | null
+          lead_created?: boolean
+          load_ids_discussed?: Json | null
+          mc_number?: string | null
+          owner_id?: string | null
+          primary_load_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          transcript_text?: string | null
+        }
+        Update: {
+          agent_name?: string
+          call_external_id?: string | null
+          call_outcome?: string
+          call_provider?: string | null
+          caller_phone?: string | null
+          cei_band?: string
+          cei_reasons?: Json | null
+          cei_score?: number
+          company_name?: string | null
+          created_at?: string
+          flagged_for_coaching?: boolean | null
+          handoff_reason?: string | null
+          handoff_requested?: boolean
+          id?: string
+          internal_notes?: string | null
+          lead_create_error?: string | null
+          lead_created?: boolean
+          load_ids_discussed?: Json | null
+          mc_number?: string | null
+          owner_id?: string | null
+          primary_load_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          transcript_text?: string | null
+        }
+        Relationships: []
       }
       trucking_carrier_leads: {
         Row: {
@@ -26830,6 +26955,60 @@ export type Database = {
           region_short?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      trucking_daily_reports: {
+        Row: {
+          ai_insights_json: Json
+          ai_summary_text: string
+          avg_cei_score: number
+          cei_band_breakdown: Json
+          created_at: string
+          handoff_requested_pct: number
+          id: string
+          lead_created_pct: number
+          owner_id: string | null
+          report_date: string
+          resolved_without_handoff_pct: number
+          sent_to_dispatch_at: string | null
+          top_frustration_phrases: Json | null
+          top_success_signals: Json | null
+          total_calls: number
+        }
+        Insert: {
+          ai_insights_json?: Json
+          ai_summary_text?: string
+          avg_cei_score?: number
+          cei_band_breakdown?: Json
+          created_at?: string
+          handoff_requested_pct?: number
+          id?: string
+          lead_created_pct?: number
+          owner_id?: string | null
+          report_date: string
+          resolved_without_handoff_pct?: number
+          sent_to_dispatch_at?: string | null
+          top_frustration_phrases?: Json | null
+          top_success_signals?: Json | null
+          total_calls?: number
+        }
+        Update: {
+          ai_insights_json?: Json
+          ai_summary_text?: string
+          avg_cei_score?: number
+          cei_band_breakdown?: Json
+          created_at?: string
+          handoff_requested_pct?: number
+          id?: string
+          lead_created_pct?: number
+          owner_id?: string | null
+          report_date?: string
+          resolved_without_handoff_pct?: number
+          sent_to_dispatch_at?: string | null
+          top_frustration_phrases?: Json | null
+          top_success_signals?: Json | null
+          total_calls?: number
         }
         Relationships: []
       }

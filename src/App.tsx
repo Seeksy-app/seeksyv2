@@ -75,6 +75,7 @@ import AITruckingConsolePage from "./pages/trucking/AITruckingConsolePage";
 import TruckingContactsPage from "./pages/trucking/TruckingContactsPage";
 import CallLogsPage from "./pages/trucking/CallLogsPage";
 import TruckingAnalyticsPage from "./pages/trucking/TruckingAnalyticsPage";
+import AICallAnalyticsPage from "./pages/trucking/AICallAnalyticsPage";
 import TruckingCitiesPage from "./pages/trucking/TruckingCitiesPage";
 import TruckingAgentsPage from "./pages/trucking/TruckingAgentsPage";
 import TruckingAdminUsersPage from "./pages/trucking/admin/TruckingAdminUsersPage";
@@ -829,6 +830,7 @@ const AppContent = () => {
         <Route path="/trucking/contacts" element={<TruckingLayout><TruckingContactsPage /></TruckingLayout>} />
         <Route path="/trucking/call-logs" element={<TruckingLayout><CallLogsPage /></TruckingLayout>} />
         <Route path="/trucking/analytics" element={<TruckingLayout><TruckingAnalyticsPage /></TruckingLayout>} />
+        <Route path="/trucking/ai-analytics" element={<TruckingLayout><AICallAnalyticsPage /></TruckingLayout>} />
         <Route path="/trucking/agents" element={<TruckingLayout><TruckingAgentsPage /></TruckingLayout>} />
         <Route path="/trucking/admin/users" element={<TruckingLayout><TruckingAdminUsersPage /></TruckingLayout>} />
         <Route path="/trucking/admin/rate-preferences" element={<TruckingLayout><TruckingAdminRatePreferencesPage /></TruckingLayout>} />
