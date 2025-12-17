@@ -1587,24 +1587,36 @@ export default function LoadsPage() {
                   <>
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <Label>Target Rate (Pay rate) ($)</Label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={formData.target_rate}
-                          onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
-                          placeholder="2500"
-                        />
-                      </div>
-                      <div>
-                        <Label>Ceiling Rate ($)</Label>
+                        <Label>Customer Invoice ($) *</Label>
                         <Input
                           type="number"
                           step="0.01"
                           value={formData.floor_rate}
                           onChange={(e) => setFormData({ ...formData, floor_rate: e.target.value })}
-                          placeholder="2200"
+                          placeholder="2700"
                         />
+                        {formData.floor_rate && (
+                          <div className="mt-1 space-y-0.5">
+                            <p className="text-xs text-muted-foreground">
+                              Est. Payout: ${Math.round(parseFloat(formData.floor_rate) * 0.80).toLocaleString()}
+                            </p>
+                            <p className="text-xs text-green-600">
+                              Est. Comm: ${Math.round(parseFloat(formData.floor_rate) * 0.20).toLocaleString()} (20%)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <Label>Max Driver Pay (85%)</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={formData.target_rate}
+                          onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
+                          placeholder={formData.floor_rate ? Math.round(parseFloat(formData.floor_rate) * 0.85).toString() : "2295"}
+                          disabled
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Auto-calculated (15% min commission)</p>
                       </div>
                       <div>
                         <Label>Negotiated Rate ($)</Label>
@@ -1618,11 +1630,6 @@ export default function LoadsPage() {
                         <p className="text-xs text-muted-foreground mt-1">Set when carrier agrees</p>
                       </div>
                     </div>
-                    {formData.target_rate && formData.floor_rate && (
-                      <p className="text-xs text-muted-foreground">
-                        Est. broker earnings: ${(parseFloat(formData.target_rate) - parseFloat(formData.floor_rate)).toLocaleString()} (Target - Ceiling)
-                      </p>
-                    )}
                   </>
                 ) : (
                   <>
