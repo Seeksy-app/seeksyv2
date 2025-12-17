@@ -29,7 +29,11 @@ import {
   BarChart3,
   Sun,
   Moon,
-  UserPlus
+  UserPlus,
+  Shield,
+  Phone,
+  Mic,
+  Calculator
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -65,9 +69,17 @@ const allNavItems = [
   { label: "Loads", href: "/trucking/loads", icon: PackageSearch, ownerOnly: false },
   { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList, ownerOnly: false },
   { label: "Analytics", href: "/trucking/analytics", icon: BarChart3, ownerOnly: true },
-  { label: "Agents", href: "/trucking/agents", icon: UserPlus, ownerOnly: true },
   { label: "Contacts", href: "/trucking/contacts", icon: BookUser, ownerOnly: false },
   { label: "Settings", href: "/trucking/settings", icon: Settings, ownerOnly: false },
+];
+
+// Admin nav items - only shown for owners
+const adminNavItems = [
+  { label: "Users", href: "/trucking/admin/users", icon: Shield },
+  { label: "Agents", href: "/trucking/admin/agents", icon: UserPlus },
+  { label: "Rate Preferences", href: "/trucking/admin/rate-preferences", icon: Calculator },
+  { label: "AI Voice", href: "/trucking/admin/voice", icon: Mic },
+  { label: "Phone Numbers", href: "/trucking/admin/phone-numbers", icon: Phone },
 ];
 
 interface TruckingLayoutProps {
@@ -167,7 +179,7 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
         </div>
 
         {/* Navigation */}
-        <nav className="mt-4 flex-1 space-y-1 px-3">
+        <nav className="mt-4 flex-1 space-y-1 px-3 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -197,6 +209,48 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
               </NavLink>
             );
           })}
+
+          {/* Admin Section */}
+          {isOwner && (
+            <>
+              {!collapsed && (
+                <div className="pt-4 pb-2 px-3">
+                  <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.text.muted }}>
+                    Admin
+                  </span>
+                </div>
+              )}
+              {adminNavItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <NavLink
+                    key={item.href}
+                    to={item.href}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                        collapsed && "justify-center px-2"
+                      )
+                    }
+                    style={({ isActive }) => ({
+                      backgroundColor: isActive ? theme.sidebar.active : 'transparent',
+                      color: isActive ? theme.text.primary : theme.text.secondary,
+                    })}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <Icon 
+                          className="h-5 w-5 flex-shrink-0" 
+                          style={{ color: isActive ? theme.accent.yellow : theme.text.muted }} 
+                        />
+                        {!collapsed && <span>{item.label}</span>}
+                      </>
+                    )}
+                  </NavLink>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         {/* Bottom: live indicator + profile */}

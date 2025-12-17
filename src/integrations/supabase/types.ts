@@ -26200,8 +26200,89 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_admin_users: {
+        Row: {
+          agency_id: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          is_active: boolean | null
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_admin_users_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trucking_agencies: {
+        Row: {
+          address: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          phone_number: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          phone_number?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          phone_number?: string | null
+          slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       trucking_agents: {
         Row: {
+          agency_id: string | null
           created_at: string
           email: string
           id: string
@@ -26209,11 +26290,13 @@ export type Database = {
           name: string
           owner_id: string
           phone: string | null
+          profile_image_url: string | null
           role: Database["public"]["Enums"]["trucking_role"]
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          agency_id?: string | null
           created_at?: string
           email: string
           id?: string
@@ -26221,11 +26304,13 @@ export type Database = {
           name: string
           owner_id: string
           phone?: string | null
+          profile_image_url?: string | null
           role?: Database["public"]["Enums"]["trucking_role"]
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          agency_id?: string | null
           created_at?: string
           email?: string
           id?: string
@@ -26233,11 +26318,102 @@ export type Database = {
           name?: string
           owner_id?: string
           phone?: string | null
+          profile_image_url?: string | null
           role?: Database["public"]["Enums"]["trucking_role"]
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trucking_agents_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trucking_ai_phone_numbers: {
+        Row: {
+          agency_id: string | null
+          created_at: string | null
+          elevenlabs_agent_id: string | null
+          id: string
+          is_active: boolean | null
+          is_primary: boolean | null
+          label: string | null
+          phone_number: string
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string | null
+          elevenlabs_agent_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          label?: string | null
+          phone_number: string
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string | null
+          elevenlabs_agent_id?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_primary?: boolean | null
+          label?: string | null
+          phone_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_ai_phone_numbers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trucking_ai_voice_settings: {
+        Row: {
+          agency_id: string | null
+          created_at: string | null
+          default_language: string | null
+          greeting_script: string | null
+          id: string
+          updated_at: string | null
+          voice_id: string
+          voice_name: string | null
+        }
+        Insert: {
+          agency_id?: string | null
+          created_at?: string | null
+          default_language?: string | null
+          greeting_script?: string | null
+          id?: string
+          updated_at?: string | null
+          voice_id: string
+          voice_name?: string | null
+        }
+        Update: {
+          agency_id?: string | null
+          created_at?: string | null
+          default_language?: string | null
+          greeting_script?: string | null
+          id?: string
+          updated_at?: string | null
+          voice_id?: string
+          voice_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_ai_voice_settings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "trucking_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trucking_call_logs: {
         Row: {
@@ -26982,6 +27158,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      trucking_rate_preferences: {
+        Row: {
+          absolute_rate_floor: number | null
+          agency_id: string | null
+          created_at: string | null
+          equipment_types: string[] | null
+          id: string
+          max_negotiation_rounds: number | null
+          rate_increment: number | null
+          target_margin_percent: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          absolute_rate_floor?: number | null
+          agency_id?: string | null
+          created_at?: string | null
+          equipment_types?: string[] | null
+          id?: string
+          max_negotiation_rounds?: number | null
+          rate_increment?: number | null
+          target_margin_percent?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          absolute_rate_floor?: number | null
+          agency_id?: string | null
+          created_at?: string | null
+          equipment_types?: string[] | null
+          id?: string
+          max_negotiation_rounds?: number | null
+          rate_increment?: number | null
+          target_margin_percent?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_rate_preferences_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "trucking_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trucking_settings: {
         Row: {
