@@ -440,29 +440,69 @@ export default function LoadFormDialog({ open, onOpenChange, onSuccess, editingL
 
             {/* Rate Fields */}
             {formData.rate_type === "flat" ? (
-              <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="target_rate">Target Rate (Pay rate) ($)</Label>
-                  <Input
-                    id="target_rate"
-                    type="number"
-                    step="0.01"
-                    value={formData.target_rate}
-                    onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
-                    placeholder="e.g., 2500"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ceiling_rate">Ceiling Rate ($)</Label>
+                  <Label htmlFor="ceiling_rate">Customer Rate (Invoice Amount) ($)</Label>
                   <Input
                     id="ceiling_rate"
                     type="number"
                     step="0.01"
                     value={formData.ceiling_rate}
-                    onChange={(e) => setFormData({ ...formData, ceiling_rate: e.target.value })}
-                    placeholder="e.g., 2200"
+                    onChange={(e) => {
+                      const customerRate = parseFloat(e.target.value) || 0;
+                      const targetRate = (customerRate * 0.80).toFixed(2);
+                      setFormData({ 
+                        ...formData, 
+                        ceiling_rate: e.target.value,
+                        target_rate: targetRate
+                      });
+                    }}
+                    placeholder="e.g., 2500"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    What the carrier pays (invoice amount)
+                  </p>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="target_rate">Target Rate (20% commission) ($)</Label>
+                    <Input
+                      id="target_rate"
+                      type="number"
+                      step="0.01"
+                      value={formData.target_rate}
+                      onChange={(e) => setFormData({ ...formData, target_rate: e.target.value })}
+                      placeholder="Auto-calculated"
+                      className="bg-muted/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Starting offer to driver (80% of customer rate)
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Floor Rate (15% min commission) ($)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.ceiling_rate ? (parseFloat(formData.ceiling_rate) * 0.85).toFixed(2) : ''}
+                      disabled
+                      className="bg-muted/50"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Max pay before connecting to dispatch
+                    </p>
+                  </div>
+                </div>
+                {formData.ceiling_rate && (
+                  <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
+                    <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                      Commission Range: ${((parseFloat(formData.ceiling_rate) || 0) * 0.15).toFixed(2)} - ${((parseFloat(formData.ceiling_rate) || 0) * 0.20).toFixed(2)}
+                    </p>
+                    <p className="text-xs text-green-600 dark:text-green-400">
+                      (15% - 20% of ${parseFloat(formData.ceiling_rate).toLocaleString()})
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

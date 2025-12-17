@@ -888,14 +888,26 @@ export default function LoadsPage() {
         secondary: tons ? `× ${tons.toFixed(1)}t` : '',
         total: desiredTotal ? `≈ $${desiredTotal.toLocaleString()}` : '',
         negotiated: negotiatedTotal ? `Neg: $${negotiatedTotal.toLocaleString()}` : null,
+        commission: null,
       };
     }
-    // Flat rate
+    // Flat rate - calculate commission from floor_rate (customer/invoice rate)
+    const customerRate = load.floor_rate;
+    const targetRate = load.target_rate;
+    let commissionInfo = null;
+    
+    if (customerRate && targetRate) {
+      const commission = customerRate - targetRate;
+      const commissionPct = ((commission / customerRate) * 100).toFixed(0);
+      commissionInfo = `$${commission.toLocaleString()} (${commissionPct}%)`;
+    }
+    
     return {
       primary: load.target_rate ? `$${load.target_rate.toLocaleString()}` : '—',
       secondary: formatRatePerMile(load) ? `~$${formatRatePerMile(load)}/mi` : '',
-      total: '',
+      total: customerRate ? `Invoice: $${customerRate.toLocaleString()}` : '',
       negotiated: load.negotiated_rate ? `Neg: $${load.negotiated_rate.toLocaleString()}` : null,
+      commission: commissionInfo,
     };
   };
 
@@ -940,19 +952,20 @@ export default function LoadsPage() {
               {load.temp_required && <Badge variant="secondary" className="text-xs">TEMP</Badge>}
             </TableCell>
             <TableCell>
-              {(() => {
-                const rateInfo = formatRateDisplay(load);
-                return (
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span>{rateInfo.primary}</span>
-                      {rateInfo.secondary && <span className="text-xs text-muted-foreground">{rateInfo.secondary}</span>}
-                    </div>
-                    {rateInfo.total && <div className="text-xs text-muted-foreground">{rateInfo.total}</div>}
-                    {rateInfo.negotiated && <div className="text-xs text-green-600">{rateInfo.negotiated}</div>}
-                  </div>
-                );
-              })()}
+                              {(() => {
+                                const rateInfo = formatRateDisplay(load);
+                                return (
+                                  <div>
+                                    <div className="flex items-center gap-1">
+                                      <span className="font-medium">{rateInfo.primary}</span>
+                                      {rateInfo.secondary && <span className="text-xs text-muted-foreground">{rateInfo.secondary}</span>}
+                                    </div>
+                                    {rateInfo.total && <div className="text-xs text-muted-foreground">{rateInfo.total}</div>}
+                                    {rateInfo.commission && <div className="text-xs text-green-600 font-medium">Commission: {rateInfo.commission}</div>}
+                                    {rateInfo.negotiated && <div className="text-xs text-blue-600">{rateInfo.negotiated}</div>}
+                                  </div>
+                                );
+                              })()}
             </TableCell>
             <TableCell>
               <div className="flex flex-col gap-1">

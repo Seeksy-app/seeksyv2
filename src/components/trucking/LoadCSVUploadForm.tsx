@@ -427,16 +427,22 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const tarp = tarpRaw.toUpperCase() === 'YES' ? 'Tarp Required' : (tarpRaw.toUpperCase() === 'NO' ? 'No Tarp' : tarpRaw);
 
       if (originCity || destCity) {
+        // Calculate rates from invoice amount (20% target, 15% floor)
+        const invoiceAmount = parseFloat(rate) || 0;
+        const targetRate = (invoiceAmount * 0.80).toFixed(2);
+        
         parsedData.push({
           "Origin City": originCity,
           "Origin State": originState,
           "Destination City": destCity,
           "Destination State": destState,
-          "Rate": rate,
+          "Customer Rate": rate, // Invoice amount
+          "Target Rate": targetRate, // 20% commission (80% of invoice)
           "Pickup Date": pickupDate,
           "Weight": weight,
           "Length": length,
           "Tarp": tarp,
+          "Commodity": "REBAR", // All Adelphia loads are Rebar
         });
       }
     }
@@ -447,7 +453,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     }
 
     // Set up with pre-parsed headers
-    const headers = ["Origin City", "Origin State", "Destination City", "Destination State", "Rate", "Pickup Date", "Weight", "Length", "Tarp"];
+    const headers = ["Origin City", "Origin State", "Destination City", "Destination State", "Customer Rate", "Target Rate", "Pickup Date", "Weight", "Length", "Tarp", "Commodity"];
     setCsvHeaders(headers);
     setCsvData(parsedData);
     
@@ -457,15 +463,17 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       "Origin State": "origin_state",
       "Destination City": "destination_city",
       "Destination State": "destination_state",
-      "Rate": "target_rate",
+      "Customer Rate": "floor_rate", // Store invoice as floor_rate
+      "Target Rate": "target_rate", // 20% commission rate
       "Pickup Date": "pickup_date",
       "Weight": "weight_lbs",
       "Length": "length_ft",
       "Tarp": "equipment_notes",
+      "Commodity": "commodity",
     });
     
     setStep("map");
-    toast.success(`Detected Adelphia Metals format! Found ${parsedData.length} loads`);
+    toast.success(`Detected Adelphia Metals format! Found ${parsedData.length} loads (Commodity: REBAR)`);
   };
 
   const parseCityState = (value: string): [string, string] => {
