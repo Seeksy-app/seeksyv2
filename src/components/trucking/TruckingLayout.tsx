@@ -28,12 +28,14 @@ import {
   ClipboardList,
   BarChart3,
   Sun,
-  Moon
+  Moon,
+  UserPlus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
+import { useTruckingRole } from "@/hooks/trucking/useTruckingRole";
 import { useTheme } from "next-themes";
 
 // Theme colors for dark sidebar
@@ -57,13 +59,15 @@ const theme = {
   },
 };
 
-const navItems = [
-  { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard },
-  { label: "Loads", href: "/trucking/loads", icon: PackageSearch },
-  { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList },
-  { label: "Analytics", href: "/trucking/analytics", icon: BarChart3 },
-  { label: "Contacts", href: "/trucking/contacts", icon: BookUser },
-  { label: "Settings", href: "/trucking/settings", icon: Settings },
+// Base nav items - filtered based on role
+const allNavItems = [
+  { label: "Dashboard", href: "/trucking/dashboard", icon: LayoutDashboard, ownerOnly: false },
+  { label: "Loads", href: "/trucking/loads", icon: PackageSearch, ownerOnly: false },
+  { label: "Call Logs", href: "/trucking/call-logs", icon: ClipboardList, ownerOnly: false },
+  { label: "Analytics", href: "/trucking/analytics", icon: BarChart3, ownerOnly: true },
+  { label: "Agents", href: "/trucking/agents", icon: UserPlus, ownerOnly: true },
+  { label: "Contacts", href: "/trucking/contacts", icon: BookUser, ownerOnly: false },
+  { label: "Settings", href: "/trucking/settings", icon: Settings, ownerOnly: false },
 ];
 
 interface TruckingLayoutProps {
@@ -78,6 +82,10 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [user, setUser] = useState<any>(null);
   const costStats = useTruckingCostStats();
+  const { isOwner, loading: roleLoading } = useTruckingRole();
+
+  // Filter nav items based on role
+  const navItems = allNavItems.filter(item => !item.ownerOnly || isOwner);
 
   const formatCost = (cost: number) => {
     if (cost === 0) return "—";
@@ -223,16 +231,18 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
                   Jess
                 </span>
               </div>
-              {/* Cost Estimate */}
-              <div 
-                className="flex items-center justify-between pt-2 mt-1"
-                style={{ borderTop: `1px solid ${theme.sidebar.border}` }}
-              >
-                <span className="text-[11px]" style={{ color: theme.text.muted }}>Est. Cost/Mo</span>
-                <span className="text-xs font-medium" style={{ color: theme.accent.yellow }}>
-                  {costStats.loading ? "..." : formatCost(costStats.totalCostThisMonth)}
-                </span>
-              </div>
+              {/* Cost Estimate - Owner only */}
+              {isOwner && (
+                <div 
+                  className="flex items-center justify-between pt-2 mt-1"
+                  style={{ borderTop: `1px solid ${theme.sidebar.border}` }}
+                >
+                  <span className="text-[11px]" style={{ color: theme.text.muted }}>Est. Cost/Mo</span>
+                  <span className="text-xs font-medium" style={{ color: theme.accent.yellow }}>
+                    {costStats.loading ? "..." : formatCost(costStats.totalCostThisMonth)}
+                  </span>
+                </div>
+              )}
             </div>
           )}
           

@@ -26200,6 +26200,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_agents: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          name: string
+          owner_id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["trucking_role"]
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_active?: boolean
+          name: string
+          owner_id: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["trucking_role"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          owner_id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["trucking_role"]
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       trucking_call_logs: {
         Row: {
           call_direction: string | null
@@ -30779,6 +30818,14 @@ export type Database = {
         Args: { _team_id: string; _user_id: string }
         Returns: boolean
       }
+      is_trucking_agent: {
+        Args: { _owner_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_trucking_owner: {
+        Args: { _owner_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_security_alert: {
         Args: {
           p_alert_type: string
@@ -30898,6 +30945,7 @@ export type Database = {
         | "advertiser"
         | "board"
         | "subscriber"
+      trucking_role: "owner" | "agent"
       voice_cert_status: "pending" | "verified" | "revoked" | "failed"
       voting_method: "public" | "jury" | "hybrid" | "ranked_choice"
     }
@@ -31098,6 +31146,7 @@ export const Constants = {
         "board",
         "subscriber",
       ],
+      trucking_role: ["owner", "agent"],
       voice_cert_status: ["pending", "verified", "revoked", "failed"],
       voting_method: ["public", "jury", "hybrid", "ranked_choice"],
     },
