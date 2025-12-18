@@ -79,8 +79,8 @@ const AUTO_MAP_HINTS: Record<string, string[]> = {
 // Adelphia Metals specific format detection
 const ADELPHIA_HEADERS = ["PICK UP AT", "RATE", "DESTINATION", "READY", "WEIGHT", "LENGTH", "TARP"];
 
-// Aljex TMS standard format detection - using actual column names from export
-const ALJEX_TMS_HEADERS = ["Status", "Pro #", "Load#", "Ship Date", "Pickup City", "Pickup State", "Consignee City", "Destination City", "Weight", "LH Revenue"];
+// Aljex TMS - key identifying headers (flexible matching)
+const ALJEX_TMS_HEADERS = ["Pro", "Ship Date", "Pickup City", "Pickup State", "Consignee City", "Destination City", "Weight", "LH Revenue", "Status"];
 
 type ImportTemplate = "auto" | "adelphia" | "aljex" | "standard";
 
@@ -189,43 +189,54 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
   };
 
   const parseAljexTMSFormat = (rawData: any[][]) => {
-    // Find header row
+    // Find header row - look for row with recognizable column headers
     let headerRowIndex = -1;
-    for (let i = 0; i < Math.min(5, rawData.length); i++) {
+    for (let i = 0; i < Math.min(10, rawData.length); i++) {
       const row = rawData[i];
       if (!row) continue;
       const rowHeaders = row.map(c => String(c || '').toLowerCase().trim());
+      // Check if this row looks like a header (has any of our expected column names)
       const matchCount = ALJEX_TMS_HEADERS.filter(h => 
-        rowHeaders.some(rh => rh === h.toLowerCase() || rh.includes(h.toLowerCase()))
+        rowHeaders.some(rh => rh.includes(h.toLowerCase()) || h.toLowerCase().includes(rh))
       ).length;
-      if (matchCount >= 5) {
+      if (matchCount >= 2) {
         headerRowIndex = i;
         break;
       }
     }
 
+    // If no header found, assume first row is header
     if (headerRowIndex === -1) {
-      toast.error("Could not find Aljex header row");
-      return;
+      headerRowIndex = 0;
     }
 
     const headerRow = rawData[headerRowIndex].map(c => String(c || '').trim());
     
-    // Find column indices - using actual Aljex column names
-    const findCol = (names: string[]) => headerRow.findIndex(h => 
-      names.some(n => h.toLowerCase() === n.toLowerCase())
-    );
+    // Find column indices - flexible matching with partial matches
+    const findCol = (names: string[]) => {
+      for (let i = 0; i < headerRow.length; i++) {
+        const h = headerRow[i].toLowerCase();
+        for (const n of names) {
+          const nl = n.toLowerCase();
+          // Exact match or contains match
+          if (h === nl || h.includes(nl) || nl.includes(h)) {
+            return i;
+          }
+        }
+      }
+      return -1;
+    };
 
-    // Column mappings based on actual Aljex export:
+    // Column mappings based on user's Aljex export:
     // B: Pro #/Load#, J: Type/Equipment, N: Status, P: Ship date
     // AF: Pickup City, AG: Pickup State, AH: Pickup Zip
     // AJ: Consignee City/Destination City, AK: Consignee State/Destination State, AL: Consignee Zip/Destination Zip
     // AQ: Description/Commodity, AR: Weight, AS: Footage/Truck Size, AW: Miles
     // BA: LH Revenue/Customer Invoice, FU: Hazmat, GJ: Tarps, GK: Tarp Size
-    const proIdx = findCol(["Pro #", "Load#", "Pro"]);
-    const typeIdx = findCol(["Type", "Equipment"]);
+    const proIdx = findCol(["Pro #", "Pro#", "Load#", "Pro"]);
+    const typeIdx = findCol(["Type of Shipment", "Type", "Equipment"]);
     const statusIdx = findCol(["Status"]);
-    const shipDateIdx = findCol(["Ship Date", "Ship date"]);
+    const shipDateIdx = findCol(["Ship Date", "Ship date", "ShipDate"]);
     const pickupCityIdx = findCol(["Pickup City"]);
     const pickupStateIdx = findCol(["Pickup State"]);
     const pickupZipIdx = findCol(["Pickup Zip"]);
@@ -236,10 +247,22 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     const weightIdx = findCol(["Weight"]);
     const footageIdx = findCol(["Footage", "Truck Size"]);
     const milesIdx = findCol(["Miles"]);
-    const rateIdx = findCol(["LH Revenue", "Customer Invoice"]);
+    const rateIdx = findCol(["LH Revenue", "Customer Invoice", "Revenue"]);
     const hazmatIdx = findCol(["Hazmat"]);
-    const tarpsIdx = findCol(["Tarps"]);
+    const tarpsIdx = findCol(["Tarps", "Tarp"]);
     const tarpSizeIdx = findCol(["Tarp Size"]);
+
+    console.log("Aljex header row:", headerRow);
+    console.log("Aljex column detection:", {
+      proIdx, typeIdx, statusIdx, shipDateIdx, pickupCityIdx, pickupStateIdx,
+      destCityIdx, destStateIdx, commodityIdx, weightIdx, milesIdx, rateIdx
+    });
+
+    // Validate we found essential columns
+    if (pickupCityIdx === -1 && destCityIdx === -1) {
+      toast.error("Could not find Pickup City or Destination City columns. Check your CSV headers match: 'Pickup City', 'Consignee City', or 'Destination City'");
+      return;
+    }
 
     const parsedData: Record<string, string>[] = [];
 
