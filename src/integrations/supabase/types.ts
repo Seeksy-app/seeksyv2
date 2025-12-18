@@ -18913,6 +18913,33 @@ export type Database = {
         }
         Relationships: []
       }
+      onet_ou_profile_wip: {
+        Row: {
+          description: string | null
+          job_zone: number
+          need_std_scores: Json
+          ou_code: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string | null
+          job_zone: number
+          need_std_scores?: Json
+          ou_code: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string | null
+          job_zone?: number
+          need_std_scores?: Json
+          ou_code?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       opportunity_proformas: {
         Row: {
           addressable_market: string | null
@@ -30754,6 +30781,316 @@ export type Database = {
           owner_type?: string
         }
         Relationships: []
+      }
+      wip_assessment: {
+        Row: {
+          audience_path: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          started_at: string
+          user_id: string | null
+          version: string
+        }
+        Insert: {
+          audience_path?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          started_at?: string
+          user_id?: string | null
+          version?: string
+        }
+        Update: {
+          audience_path?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          started_at?: string
+          user_id?: string | null
+          version?: string
+        }
+        Relationships: []
+      }
+      wip_match_result: {
+        Row: {
+          assessment_id: string
+          correlation: number
+          created_at: string
+          id: string
+          is_minimum_match: boolean
+          is_strong_match: boolean
+          job_zone: number
+          ou_code: string
+          rank_within_job_zone: number | null
+        }
+        Insert: {
+          assessment_id: string
+          correlation: number
+          created_at?: string
+          id?: string
+          is_minimum_match?: boolean
+          is_strong_match?: boolean
+          job_zone: number
+          ou_code: string
+          rank_within_job_zone?: number | null
+        }
+        Update: {
+          assessment_id?: string
+          correlation?: number
+          created_at?: string
+          id?: string
+          is_minimum_match?: boolean
+          is_strong_match?: boolean
+          job_zone?: number
+          ou_code?: string
+          rank_within_job_zone?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wip_match_result_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "wip_assessment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wip_match_result_ou_code_fkey"
+            columns: ["ou_code"]
+            isOneToOne: false
+            referencedRelation: "onet_ou_profile_wip"
+            referencedColumns: ["ou_code"]
+          },
+        ]
+      }
+      wip_need: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          label: string
+          sort_order: number
+          value_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          label: string
+          sort_order?: number
+          value_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          label?: string
+          sort_order?: number
+          value_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wip_need_value_id_fkey"
+            columns: ["value_id"]
+            isOneToOne: false
+            referencedRelation: "wip_value"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wip_need_score: {
+        Row: {
+          appearances: number
+          assessment_id: string
+          created_at: string
+          id: string
+          max_possible: number
+          min_possible: number
+          need_id: string
+          raw_score: number
+          std_score_0_100: number
+        }
+        Insert: {
+          appearances?: number
+          assessment_id: string
+          created_at?: string
+          id?: string
+          max_possible?: number
+          min_possible?: number
+          need_id: string
+          raw_score?: number
+          std_score_0_100?: number
+        }
+        Update: {
+          appearances?: number
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          max_possible?: number
+          min_possible?: number
+          need_id?: string
+          raw_score?: number
+          std_score_0_100?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wip_need_score_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "wip_assessment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wip_need_score_need_id_fkey"
+            columns: ["need_id"]
+            isOneToOne: false
+            referencedRelation: "wip_need"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wip_round: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          need_ids: string[]
+          round_index: number
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          need_ids: string[]
+          round_index: number
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          need_ids?: string[]
+          round_index?: number
+          version?: string
+        }
+        Relationships: []
+      }
+      wip_round_response: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          ranked_need_ids: string[]
+          round_index: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          ranked_need_ids: string[]
+          round_index: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          ranked_need_ids?: string[]
+          round_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wip_round_response_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "wip_assessment"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wip_value: {
+        Row: {
+          code: string
+          created_at: string
+          description: string | null
+          id: string
+          label: string
+          sort_order: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          label: string
+          sort_order?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          label?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      wip_value_score: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          max_possible: number
+          min_possible: number
+          raw_mean: number
+          raw_sum: number
+          std_score_0_100: number
+          value_id: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          max_possible?: number
+          min_possible?: number
+          raw_mean?: number
+          raw_sum?: number
+          std_score_0_100?: number
+          value_id: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          max_possible?: number
+          min_possible?: number
+          raw_mean?: number
+          raw_sum?: number
+          std_score_0_100?: number
+          value_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wip_value_score_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "wip_assessment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wip_value_score_value_id_fkey"
+            columns: ["value_id"]
+            isOneToOne: false
+            referencedRelation: "wip_value"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       workspace_members: {
         Row: {

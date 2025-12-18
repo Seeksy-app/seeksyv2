@@ -1,0 +1,219 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Loader2, Info } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { WIPRankingCard } from '@/components/wip/WIPRankingCard';
+import { WIPProgressRing } from '@/components/wip/WIPProgressRing';
+import { WIPValueBars } from '@/components/wip/WIPValueBars';
+import { WIPMicroCelebration } from '@/components/wip/WIPMicroCelebration';
+import { useWIPAssessment } from '@/hooks/useWIPAssessment';
+
+export default function WIPAssessment() {
+  const navigate = useNavigate();
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationMilestone, setCelebrationMilestone] = useState(0);
+
+  const {
+    values,
+    needs,
+    assessmentId,
+    currentRoundIndex,
+    totalRounds,
+    progress,
+    isComplete,
+    isLoading,
+    startAssessment,
+    submitRound,
+    goBack,
+    completeAssessment,
+    getCurrentRound,
+    getLiveScores,
+    isStarting,
+    isSaving,
+    isCompleting,
+  } = useWIPAssessment('civilian');
+
+  // Start assessment on mount
+  useEffect(() => {
+    if (!assessmentId && !isLoading && needs.length > 0) {
+      startAssessment();
+    }
+  }, [assessmentId, isLoading, needs.length, startAssessment]);
+
+  // Check for milestones
+  useEffect(() => {
+    if (currentRoundIndex > 1 && (currentRoundIndex - 1) % 7 === 0) {
+      setCelebrationMilestone(currentRoundIndex - 1);
+      setShowCelebration(true);
+    }
+  }, [currentRoundIndex]);
+
+  const handleRoundComplete = async (rankedNeedIds: string[]) => {
+    await submitRound(rankedNeedIds);
+  };
+
+  const handleComplete = async () => {
+    setCelebrationMilestone(21);
+    setShowCelebration(true);
+    await completeAssessment();
+    // Navigate to results after brief celebration
+    setTimeout(() => {
+      navigate(`/workready360/wip/results/${assessmentId}`);
+    }, 2000);
+  };
+
+  const currentRound = getCurrentRound();
+  const liveScores = getLiveScores();
+
+  if (isLoading || isStarting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Loading assessment...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <CardTitle>Assessment Complete!</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-center text-muted-foreground">
+              You've completed all {totalRounds} rounds. Let's calculate your work values profile.
+            </p>
+            <Button
+              onClick={handleComplete}
+              disabled={isCompleting}
+              className="w-full"
+              size="lg"
+            >
+              {isCompleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Calculating Results...
+                </>
+              ) : (
+                'View My Results'
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Micro Celebration Overlay */}
+      <WIPMicroCelebration
+        show={showCelebration}
+        milestone={celebrationMilestone}
+        onComplete={() => setShowCelebration(false)}
+      />
+
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Exit
+          </Button>
+
+          <div className="flex items-center gap-4">
+            <WIPProgressRing
+              current={currentRoundIndex}
+              total={totalRounds}
+              size={60}
+              strokeWidth={4}
+            />
+            <div className="hidden sm:block text-sm">
+              <div className="font-medium">Round {currentRoundIndex}</div>
+              <div className="text-muted-foreground">{Math.round(progress)}% complete</div>
+            </div>
+          </div>
+
+          <Button variant="ghost" size="icon">
+            <Info className="h-4 w-4" />
+          </Button>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-6 max-w-4xl">
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentRoundIndex}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">
+                      Rank these work aspects from most to least important
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      What matters most to you in a job? Drag to reorder.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    {currentRound && (
+                      <WIPRankingCard
+                        needs={currentRound.needs}
+                        onComplete={handleRoundComplete}
+                        isSubmitting={isSaving}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation */}
+            <div className="flex justify-between mt-4">
+              <Button
+                variant="ghost"
+                onClick={goBack}
+                disabled={currentRoundIndex <= 1}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Previous
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                {totalRounds - currentRoundIndex + 1} rounds remaining
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar - Live Value Bars */}
+          <div className="hidden lg:block">
+            <Card className="sticky top-24">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">
+                  Your Values (Live)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WIPValueBars scores={liveScores} compact />
+                <p className="text-xs text-muted-foreground mt-4">
+                  Updates as you rank • Final scores at the end
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
