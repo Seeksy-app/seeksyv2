@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WIPRankingCard } from '@/components/wip/WIPRankingCard';
 import { WIPProgressRing } from '@/components/wip/WIPProgressRing';
-import { WIPValueBars } from '@/components/wip/WIPValueBars';
 import { WIPMicroCelebration } from '@/components/wip/WIPMicroCelebration';
 import { useWIPAssessment } from '@/hooks/useWIPAssessment';
 
@@ -68,7 +67,6 @@ export default function WIPAssessment() {
   };
 
   const currentRound = getCurrentRound();
-  const liveScores = getLiveScores();
 
   if (isLoading || isStarting) {
     return (
@@ -149,71 +147,49 @@ export default function WIPAssessment() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentRoundIndex}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">
-                      Rank these work aspects from most to least important
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      What matters most to you in a job? Drag to reorder.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    {currentRound && (
-                      <WIPRankingCard
-                        needs={currentRound.needs}
-                        onComplete={handleRoundComplete}
-                        isSubmitting={isSaving}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Navigation */}
-            <div className="flex justify-between mt-4">
-              <Button
-                variant="ghost"
-                onClick={goBack}
-                disabled={currentRoundIndex <= 1}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Previous
-              </Button>
-              <div className="text-sm text-muted-foreground">
-                {totalRounds - currentRoundIndex + 1} rounds remaining
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar - Live Value Bars */}
-          <div className="hidden lg:block">
-            <Card className="sticky top-24">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium">
-                  Your Values (Live)
+      <main className="container mx-auto px-4 py-6 max-w-2xl">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentRoundIndex}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Rank these work aspects from most to least important
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  What matters most to you in a job? Drag to reorder.
+                </p>
               </CardHeader>
               <CardContent>
-                <WIPValueBars scores={liveScores} compact />
-                <p className="text-xs text-muted-foreground mt-4">
-                  Updates as you rank • Final scores at the end
-                </p>
+                {currentRound && (
+                  <WIPRankingCard
+                    needs={currentRound.needs}
+                    onComplete={handleRoundComplete}
+                    isSubmitting={isSaving}
+                  />
+                )}
               </CardContent>
             </Card>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Navigation */}
+        <div className="flex justify-between mt-4">
+          <Button
+            variant="ghost"
+            onClick={goBack}
+            disabled={currentRoundIndex <= 1}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Previous
+          </Button>
+          <div className="text-sm text-muted-foreground">
+            {totalRounds - currentRoundIndex + 1} rounds remaining
           </div>
         </div>
       </main>

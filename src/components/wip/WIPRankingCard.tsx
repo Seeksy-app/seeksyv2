@@ -162,12 +162,9 @@ function RankableNeedItem({
 
             {/* Content */}
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-foreground">{item.need.label}</div>
-              {item.need.description && (
-                <div className="text-sm text-muted-foreground truncate">
-                  {item.need.description}
-                </div>
-              )}
+              <div className="text-sm text-foreground leading-relaxed">
+                {item.need.description || item.need.label}
+              </div>
             </div>
 
             {/* Rank Label */}
