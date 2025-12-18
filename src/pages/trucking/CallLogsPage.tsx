@@ -4,14 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2, FileText, Headphones } from "lucide-react";
+import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2, FileText, Headphones, RefreshCw, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard } from "@/components/trucking/TruckingPageWrapper";
 import { formatDistanceToNow, format } from "date-fns";
 import { getOutcomeLabel, getOutcomeTooltip } from "@/constants/truckingOutcomes";
+import { CallDetailDrawer } from "@/components/trucking/CallDetailDrawer";
 
 interface CallLog {
   id: string;
@@ -71,7 +71,8 @@ export default function CallLogsPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
-  const [showTranscript, setShowTranscript] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [backfilling, setBackfilling] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -95,6 +96,33 @@ export default function CallLogsPage() {
       toast({ title: "Error loading call logs", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleBackfill = async () => {
+    setBackfilling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('elevenlabs-backfill-calls', {
+        body: { limit: 100 }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        const results = data.results;
+        toast({ 
+          title: "Backfill Complete", 
+          description: `Processed ${results.processed} calls. Updated: ${results.updated}, Errors: ${results.errors}` 
+        });
+        // Refresh the logs
+        await fetchLogs();
+      } else {
+        throw new Error(data?.error || 'Backfill failed');
+      }
+    } catch (error: any) {
+      toast({ title: "Backfill failed", description: error.message, variant: "destructive" });
+    } finally {
+      setBackfilling(false);
     }
   };
 
@@ -147,6 +175,22 @@ export default function CallLogsPage() {
     <TruckingPageWrapper
       title="Call Logs"
       description="View all AI call history and outcomes"
+      action={
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleBackfill}
+          disabled={backfilling}
+          className="gap-2"
+        >
+          {backfilling ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+          Backfill from ElevenLabs
+        </Button>
+      }
     >
       {/* Stats Summary */}
       <div className="text-xs text-slate-500 mb-4 flex items-center gap-6">
@@ -273,26 +317,23 @@ export default function CallLogsPage() {
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            disabled={!hasTranscript}
                             onClick={() => {
                               setSelectedLog(log);
-                              setShowTranscript(true);
+                              setDrawerOpen(true);
                             }}
-                            title={hasTranscript ? "View transcript" : "No transcript available"}
+                            title="View call details"
                           >
-                            <FileText className={`h-4 w-4 ${hasTranscript ? 'text-blue-500' : 'text-muted-foreground/40'}`} />
+                            <FileText className={`h-4 w-4 ${hasTranscript ? 'text-blue-500' : 'text-muted-foreground'}`} />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8"
-                            disabled={!hasRecording}
                             onClick={() => {
-                              if (hasRecording) {
-                                window.open(log.recording_url!, '_blank');
-                              }
+                              setSelectedLog(log);
+                              setDrawerOpen(true);
                             }}
-                            title={hasRecording ? "Listen to recording" : "No recording available"}
+                            title={hasRecording ? "Play recording" : "View details"}
                           >
                             <Headphones className={`h-4 w-4 ${hasRecording ? 'text-green-500' : 'text-muted-foreground/40'}`} />
                           </Button>
@@ -307,48 +348,12 @@ export default function CallLogsPage() {
         </div>
       </TruckingContentCard>
 
-      {/* Transcript Modal */}
-      <Dialog open={showTranscript} onOpenChange={setShowTranscript}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Call Transcript
-            </DialogTitle>
-          </DialogHeader>
-          {selectedLog && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>{selectedLog.carrier_phone || "Unknown"}</span>
-                <span>•</span>
-                <span>{selectedLog.call_started_at ? format(new Date(selectedLog.call_started_at), "MMM d, yyyy h:mm a") : "—"}</span>
-                {selectedLog.duration_seconds && selectedLog.duration_seconds > 0 && (
-                  <>
-                    <span>•</span>
-                    <span>{formatDuration(selectedLog.duration_seconds)}</span>
-                  </>
-                )}
-              </div>
-              
-              {selectedLog.recording_url && (
-                <div className="bg-muted/50 rounded-lg p-3">
-                  <audio controls className="w-full" src={selectedLog.recording_url}>
-                    Your browser does not support the audio element.
-                  </audio>
-                </div>
-              )}
-              
-              <div className="prose prose-sm max-w-none">
-                <div className="bg-muted/30 rounded-lg p-4 whitespace-pre-wrap text-sm leading-relaxed">
-                  {selectedLog.trucking_call_transcripts?.[0]?.transcript_text || 
-                   selectedLog.voicemail_transcript || 
-                   "No transcript available for this call."}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Call Detail Drawer */}
+      <CallDetailDrawer 
+        call={selectedLog} 
+        open={drawerOpen} 
+        onOpenChange={setDrawerOpen} 
+      />
     </TruckingPageWrapper>
   );
 }
