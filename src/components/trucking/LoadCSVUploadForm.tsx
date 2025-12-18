@@ -250,11 +250,14 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const targetRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.80) : 0;
       const floorRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.85) : 0;
 
-      // Parse boolean fields
-      const hazmatRaw = getVal(row, "FU").toLowerCase();
-      const tarpsRaw = getVal(row, "GJ").toLowerCase();
-      const hazmat = hazmatRaw === 'y' || hazmatRaw === 'yes' ? 'Yes' : 'No';
-      const tarps = tarpsRaw === 'y' || tarpsRaw === 'yes' ? 'Yes' : 'No';
+      // Parse boolean fields - Tarps at column FU (176)
+      const tarpsRaw = getVal(row, "FU").toLowerCase();
+      const tarpRequired = tarpsRaw === 'y' || tarpsRaw === 'yes';
+      const tarpSize = getVal(row, "GK"); // Tarp Size
+
+      // Get commodity/description and footage
+      const commodity = getVal(row, "AQ");
+      const footage = getVal(row, "AS").replace(/[,]/g, '');
 
       // Only keep essential fields for import
       parsedData.push({
@@ -265,8 +268,12 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
         "Destination State": getVal(row, "AK"),
         "Pickup Date": pickupDate,
         "Equipment": getVal(row, "J"),
+        "Footage": footage,
         "Weight": weight,
         "Miles": miles,
+        "Commodity": commodity,
+        "Tarp Required": tarpRequired ? 'Yes' : 'No',
+        "Tarp Size": tarpSize,
         "Target Pay": targetRate > 0 ? String(targetRate) : '',
         "Max Pay": floorRate > 0 ? String(floorRate) : '',
       });
@@ -280,7 +287,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     console.log("Parsed", parsedData.length, "loads. Sample:", parsedData[0]);
 
     // Essential columns only
-    const essentialHeaders = ["Load #", "Origin City", "Origin State", "Destination City", "Destination State", "Pickup Date", "Equipment", "Weight", "Miles", "Target Pay", "Max Pay"];
+    const essentialHeaders = ["Load #", "Origin City", "Origin State", "Destination City", "Destination State", "Pickup Date", "Equipment", "Footage", "Weight", "Miles", "Commodity", "Tarp Required", "Tarp Size", "Target Pay", "Max Pay"];
     setCsvHeaders(essentialHeaders);
     setCsvData(parsedData);
     
@@ -293,8 +300,12 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       "Destination State": "destination_state",
       "Pickup Date": "pickup_date",
       "Equipment": "equipment_type",
+      "Footage": "length_ft",
       "Weight": "weight_lbs",
       "Miles": "miles",
+      "Commodity": "commodity",
+      "Tarp Required": "tarp_required",
+      "Tarp Size": "equipment_notes",
       "Target Pay": "target_rate",
       "Max Pay": "floor_rate",
     });
@@ -768,7 +779,7 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
               loadData[dbField] = parseNumber(value);
             } else if (["target_rate", "floor_rate", "temp_min_f", "temp_max_f"].includes(dbField)) {
               loadData[dbField] = parseNumber(value);
-            } else if (["hazmat", "temp_required"].includes(dbField)) {
+            } else if (["hazmat", "temp_required", "tarp_required"].includes(dbField)) {
               loadData[dbField] = parseBoolean(value);
             } else if (["pickup_date", "delivery_date"].includes(dbField)) {
               loadData[dbField] = parseDate(value);

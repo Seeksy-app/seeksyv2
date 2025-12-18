@@ -19,7 +19,7 @@ const US_STATES = [
 ];
 
 const equipmentTypes = ["Dry Van", "Reefer", "Flatbed", "Step Deck", "Power Only", "Hotshot", "Conestoga", "Double Drop", "RGN"];
-const truckSizes = ["20 foot", "30 foot", "40 foot", "48 foot", "53 foot"];
+const defaultTruckSizes = ["20 foot", "30 foot", "40 foot", "48 foot", "53 foot"];
 
 interface AddLoadModalProps {
   open: boolean;
@@ -344,7 +344,11 @@ export default function AddLoadModal({ open, onOpenChange, onSubmit, editingLoad
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {truckSizes.map((size) => (
+                    {/* Show current value if not in default list */}
+                    {formData.truck_size && !defaultTruckSizes.includes(formData.truck_size) && (
+                      <SelectItem key={formData.truck_size} value={formData.truck_size}>{formData.truck_size}</SelectItem>
+                    )}
+                    {defaultTruckSizes.map((size) => (
                       <SelectItem key={size} value={size}>{size}</SelectItem>
                     ))}
                   </SelectContent>
