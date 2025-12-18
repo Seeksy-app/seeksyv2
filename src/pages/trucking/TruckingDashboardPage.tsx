@@ -183,7 +183,7 @@ export default function TruckingDashboardPage() {
       
       const [loadsRes, leadsRes, callsRes, voicemailRes, allCallsRes, transcriptsRes, agentsRes] = await Promise.all([
         supabase.from("trucking_loads").select("*").eq("is_active", true).order("created_at", { ascending: false }),
-        supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date), trucking_call_logs(id, summary, call_outcome, call_status, duration_seconds)").order("created_at", { ascending: false }),
+        supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date), trucking_call_logs!trucking_carrier_leads_call_log_id_fkey(id, summary, call_outcome, call_status, duration_seconds)").order("created_at", { ascending: false }),
         // Use call_started_at for "Calls Today" with proper timezone handling
         supabase.from("trucking_call_logs").select("id").gte("call_started_at", todayStartUTC).lte("call_started_at", todayEndUTC),
         supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, recording_url, voicemail_transcript, routed_to_voicemail, call_started_at").eq("routed_to_voicemail", true).order("call_started_at", { ascending: false }).limit(10),
