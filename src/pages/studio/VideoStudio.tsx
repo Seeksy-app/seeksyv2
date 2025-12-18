@@ -106,9 +106,9 @@ export default function VideoStudio() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Start camera when entering studio
+  // Only start camera if we don't have a stream from PreJoinScreen
   useEffect(() => {
-    if (phase !== "studio") return;
+    if (phase !== "studio" || stream) return;
     
     async function startCamera() {
       try {
@@ -122,18 +122,25 @@ export default function VideoStudio() {
         }
       } catch (err) {
         console.error("Error starting camera:", err);
-        toast.error("Could not access camera");
+        toast.error("Could not access camera. Please check permissions.");
       }
     }
     
     startCamera();
     
     return () => {
+      // Cleanup on unmount only
+    };
+  }, [phase]);
+
+  // Cleanup stream on unmount
+  useEffect(() => {
+    return () => {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [phase]);
+  }, []);
 
   // Recording timer
   useEffect(() => {
@@ -146,9 +153,19 @@ export default function VideoStudio() {
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  const handleEnterStudio = (name: string, title: string) => {
+  const handleEnterStudio = (name: string, title: string, newSessionTitle: string, existingStream: MediaStream | null) => {
     setUserName(name);
     setUserTitle(title);
+    setSessionTitle(newSessionTitle);
+    
+    // Use the existing stream from PreJoinScreen
+    if (existingStream) {
+      setStream(existingStream);
+      if (videoRef.current) {
+        videoRef.current.srcObject = existingStream;
+      }
+    }
+    
     setPhase("studio");
   };
 

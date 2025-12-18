@@ -33,7 +33,7 @@ interface VideoPreJoinScreenProps {
   sessionTitle: string;
   hostName: string;
   hostAvatar?: string;
-  onEnterStudio: (name: string, title: string) => void;
+  onEnterStudio: (name: string, title: string, sessionTitle: string, stream: MediaStream | null) => void;
   onBack: () => void;
 }
 
@@ -46,9 +46,11 @@ export function VideoPreJoinScreen({
 }: VideoPreJoinScreenProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [permissionStatus, setPermissionStatus] = useState<"pending" | "granted" | "denied">("pending");
   
   // Form state
   const [name, setName] = useState(hostName);
+  const [editableSessionTitle, setEditableSessionTitle] = useState(sessionTitle);
   const [title, setTitle] = useState("");
   
   // Device state
@@ -76,11 +78,21 @@ export function VideoPreJoinScreen({
   // Mic/Camera test status
   const [micLevel, setMicLevel] = useState(0);
 
-  // Load devices
+  // Load devices and request permissions
   useEffect(() => {
     async function loadDevices() {
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        setPermissionStatus("pending");
+        
+        // Request permissions with clear user prompt
+        const mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
+        setPermissionStatus("granted");
+        
+        // Set initial stream for preview
+        setStream(mediaStream);
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
         
         const devices = await navigator.mediaDevices.enumerateDevices();
         
@@ -105,6 +117,8 @@ export function VideoPreJoinScreen({
         if (spkrs.length > 0) setSelectedSpeaker(spkrs[0].deviceId);
       } catch (err) {
         console.error("Error loading devices:", err);
+        setPermissionStatus("denied");
+        toast.error("Please allow camera and microphone access to continue");
       }
     }
     
@@ -158,10 +172,8 @@ export function VideoPreJoinScreen({
   };
 
   const handleEnter = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-    onEnterStudio(name, title);
+    // Pass stream to studio instead of stopping it
+    onEnterStudio(name, title, editableSessionTitle, stream);
   };
 
   const handleTestSpeaker = () => {
@@ -203,9 +215,12 @@ export function VideoPreJoinScreen({
             </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-white">
-            {sessionTitle}
-          </h1>
+          <Input
+            value={editableSessionTitle}
+            onChange={(e) => setEditableSessionTitle(e.target.value)}
+            className="text-3xl font-bold text-white bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-auto"
+            placeholder="Enter session title..."
+          />
           
           <p className="text-white/60 text-lg italic">
             "Seeking a new way to connect."
@@ -229,6 +244,29 @@ export function VideoPreJoinScreen({
 
           {/* Video Preview */}
           <div className="aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-orange-900/80 to-red-900/80 relative mb-4">
+            {permissionStatus === "pending" && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
+                <div className="text-center space-y-3">
+                  <div className="w-12 h-12 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto" />
+                  <p className="text-white text-sm">Requesting camera access...</p>
+                </div>
+              </div>
+            )}
+            {permissionStatus === "denied" && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+                <div className="text-center space-y-3 p-4">
+                  <VideoOff className="w-12 h-12 text-red-400 mx-auto" />
+                  <p className="text-white text-sm">Camera access denied</p>
+                  <Button
+                    size="sm"
+                    onClick={() => window.location.reload()}
+                    className="bg-blue-500 hover:bg-blue-600"
+                  >
+                    Retry Permissions
+                  </Button>
+                </div>
+              </div>
+            )}
             {!isVideoOff && !isAudioOnly && stream ? (
               <video
                 ref={videoRef}
