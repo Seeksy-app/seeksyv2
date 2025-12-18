@@ -20,6 +20,7 @@ import { NotesDrawer } from "@/components/studio/video/drawers/NotesDrawer";
 import { ChatDrawer } from "@/components/studio/video/drawers/ChatDrawer";
 import { QRCodesDrawer } from "@/components/studio/video/drawers/QRCodesDrawer";
 import { ScriptDrawer } from "@/components/studio/video/drawers/ScriptDrawer";
+import { SetupCheckPanel } from "@/components/studio/SetupCheckPanel";
 
 // Modals
 import { InviteGuestModal } from "@/components/studio/video/modals/InviteGuestModal";
@@ -93,6 +94,7 @@ export default function VideoStudio() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showChannelsModal, setShowChannelsModal] = useState(false);
   const [showAddMediaModal, setShowAddMediaModal] = useState(false);
+  const [showGreenRoom, setShowGreenRoom] = useState(false);
 
   // Markers
   const [markers, setMarkers] = useState<Array<{ type: string; time: number }>>([]);
@@ -507,7 +509,16 @@ export default function VideoStudio() {
             onSettings={() => setShowSettingsModal(true)}
             onLayoutChange={(layout) => setCurrentLayout(layout)}
             onEndSession={handleEndSession}
+            onGreenRoom={() => setShowGreenRoom(true)}
           />
+
+          {/* Green Room / AI Setup Check Panel */}
+          {showGreenRoom && stream && (
+            <SetupCheckPanel
+              videoRef={videoRef}
+              onClose={() => setShowGreenRoom(false)}
+            />
+          )}
         </div>
 
         {/* Right - Toolbar */}

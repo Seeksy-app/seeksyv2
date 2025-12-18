@@ -35,15 +35,10 @@ export function VideoStudioToolbar({
       <Button
         variant="ghost"
         size="icon"
-        className="h-10 w-10 rounded-full mb-2 text-white/60 hover:text-white hover:bg-white/10"
+        className="h-10 w-10 rounded-full mb-4 text-white/60 hover:text-white hover:bg-white/10"
       >
         <UserPlus className="w-5 h-5" />
       </Button>
-
-      {/* User Avatar */}
-      <div className="w-10 h-10 rounded-full mb-6 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center border-2 border-green-500 overflow-hidden">
-        <span className="text-white font-bold text-sm">S</span>
-      </div>
 
       {/* Divider */}
       <div className="w-8 h-px bg-white/10 mb-4" />

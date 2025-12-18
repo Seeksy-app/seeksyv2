@@ -99,7 +99,6 @@ import { useHelpMenuActions } from "@/hooks/useHelpDrawer";
 // Icon mapping for modules - ensure correct icons for each module
 const MODULE_ICONS: Record<string, React.ElementType> = {
   'studio': Mic,
-  'studio-recording': Mic,
   'podcasts': Podcast,
   'clips': Scissors,
   'ai-clips': Scissors,
@@ -148,7 +147,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
 // Each primary module acts as a collapsible group header
 const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
   'studio': { 
-    name: 'Creator Studio',
+    name: 'Production',
     modules: ['ai-clips', 'ai-post-production', 'media-library', 'video-editor', 'cloning'] 
   },
   'podcasts': { 

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import {
   Mic, MicOff, Video, VideoOff, Monitor,
   UserPlus, Plus, Settings, ChevronDown,
-  PhoneOff, Upload, Radio
+  PhoneOff, Upload, Radio, Sparkles
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ interface VideoStudioControlsEnhancedProps {
   onLayoutChange: (layout: string) => void;
   onEndSession: () => void;
   onUploadMedia?: () => void;
+  onGreenRoom?: () => void;
 }
 
 export function VideoStudioControlsEnhanced({
@@ -40,6 +41,7 @@ export function VideoStudioControlsEnhanced({
   onLayoutChange,
   onEndSession,
   onUploadMedia,
+  onGreenRoom,
 }: VideoStudioControlsEnhancedProps) {
   return (
     <div className="h-20 bg-[#0d0f12] border-t border-white/10 flex items-center justify-center px-6 gap-3">
@@ -205,6 +207,19 @@ export function VideoStudioControlsEnhanced({
       >
         <Settings className="w-6 h-6" />
       </Button>
+
+      {/* Green Room / AI Setup Check */}
+      {onGreenRoom && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onGreenRoom}
+          className="h-14 w-14 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+          title="Green Room"
+        >
+          <Sparkles className="w-6 h-6" />
+        </Button>
+      )}
 
       {/* End Session */}
       <Button

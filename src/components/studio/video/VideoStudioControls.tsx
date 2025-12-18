@@ -9,7 +9,7 @@ import {
 import { 
   Mic, MicOff, Video, VideoOff, Monitor, 
   UserPlus, Plus, Settings, ChevronDown,
-  MessageSquare
+  MessageSquare, Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +22,7 @@ interface VideoStudioControlsProps {
   onInviteGuest: () => void;
   onAddMedia: () => void;
   onSettings: () => void;
+  onGreenRoom?: () => void;
 }
 
 export function VideoStudioControls({
@@ -33,6 +34,7 @@ export function VideoStudioControls({
   onInviteGuest,
   onAddMedia,
   onSettings,
+  onGreenRoom,
 }: VideoStudioControlsProps) {
   return (
     <div className="h-16 bg-[#16181c] border-t border-white/10 flex items-center justify-between px-4">
@@ -147,6 +149,19 @@ export function VideoStudioControls({
         >
           <Settings className="w-5 h-5" />
         </Button>
+
+        {/* Green Room / AI Check */}
+        {onGreenRoom && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onGreenRoom}
+            className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
+            title="Green Room"
+          >
+            <Sparkles className="w-5 h-5" />
+          </Button>
+        )}
       </div>
 
       {/* Right - Device Toggle */}

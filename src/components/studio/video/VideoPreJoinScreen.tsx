@@ -285,8 +285,9 @@ export function VideoPreJoinScreen({
                     <span className="text-white/70 text-sm">Audio Only Mode</span>
                   </div>
                 ) : (
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
-                    <span className="text-white font-bold text-2xl">{name.charAt(0) || "?"}</span>
+                  <div className="flex flex-col items-center gap-2">
+                    <VideoOff className="w-10 h-10 text-white/50" />
+                    <span className="text-white/70 text-sm">Camera Off</span>
                   </div>
                 )}
               </div>
