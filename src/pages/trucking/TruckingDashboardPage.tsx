@@ -12,7 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw, Upload, UserPlus
+  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw, Upload, UserPlus, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ import { useTheme } from "next-themes";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
+import { TruckingDailyBriefModal } from "@/components/trucking/TruckingDailyBriefModal";
 
 interface Load {
   id: string;
@@ -124,6 +125,7 @@ export default function TruckingDashboardPage() {
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
   const [playingVoicemailId, setPlayingVoicemailId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [dailyBriefOpen, setDailyBriefOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { theme: appTheme, setTheme } = useTheme();
@@ -475,6 +477,14 @@ export default function TruckingDashboardPage() {
           <Button 
             variant="outline"
             className="gap-2"
+            onClick={() => setDailyBriefOpen(true)}
+          >
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            Daily Brief
+          </Button>
+          <Button 
+            variant="outline"
+            className="gap-2"
             onClick={() => setImportDialogOpen(true)}
           >
             <Upload className="h-4 w-4" />
@@ -489,6 +499,9 @@ export default function TruckingDashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Daily Brief Modal */}
+      <TruckingDailyBriefModal open={dailyBriefOpen} onOpenChange={setDailyBriefOpen} />
 
       {/* AI Live Banner */}
       <Card className={`p-4 ${aiCallsEnabled ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200'}`}>
