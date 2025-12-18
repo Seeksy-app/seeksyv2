@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { useTheme } from "next-themes";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
@@ -149,13 +150,22 @@ export default function TruckingDashboardPage() {
 
   const fetchData = async () => {
     try {
-      // Use call_started_at for accurate call timestamps (from ElevenLabs, not DB insert time)
-      const todayStart = new Date().toISOString().split("T")[0];
+      // Use Mountain Time (America/Denver) for accurate "today" calculation
+      // This ensures calls at 11pm Denver time aren't counted as "tomorrow" due to UTC
+      const TIMEZONE = 'America/Denver';
+      const now = new Date();
+      const nowInDenver = toZonedTime(now, TIMEZONE);
+      const todayStartDenver = startOfDay(nowInDenver);
+      const todayEndDenver = endOfDay(nowInDenver);
+      // Convert back to UTC for database query
+      const todayStartUTC = fromZonedTime(todayStartDenver, TIMEZONE).toISOString();
+      const todayEndUTC = fromZonedTime(todayEndDenver, TIMEZONE).toISOString();
+      
       const [loadsRes, leadsRes, callsRes, voicemailRes, allCallsRes, transcriptsRes] = await Promise.all([
         supabase.from("trucking_loads").select("*").eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date)").order("created_at", { ascending: false }),
-        // Use call_started_at for "Calls Today" - this is the actual ElevenLabs call time
-        supabase.from("trucking_call_logs").select("id").gte("call_started_at", todayStart),
+        // Use call_started_at for "Calls Today" with proper timezone handling
+        supabase.from("trucking_call_logs").select("id").gte("call_started_at", todayStartUTC).lte("call_started_at", todayEndUTC),
         supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, recording_url, voicemail_transcript, routed_to_voicemail, call_started_at").eq("routed_to_voicemail", true).order("call_started_at", { ascending: false }).limit(10),
         supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, load_id, duration_seconds, summary, call_started_at").order("call_started_at", { ascending: false }).limit(100),
         supabase.from("trucking_call_transcripts").select("*").order("created_at", { ascending: false }).limit(100)
