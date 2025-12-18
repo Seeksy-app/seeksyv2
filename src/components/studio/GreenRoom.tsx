@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Mic, Volume2, Video, ArrowLeft, Monitor, Play, FlipHorizontal, Wifi, WifiOff } from "lucide-react";
+import { Mic, Volume2, Video, ArrowLeft, Monitor, Play, FlipHorizontal, Wifi, WifiOff, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SetupCheckPanel } from "./SetupCheckPanel";
 
 interface GreenRoomProps {
   mode: "audio" | "video";
@@ -40,6 +41,7 @@ export function GreenRoom({ mode, onJoin }: GreenRoomProps) {
   const [connectionStatus, setConnectionStatus] = useState<"good" | "fair" | "poor">("good");
   const [isTestingSound, setIsTestingSound] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [showSetupCheck, setShowSetupCheck] = useState(false);
 
   useEffect(() => {
     async function getDevices() {
@@ -190,7 +192,30 @@ export function GreenRoom({ mode, onJoin }: GreenRoomProps) {
                   <p className="text-white/40 text-sm">Camera preview</p>
                 </div>
               )}
+              {/* AI Setup Check Button */}
+              {stream && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSetupCheck(!showSetupCheck)}
+                  className={cn(
+                    "absolute top-3 right-3 border-white/20 text-white hover:bg-white/10",
+                    showSetupCheck && "bg-violet-500/20 border-violet-400/50"
+                  )}
+                >
+                  <Sparkles className="w-4 h-4 mr-1" />
+                  AI Check
+                </Button>
+              )}
             </div>
+          )}
+
+          {/* AI Setup Check Panel */}
+          {mode === "video" && showSetupCheck && stream && (
+            <SetupCheckPanel 
+              videoRef={videoPreviewRef} 
+              onClose={() => setShowSetupCheck(false)} 
+            />
           )}
 
           {/* Device Selection */}
