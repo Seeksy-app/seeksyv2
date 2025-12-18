@@ -61,12 +61,15 @@ export default function AARSharePage() {
         return;
       }
 
-      // Parse and set AAR data
+      // Parse and set AAR data with proper type casting
       setAAR({
         ...data,
-        key_stakeholders: (data.key_stakeholders as any) || [],
-        pull_quotes: (data.pull_quotes as any) || [],
-        financial_spend: (data.financial_spend as any) || [],
+        event_type: data.event_type as AAR['event_type'],
+        status: (data.status || 'draft') as AAR['status'],
+        visibility: (data.visibility || 'internal') as AAR['visibility'],
+        key_stakeholders: (data.key_stakeholders as unknown as AAR['key_stakeholders']) || [],
+        pull_quotes: (data.pull_quotes as unknown as AAR['pull_quotes']) || [],
+        financial_spend: (data.financial_spend as unknown as AAR['financial_spend']) || [],
       });
       setIsAuthenticated(true);
 
