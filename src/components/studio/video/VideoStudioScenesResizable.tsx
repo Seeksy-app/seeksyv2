@@ -179,7 +179,7 @@ export function VideoStudioScenesResizable({
             <Button
               variant="outline"
               size="sm"
-              className="w-full justify-between border-white/20 text-white hover:bg-white/10 hover:text-white h-9"
+              className="w-full justify-between border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white h-9"
             >
               <span className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />

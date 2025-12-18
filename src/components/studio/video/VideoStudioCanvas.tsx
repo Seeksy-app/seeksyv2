@@ -90,12 +90,6 @@ export function VideoStudioCanvas({
           <Maximize2 className="w-4 h-4" />
         </Button>
 
-        {/* User Avatar Overlay (when in studio) */}
-        <div className="absolute bottom-4 right-20 flex items-center">
-          <div className="w-12 h-12 rounded-full border-2 border-green-500 bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center overflow-hidden">
-            <span className="text-white font-bold text-lg">S</span>
-          </div>
-        </div>
       </div>
 
     </div>
