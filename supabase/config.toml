@@ -554,3 +554,18 @@ verify_jwt = true
 
 [functions.send-board-meeting-notes-email]
 verify_jwt = true
+
+[functions.elevenlabs-webhook-ingest]
+verify_jwt = false
+
+[functions.elevenlabs-process-pending-webhooks]
+verify_jwt = true
+
+[[functions.elevenlabs-process-pending-webhooks.schedules]]
+cron = "*/5 * * * *"
+
+[functions.elevenlabs-reconcile-calls]
+verify_jwt = true
+
+[[functions.elevenlabs-reconcile-calls.schedules]]
+cron = "0 3 * * *"
