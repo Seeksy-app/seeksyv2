@@ -260,14 +260,13 @@ export default function TruckingDashboardPage() {
     // Customer Invoice = floor_rate (ceiling for driver)
     const customerInvoice = floorRate > 0 ? floorRate : targetRate * 1.25;
     
-    // Est. Commission at 20% (target payout = 80% of invoice)
-    const estCommission = customerInvoice * 0.20;
-    const estCommissionPercent = 20;
+    // Target Pay = 80% of invoice (20% commission)
+    const targetPay = customerInvoice * 0.80;
+    const targetCommission = customerInvoice * 0.20;
     
     // Max Driver Pay = 85% of invoice (15% commission floor)
     const maxDriverPay = customerInvoice * 0.85;
     const minCommission = customerInvoice * 0.15;
-    const minCommissionPercent = 15;
 
     if (load.rate_type === "per_ton" && load.desired_rate_per_ton) {
       const total = load.desired_rate_per_ton * (load.tons || 0);
@@ -281,10 +280,9 @@ export default function TruckingDashboardPage() {
 
     return (
       <div className="space-y-0.5">
-        <div className="font-semibold text-slate-900">${targetRate.toLocaleString()}</div>
-        <div className="text-xs text-slate-500">Customer Invoice: ${customerInvoice.toLocaleString()}</div>
-        <div className="text-xs text-green-600 font-medium">Est. Comm: ${estCommission.toLocaleString()} ({estCommissionPercent}%)</div>
-        <div className="text-xs text-amber-600 font-medium">Max Pay: ${maxDriverPay.toLocaleString()} ({minCommissionPercent}% = ${minCommission.toLocaleString()})</div>
+        <div className="font-semibold text-slate-900">Customer Invoice: ${Math.round(customerInvoice).toLocaleString()}</div>
+        <div className="text-xs text-green-600 font-medium">Target Pay: ${Math.round(targetPay).toLocaleString()} (20% = ${Math.round(targetCommission).toLocaleString()})</div>
+        <div className="text-xs text-amber-600 font-medium">Max Pay: ${Math.round(maxDriverPay).toLocaleString()} (15% = ${Math.round(minCommission).toLocaleString()})</div>
       </div>
     );
   };
