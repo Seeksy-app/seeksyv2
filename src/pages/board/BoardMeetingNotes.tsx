@@ -1628,7 +1628,7 @@ export default function BoardMeetingNotes() {
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Audio Recording</p>
                         <audio 
-                          src={selectedNote.audio_file_url} 
+                          src={`${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/meeting-recordings/${selectedNote.audio_file_url}`} 
                           controls 
                           className="w-full"
                         />
@@ -1649,7 +1649,9 @@ export default function BoardMeetingNotes() {
                 transcript={selectedNote.audio_transcript}
                 aiNotesStatus={selectedNote.ai_notes_status}
                 generatedAt={selectedNote.ai_notes_generated_at}
-                audioUrl={selectedNote.audio_file_url}
+                audioUrl={selectedNote.audio_file_url ? 
+                  `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/meeting-recordings/${selectedNote.audio_file_url}` 
+                  : null}
               />
 
               {/* Bottom Complete Meeting button removed - duplicate with top End Meeting action */}

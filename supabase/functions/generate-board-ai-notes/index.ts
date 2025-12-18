@@ -41,10 +41,10 @@ All outputs require host confirmation.
 Required Outputs (In This Order)
 
 1. Executive Summary (Short)
-- 3–5 bullet points
-- What was discussed
-- What changed
-- What decisions were made (if any)
+- Write 2-3 concise paragraphs (NOT bullet points)
+- Cover what was discussed, what changed, and what decisions were made
+- Use flowing prose that reads well for executives
+- Each paragraph should be 2-4 sentences
 
 2. Decisions
 Only include decisions that were explicitly stated or agreed upon.
@@ -196,7 +196,7 @@ ${meeting.audio_transcript}
 
 Please generate the meeting notes in the following JSON format:
 {
-  "summary": "3-5 bullet point executive summary as a string with newlines",
+  "summary": "2-3 paragraph executive summary in flowing prose (no bullet points), with paragraphs separated by newlines",
   "decisions": [
     {
       "statement": "Decision text",
