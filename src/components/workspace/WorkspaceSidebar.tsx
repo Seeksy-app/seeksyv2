@@ -579,7 +579,7 @@ export function WorkspaceSidebar() {
 
         <SidebarContent>
           {/* Global Navigation - My Day, My Work, Recents */}
-          <SidebarMenu className="pl-2">
+          <SidebarMenu className="pl-4 pt-4">
             <SidebarMenuItem>
               <SidebarMenuButton
                 onClick={() => navigate('/my-day')}
