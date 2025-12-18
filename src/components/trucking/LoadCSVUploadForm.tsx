@@ -79,8 +79,31 @@ const AUTO_MAP_HINTS: Record<string, string[]> = {
 // Adelphia Metals specific format detection
 const ADELPHIA_HEADERS = ["PICK UP AT", "RATE", "DESTINATION", "READY", "WEIGHT", "LENGTH", "TARP"];
 
-// Aljex TMS - key identifying headers (flexible matching)
-const ALJEX_TMS_HEADERS = ["Pro", "Ship Date", "Pickup City", "Pickup State", "Consignee City", "Destination City", "Weight", "LH Revenue", "Status"];
+// Aljex TMS - exact column headers from user's export
+// Format: CSV Header → Internal Field
+const ALJEX_COLUMN_MAP: Record<string, string> = {
+  "Pro #": "load_number",
+  "Type": "equipment_type",
+  "Status": "status",
+  "Ship date": "pickup_date",
+  "Pickup City": "origin_city",
+  "Pickup State": "origin_state",
+  "Pickup Zip": "origin_zip",
+  "Consignee City": "destination_city",
+  "Consignee State": "destination_state",
+  "Consignee Zip": "destination_zip",
+  "Description": "commodity",
+  "Weight": "weight_lbs",
+  "Footage": "length_ft",
+  "Miles": "miles",
+  "LH Revenue": "floor_rate",
+  "Hazmat": "hazmat",
+  "Tarps": "equipment_notes",
+  "Tarp Size": "tarp_size",
+};
+
+// Key headers to identify Aljex format
+const ALJEX_TMS_HEADERS = ["Pro #", "Ship date", "Pickup City", "Consignee City", "LH Revenue"];
 
 type ImportTemplate = "auto" | "adelphia" | "aljex" | "standard";
 
@@ -175,92 +198,54 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
   };
 
   const detectAljexTMSFormat = (rawData: any[][]): boolean => {
-    // Look for Aljex TMS header row (Status, Pro, Customer, Pick Up, Consignee, etc.)
-    for (let i = 0; i < Math.min(5, rawData.length); i++) {
+    // Look for Aljex TMS header row with our exact column names
+    for (let i = 0; i < Math.min(10, rawData.length); i++) {
       const row = rawData[i];
       if (!row) continue;
-      const rowHeaders = row.map(c => String(c || '').toLowerCase().trim());
-      const matchCount = ALJEX_TMS_HEADERS.filter(h => 
-        rowHeaders.some(rh => rh === h.toLowerCase() || rh.includes(h.toLowerCase()))
-      ).length;
-      if (matchCount >= 5) return true;
+      const rowHeaders = row.map(c => String(c || '').trim());
+      // Check if this row has at least 3 of our expected exact headers
+      const matchCount = ALJEX_TMS_HEADERS.filter(h => rowHeaders.includes(h)).length;
+      if (matchCount >= 3) return true;
     }
     return false;
   };
 
   const parseAljexTMSFormat = (rawData: any[][]) => {
-    // Find header row - look for row with recognizable column headers
+    // Find header row - look for row containing our exact column names
     let headerRowIndex = -1;
     for (let i = 0; i < Math.min(10, rawData.length); i++) {
       const row = rawData[i];
       if (!row) continue;
-      const rowHeaders = row.map(c => String(c || '').toLowerCase().trim());
-      // Check if this row looks like a header (has any of our expected column names)
-      const matchCount = ALJEX_TMS_HEADERS.filter(h => 
-        rowHeaders.some(rh => rh.includes(h.toLowerCase()) || h.toLowerCase().includes(rh))
-      ).length;
-      if (matchCount >= 2) {
+      const rowHeaders = row.map(c => String(c || '').trim());
+      // Check if this row has at least 3 of our expected exact headers
+      const matchCount = ALJEX_TMS_HEADERS.filter(h => rowHeaders.includes(h)).length;
+      if (matchCount >= 3) {
         headerRowIndex = i;
         break;
       }
     }
 
-    // If no header found, assume first row is header
     if (headerRowIndex === -1) {
-      headerRowIndex = 0;
+      toast.error("Could not find Aljex header row. Looking for: Pro #, Ship date, Pickup City, Consignee City, LH Revenue");
+      return;
     }
 
     const headerRow = rawData[headerRowIndex].map(c => String(c || '').trim());
-    
-    // Find column indices - flexible matching with partial matches
-    const findCol = (names: string[]) => {
-      for (let i = 0; i < headerRow.length; i++) {
-        const h = headerRow[i].toLowerCase();
-        for (const n of names) {
-          const nl = n.toLowerCase();
-          // Exact match or contains match
-          if (h === nl || h.includes(nl) || nl.includes(h)) {
-            return i;
-          }
-        }
+    console.log("Aljex header row found at index", headerRowIndex, ":", headerRow);
+
+    // Build column index map - only for exact matches
+    const colIndices: Record<string, number> = {};
+    for (const csvHeader of Object.keys(ALJEX_COLUMN_MAP)) {
+      const idx = headerRow.indexOf(csvHeader);
+      if (idx !== -1) {
+        colIndices[csvHeader] = idx;
+        console.log(`Found "${csvHeader}" at column ${idx}`);
       }
-      return -1;
-    };
-
-    // Column mappings based on user's Aljex export:
-    // B: Pro #/Load#, J: Type/Equipment, N: Status, P: Ship date
-    // AF: Pickup City, AG: Pickup State, AH: Pickup Zip
-    // AJ: Consignee City/Destination City, AK: Consignee State/Destination State, AL: Consignee Zip/Destination Zip
-    // AQ: Description/Commodity, AR: Weight, AS: Footage/Truck Size, AW: Miles
-    // BA: LH Revenue/Customer Invoice, FU: Hazmat, GJ: Tarps, GK: Tarp Size
-    const proIdx = findCol(["Pro #", "Pro#", "Load#", "Pro"]);
-    const typeIdx = findCol(["Type of Shipment", "Type", "Equipment"]);
-    const statusIdx = findCol(["Status"]);
-    const shipDateIdx = findCol(["Ship Date", "Ship date", "ShipDate"]);
-    const pickupCityIdx = findCol(["Pickup City"]);
-    const pickupStateIdx = findCol(["Pickup State"]);
-    const pickupZipIdx = findCol(["Pickup Zip"]);
-    const destCityIdx = findCol(["Consignee City", "Destination City"]);
-    const destStateIdx = findCol(["Consignee State", "Destination State"]);
-    const destZipIdx = findCol(["Consignee Zip", "Destination Zip"]);
-    const commodityIdx = findCol(["Description", "Commodity"]);
-    const weightIdx = findCol(["Weight"]);
-    const footageIdx = findCol(["Footage", "Truck Size"]);
-    const milesIdx = findCol(["Miles"]);
-    const rateIdx = findCol(["LH Revenue", "Customer Invoice", "Revenue"]);
-    const hazmatIdx = findCol(["Hazmat"]);
-    const tarpsIdx = findCol(["Tarps", "Tarp"]);
-    const tarpSizeIdx = findCol(["Tarp Size"]);
-
-    console.log("Aljex header row:", headerRow);
-    console.log("Aljex column detection:", {
-      proIdx, typeIdx, statusIdx, shipDateIdx, pickupCityIdx, pickupStateIdx,
-      destCityIdx, destStateIdx, commodityIdx, weightIdx, milesIdx, rateIdx
-    });
+    }
 
     // Validate we found essential columns
-    if (pickupCityIdx === -1 && destCityIdx === -1) {
-      toast.error("Could not find Pickup City or Destination City columns. Check your CSV headers match: 'Pickup City', 'Consignee City', or 'Destination City'");
+    if (!colIndices["Pickup City"] && !colIndices["Consignee City"]) {
+      toast.error("Could not find 'Pickup City' or 'Consignee City' columns");
       return;
     }
 
@@ -270,72 +255,60 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const row = rawData[i];
       if (!row || row.every(c => !c)) continue;
 
-      // Extract values from separate columns
-      const proRaw = proIdx >= 0 ? String(row[proIdx] || '').trim() : '';
-      const typeRaw = typeIdx >= 0 ? String(row[typeIdx] || '').trim() : '';
-      const statusRaw = statusIdx >= 0 ? String(row[statusIdx] || '').trim() : '';
-      const shipDateRaw = shipDateIdx >= 0 ? String(row[shipDateIdx] || '').trim() : '';
-      const originCity = pickupCityIdx >= 0 ? String(row[pickupCityIdx] || '').trim() : '';
-      const originState = pickupStateIdx >= 0 ? String(row[pickupStateIdx] || '').trim() : '';
-      const originZip = pickupZipIdx >= 0 ? String(row[pickupZipIdx] || '').trim() : '';
-      const destCity = destCityIdx >= 0 ? String(row[destCityIdx] || '').trim() : '';
-      const destState = destStateIdx >= 0 ? String(row[destStateIdx] || '').trim() : '';
-      const destZip = destZipIdx >= 0 ? String(row[destZipIdx] || '').trim() : '';
-      const commodityRaw = commodityIdx >= 0 ? String(row[commodityIdx] || '').trim() : '';
-      const weightRaw = weightIdx >= 0 ? String(row[weightIdx] || '').trim() : '';
-      const footageRaw = footageIdx >= 0 ? String(row[footageIdx] || '').trim() : '';
-      const milesRaw = milesIdx >= 0 ? String(row[milesIdx] || '').trim() : '';
-      const rateRaw = rateIdx >= 0 ? String(row[rateIdx] || '').trim() : '';
-      const hazmatRaw = hazmatIdx >= 0 ? String(row[hazmatIdx] || '').trim().toLowerCase() : '';
-      const tarpsRaw = tarpsIdx >= 0 ? String(row[tarpsIdx] || '').trim().toLowerCase() : '';
-      const tarpSizeRaw = tarpSizeIdx >= 0 ? String(row[tarpSizeIdx] || '').trim() : '';
+      // Helper to get cell value
+      const getVal = (csvHeader: string): string => {
+        const idx = colIndices[csvHeader];
+        if (idx === undefined || idx < 0) return '';
+        return String(row[idx] || '').trim();
+      };
 
-      // Skip if no essential location data
+      const originCity = getVal("Pickup City");
+      const destCity = getVal("Consignee City");
+
+      // Skip rows without location data
       if (!originCity && !destCity) continue;
 
-      // Parse ship date (format: "12/17/25" or "12/17/2025")
+      // Parse ship date
+      const shipDateRaw = getVal("Ship date");
       const pickupDate = parseAljexDate(shipDateRaw);
 
-      // Parse weight (remove commas)
-      const weight = weightRaw.replace(/[,]/g, '');
+      // Parse weight and miles (remove commas)
+      const weight = getVal("Weight").replace(/[,]/g, '');
+      const miles = getVal("Miles").replace(/[,]/g, '');
 
-      // Parse miles (remove commas)
-      const miles = milesRaw.replace(/[,]/g, '');
-
-      // Parse rate and calculate commission-based pricing
-      // Customer Invoice (rate) → Target Pay (80% = 20% commission) → Max Pay (85% = 15% commission)
-      const customerInvoice = parseFloat(rateRaw.replace(/[,$]/g, '')) || 0;
+      // Parse LH Revenue and calculate commission-based pricing
+      const customerInvoice = parseFloat(getVal("LH Revenue").replace(/[,$]/g, '')) || 0;
       const targetRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.80) : 0; // 80% = 20% commission
-      const floorRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.85) : 0;  // 85% = 15% commission (max driver pay)
+      const floorRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.85) : 0;  // 85% = 15% commission
 
       // Parse boolean fields
+      const hazmatRaw = getVal("Hazmat").toLowerCase();
+      const tarpsRaw = getVal("Tarps").toLowerCase();
       const hazmat = hazmatRaw === 'y' || hazmatRaw === 'yes' ? 'Yes' : 'No';
       const tarps = tarpsRaw === 'y' || tarpsRaw === 'yes' ? 'Yes' : 'No';
 
-      if (originCity || destCity) {
-        parsedData.push({
-          "Pro #": proRaw,
-          "Status": statusRaw,
-          "Origin City": originCity,
-          "Origin State": originState,
-          "Origin Zip": originZip,
-          "Destination City": destCity,
-          "Destination State": destState,
-          "Destination Zip": destZip,
-          "Pickup Date": pickupDate,
-          "Equipment Type": typeRaw,
-          "Commodity": commodityRaw,
-          "Weight": weight,
-          "Footage": footageRaw,
-          "Miles": miles,
-          "Customer Invoice": customerInvoice > 0 ? String(customerInvoice) : '',
-          "Target Pay": targetRate > 0 ? String(targetRate) : '',
-          "Max Pay": floorRate > 0 ? String(floorRate) : '',
-          "Hazmat": hazmat,
-          "Tarps": tarps,
-          "Tarp Size": tarpSizeRaw,
-        });
-      }
+      parsedData.push({
+        "Load #": getVal("Pro #"),
+        "Status": getVal("Status"),
+        "Origin City": originCity,
+        "Origin State": getVal("Pickup State"),
+        "Origin Zip": getVal("Pickup Zip"),
+        "Destination City": destCity,
+        "Destination State": getVal("Consignee State"),
+        "Destination Zip": getVal("Consignee Zip"),
+        "Pickup Date": pickupDate,
+        "Equipment": getVal("Type"),
+        "Commodity": getVal("Description"),
+        "Weight": weight,
+        "Footage": getVal("Footage"),
+        "Miles": miles,
+        "Customer Invoice": customerInvoice > 0 ? String(customerInvoice) : '',
+        "Target Pay": targetRate > 0 ? String(targetRate) : '',
+        "Max Pay": floorRate > 0 ? String(floorRate) : '',
+        "Hazmat": hazmat,
+        "Tarps": tarps,
+        "Tarp Size": getVal("Tarp Size"),
+      });
     }
 
     if (parsedData.length === 0) {
@@ -343,21 +316,24 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       return;
     }
 
-    const headers = ["Pro #", "Status", "Origin City", "Origin State", "Origin Zip", "Destination City", "Destination State", "Destination Zip", "Pickup Date", "Equipment Type", "Commodity", "Weight", "Footage", "Miles", "Customer Invoice", "Target Pay", "Max Pay", "Hazmat", "Tarps", "Tarp Size"];
+    const headers = ["Load #", "Status", "Origin City", "Origin State", "Origin Zip", "Destination City", "Destination State", "Destination Zip", "Pickup Date", "Equipment", "Commodity", "Weight", "Footage", "Miles", "Customer Invoice", "Target Pay", "Max Pay", "Hazmat", "Tarps", "Tarp Size"];
     setCsvHeaders(headers);
     setCsvData(parsedData);
     
     // Auto-map to DB fields
     setColumnMapping({
-      "Pro #": "load_number",
+      "Load #": "load_number",
       "Origin City": "origin_city",
       "Origin State": "origin_state",
+      "Origin Zip": "origin_zip",
       "Destination City": "destination_city",
       "Destination State": "destination_state",
+      "Destination Zip": "destination_zip",
       "Pickup Date": "pickup_date",
-      "Equipment Type": "equipment_type",
+      "Equipment": "equipment_type",
       "Commodity": "commodity",
       "Weight": "weight_lbs",
+      "Footage": "length_ft",
       "Miles": "miles",
       "Target Pay": "target_rate",
       "Max Pay": "floor_rate",
