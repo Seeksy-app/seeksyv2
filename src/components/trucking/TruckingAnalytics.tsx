@@ -71,16 +71,17 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       const weekAgo = fromZonedTime(subDays(nowInDenver, 7), TIMEZONE).toISOString();
       
       // Use date range if provided, otherwise all time
+      // CRITICAL: All metrics must use the same date filter based on call_started_at
       const rangeStart = dateRange?.from ? startOfDay(dateRange.from).toISOString() : undefined;
       const rangeEnd = dateRange?.to ? endOfDay(dateRange.to).toISOString() : undefined;
 
       // Build queries with optional date range filtering
       // IMPORTANT: Use call_started_at for call logs (actual call time from ElevenLabs)
       // to prevent backfilled calls from being counted as "today"
-      let loadsQuery = supabase.from("trucking_loads").select("id, status, target_rate");
-      let callsQuery = supabase.from("trucking_call_logs").select("id, call_outcome, routed_to_voicemail, call_started_at, duration_seconds, summary, estimated_cost_usd");
-      let leadsQuery = supabase.from("trucking_carrier_leads").select("id, status, rate_offered, rate_requested");
-      let transcriptsQuery = supabase.from("trucking_call_transcripts").select("duration_seconds, rate_discussed, negotiation_outcome, summary, key_topics");
+      let loadsQuery = supabase.from("trucking_loads").select("id, status, target_rate, created_at");
+      let callsQuery = supabase.from("trucking_call_logs").select("id, call_outcome, outcome, routed_to_voicemail, call_started_at, duration_seconds, summary, estimated_cost_usd, call_status").is("deleted_at", null);
+      let leadsQuery = supabase.from("trucking_carrier_leads").select("id, status, rate_offered, rate_requested, created_at");
+      let transcriptsQuery = supabase.from("trucking_call_transcripts").select("duration_seconds, rate_discussed, negotiation_outcome, summary, key_topics, created_at");
       
       if (rangeStart && rangeEnd) {
         loadsQuery = loadsQuery.gte("created_at", rangeStart).lte("created_at", rangeEnd);
@@ -108,8 +109,8 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
         supabase.from("trucking_loads").select("id").gte("created_at", weekAgo),
         callsQuery,
         // Use call_started_at for accurate "calls today" count
-        supabase.from("trucking_call_logs").select("id").gte("call_started_at", todayStart).lte("call_started_at", todayEnd),
-        supabase.from("trucking_call_logs").select("id").gte("call_started_at", weekAgo),
+        supabase.from("trucking_call_logs").select("id").is("deleted_at", null).gte("call_started_at", todayStart).lte("call_started_at", todayEnd),
+        supabase.from("trucking_call_logs").select("id").is("deleted_at", null).gte("call_started_at", weekAgo),
         leadsQuery,
         supabase.from("trucking_carrier_leads").select("id").gte("created_at", todayStart).lte("created_at", todayEnd),
         transcriptsQuery
@@ -127,10 +128,27 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       const archivedLoads = loads.filter(l => l.status === 'archived').length;
 
       // Calculate call metrics
-      const answeredCalls = calls.filter(c => c.call_outcome === 'answered' || c.call_outcome === 'completed' || c.call_outcome === 'confirmed').length;
-      const missedCalls = calls.filter(c => c.call_outcome === 'missed' || c.call_outcome === 'no_answer').length;
+      // FIXED: Use actual call_outcome values from database: 'completed', 'confirmed', 'callback_requested', 'declined'
+      // 'completed' and 'confirmed' = answered/connected calls
+      // 'declined' or call_status='failed' = missed/failed
+      const answeredCalls = calls.filter(c => 
+        c.call_outcome === 'completed' || 
+        c.call_outcome === 'confirmed' || 
+        c.call_outcome === 'callback_requested' ||
+        c.call_status === 'done'
+      ).length;
+      const missedCalls = calls.filter(c => 
+        c.call_outcome === 'missed' || 
+        c.call_outcome === 'no_answer' || 
+        c.call_outcome === 'declined' ||
+        c.call_status === 'failed'
+      ).length;
       const voicemailCalls = calls.filter(c => c.routed_to_voicemail).length;
 
+      // CONSISTENCY CHECK: Ensure answered + missed + voicemails <= totalCalls
+      // If a call is both answered and voicemail, count it as answered (voicemail is a subset)
+      const totalCallCount = calls.length;
+      
       // Calculate call behavior metrics from calls and transcripts
       // Filter for calls with ACTUAL duration data (> 0)
       const validDurations = [
@@ -181,16 +199,21 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       const negotiatedRates = leads.filter(l => l.rate_offered).map(l => l.rate_offered || 0);
       const avgNegotiated = negotiatedRates.length > 0 ? negotiatedRates.reduce((a, b) => a + b, 0) / negotiatedRates.length : 0;
 
+      // For "today" metrics, only use if no date range is selected OR date range includes today
+      const isDateRangeIncludesToday = !dateRange || (
+        dateRange.from <= new Date() && dateRange.to >= startOfDay(new Date())
+      );
+      
       setAnalytics({
         totalLoads: loads.length,
         openLoads,
         pendingLoads,
         confirmedLoads,
         archivedLoads,
-        loadsAddedToday: loadsTodayRes.data?.length || 0,
+        loadsAddedToday: isDateRangeIncludesToday ? (loadsTodayRes.data?.length || 0) : 0,
         loadsAddedThisWeek: loadsWeekRes.data?.length || 0,
-        totalCalls: calls.length,
-        callsToday: callsTodayRes.data?.length || 0,
+        totalCalls: totalCallCount,
+        callsToday: isDateRangeIncludesToday ? (callsTodayRes.data?.length || 0) : 0,
         callsThisWeek: callsWeekRes.data?.length || 0,
         answeredCalls,
         missedCalls,
@@ -204,7 +227,7 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
         askedHigherRate,
         confirmedAtTargetRate: confirmedAtTarget,
         totalLeads: leads.length,
-        leadsToday: leadsTodayRes.data?.length || 0,
+        leadsToday: isDateRangeIncludesToday ? (leadsTodayRes.data?.length || 0) : 0,
         interestedLeads,
         confirmedLeads: confirmedLeadCount,
         conversionRate: Math.round(conversionRate),

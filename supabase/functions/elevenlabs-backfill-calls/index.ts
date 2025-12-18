@@ -407,10 +407,16 @@ serve(async (req) => {
           transcriptText = detail.transcript.map(t => `${t.role}: ${t.message}`).join('\n');
         }
 
-        const duration = detail.call_duration_secs || 
-          (detail.end_time_unix_secs && detail.start_time_unix_secs 
-            ? detail.end_time_unix_secs - detail.start_time_unix_secs 
-            : 0);
+        // Calculate duration: prefer call_duration_secs, fallback to end-start calculation
+        // Also check connection_duration_secs from call data
+        let duration = detail.call_duration_secs || 0;
+        if (!duration && detail.end_time_unix_secs && detail.start_time_unix_secs) {
+          duration = detail.end_time_unix_secs - detail.start_time_unix_secs;
+        }
+        if (!duration && detail.call?.connection_duration_secs) {
+          duration = detail.call.connection_duration_secs;
+        }
+        console.log(`Call ${conv.conversation_id}: duration=${duration}, call_duration_secs=${detail.call_duration_secs}, end-start=${detail.end_time_unix_secs && detail.start_time_unix_secs ? detail.end_time_unix_secs - detail.start_time_unix_secs : 'N/A'}, connection_duration=${detail.call?.connection_duration_secs || 'N/A'}`);
 
         // Extract phone and metadata
         const callData = detail.call || {};
