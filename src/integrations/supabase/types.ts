@@ -26491,21 +26491,27 @@ export type Database = {
       }
       trucking_call_logs: {
         Row: {
+          call_cost_credits: number | null
+          call_cost_usd: number | null
           call_direction: string | null
           call_ended_at: string | null
           call_outcome: string | null
           call_started_at: string | null
+          call_status: string | null
           carrier_phone: string | null
           created_at: string | null
           duration_seconds: number | null
           elevenlabs_agent_id: string | null
           elevenlabs_conversation_id: string | null
+          ended_reason: string | null
           estimated_cost_usd: number | null
           failure_reason: string | null
           id: string
           is_demo: boolean | null
           language: string | null
           lead_id: string | null
+          llm_cost_usd_per_min: number | null
+          llm_cost_usd_total: number | null
           load_id: string | null
           outcome: string | null
           owner_id: string | null
@@ -26519,21 +26525,27 @@ export type Database = {
           voicemail_transcript: string | null
         }
         Insert: {
+          call_cost_credits?: number | null
+          call_cost_usd?: number | null
           call_direction?: string | null
           call_ended_at?: string | null
           call_outcome?: string | null
           call_started_at?: string | null
+          call_status?: string | null
           carrier_phone?: string | null
           created_at?: string | null
           duration_seconds?: number | null
           elevenlabs_agent_id?: string | null
           elevenlabs_conversation_id?: string | null
+          ended_reason?: string | null
           estimated_cost_usd?: number | null
           failure_reason?: string | null
           id?: string
           is_demo?: boolean | null
           language?: string | null
           lead_id?: string | null
+          llm_cost_usd_per_min?: number | null
+          llm_cost_usd_total?: number | null
           load_id?: string | null
           outcome?: string | null
           owner_id?: string | null
@@ -26547,21 +26559,27 @@ export type Database = {
           voicemail_transcript?: string | null
         }
         Update: {
+          call_cost_credits?: number | null
+          call_cost_usd?: number | null
           call_direction?: string | null
           call_ended_at?: string | null
           call_outcome?: string | null
           call_started_at?: string | null
+          call_status?: string | null
           carrier_phone?: string | null
           created_at?: string | null
           duration_seconds?: number | null
           elevenlabs_agent_id?: string | null
           elevenlabs_conversation_id?: string | null
+          ended_reason?: string | null
           estimated_cost_usd?: number | null
           failure_reason?: string | null
           id?: string
           is_demo?: boolean | null
           language?: string | null
           lead_id?: string | null
+          llm_cost_usd_per_min?: number | null
+          llm_cost_usd_total?: number | null
           load_id?: string | null
           outcome?: string | null
           owner_id?: string | null

@@ -7,9 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Phone, Clock, FileText, Search, AlertCircle, CheckCircle2
+  Phone, Clock, FileText, Search, AlertCircle, CheckCircle2, DollarSign, Bot
 } from 'lucide-react';
 import { getOutcomeLabel, getOutcomeTooltip } from '@/constants/truckingOutcomes';
 
@@ -26,6 +27,15 @@ interface CallLog {
   routed_to_voicemail: boolean | null;
   voicemail_transcript: string | null;
   is_demo: boolean | null;
+  // ElevenLabs tracking fields
+  elevenlabs_conversation_id?: string | null;
+  elevenlabs_agent_id?: string | null;
+  call_cost_credits?: number | null;
+  call_cost_usd?: number | null;
+  llm_cost_usd_total?: number | null;
+  ended_reason?: string | null;
+  call_status?: string | null;
+  estimated_cost_usd?: number | null;
   trucking_loads?: { load_number: string } | null;
   trucking_call_transcripts?: {
     transcript_text: string | null;
@@ -170,6 +180,32 @@ export function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerP
 
         <ScrollArea className="flex-1">
           <div className="px-6 py-4 space-y-6">
+            {/* ElevenLabs Verification Badge */}
+            {call.elevenlabs_conversation_id && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg text-xs">
+                      <Bot className="h-4 w-4 text-primary" />
+                      <div className="flex flex-col">
+                        <span className="font-medium text-primary">
+                          Agent: Jess {call.elevenlabs_agent_id?.slice(-8) === 'f1n9k4vw' ? '✓' : '⚠'}
+                        </span>
+                        <span className="text-muted-foreground font-mono truncate max-w-[280px]">
+                          {call.elevenlabs_conversation_id}
+                        </span>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Conversation ID: {call.elevenlabs_conversation_id}</p>
+                    <p>Agent ID: {call.elevenlabs_agent_id || 'Unknown'}</p>
+                    {call.ended_reason && <p>Ended: {call.ended_reason}</p>}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
             {/* Call Metadata */}
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm">
@@ -194,6 +230,30 @@ export function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerP
                   <span className="font-mono">{call.trucking_loads?.load_number || '—'}</span>
                 </div>
               </div>
+
+              {/* Cost Info */}
+              {(call.call_cost_usd || call.estimated_cost_usd) && (
+                <div className="flex items-center gap-4 text-sm pt-1">
+                  <div className="flex items-center gap-1">
+                    <DollarSign className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-muted-foreground">Cost:</span>
+                    <span className="font-medium">
+                      ${(call.call_cost_usd || call.estimated_cost_usd || 0).toFixed(3)}
+                    </span>
+                  </div>
+                  {call.call_cost_credits && (
+                    <span className="text-xs text-muted-foreground">
+                      ({call.call_cost_credits} credits)
+                    </span>
+                  )}
+                  {call.llm_cost_usd_total && (
+                    <span className="text-xs text-muted-foreground">
+                      LLM: ${call.llm_cost_usd_total.toFixed(3)}
+                    </span>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center gap-2">
                 <Badge 
                   variant="secondary"
@@ -210,6 +270,9 @@ export function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerP
                 </Badge>
                 {call.is_demo && (
                   <Badge variant="outline" className="text-xs">DEMO</Badge>
+                )}
+                {call.call_status && call.call_status !== 'completed' && (
+                  <Badge variant="outline" className="text-xs capitalize">{call.call_status}</Badge>
                 )}
               </div>
             </div>
