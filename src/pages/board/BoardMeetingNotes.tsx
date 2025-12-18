@@ -23,6 +23,7 @@ import { useBoardMeetingHost } from "@/hooks/useBoardMeetingHost";
 import { useCarryForwardMeeting } from "@/hooks/useCarryForwardMeeting";
 import { AIMeetingNotes } from "@/components/board/AIMeetingNotes";
 import { MemberFeedbackSection } from "@/components/board/MemberFeedbackSection";
+import { StickyMemberNotes } from "@/components/board/StickyMemberNotes";
 import { MeetingInviteManager } from "@/components/board/MeetingInviteManager";
 import { HostMeetingTabs } from "@/components/board/HostMeetingTabs";
 import { WaitingForHostScreen } from "@/components/board/WaitingForHostScreen";
@@ -1382,9 +1383,20 @@ export default function BoardMeetingNotes() {
         </div>
 
         {/* Center/Right Panel: Meeting Detail - takes full width when nav collapsed */}
-        <div className={`space-y-6 ${navCollapsed ? 'col-span-1' : 'lg:col-span-3'}`}>
+        <div className={`${navCollapsed ? 'col-span-1' : 'lg:col-span-3'}`}>
           {selectedNote ? (
-            <>
+            <div className="flex gap-6">
+              {/* Sticky Notes Sidebar - Left */}
+              <div className="hidden xl:block w-72 flex-shrink-0">
+                <StickyMemberNotes
+                  meetingId={selectedNote.id}
+                  memberNotes={selectedNote.member_notes || []}
+                  onNotesUpdated={() => refetch()}
+                />
+              </div>
+              
+              {/* Main Content - Right */}
+              <div className="flex-1 space-y-6 min-w-0">
               {/* Header - Compact during active meeting */}
               <Card>
                 <CardHeader className={`flex flex-row items-center justify-between ${selectedNote.status === 'active' ? 'py-3' : ''}`}>
@@ -1665,13 +1677,14 @@ export default function BoardMeetingNotes() {
                 onSummaryUpdated={() => refetch()}
               />
 
-              {/* Member Feedback Section */}
-              <MemberFeedbackSection
-                meetingId={selectedNote.id}
-                memberNotes={selectedNote.member_notes || []}
-                onNotesUpdated={() => refetch()}
-              />
-
+              {/* Member Feedback - shown inline on smaller screens, sticky sidebar on xl+ */}
+              <div className="xl:hidden">
+                <MemberFeedbackSection
+                  meetingId={selectedNote.id}
+                  memberNotes={selectedNote.member_notes || []}
+                  onNotesUpdated={() => refetch()}
+                />
+              </div>
               {/* Bottom Complete Meeting button removed - duplicate with top End Meeting action */}
 
               {/* Decisions Summary */}
@@ -1714,7 +1727,8 @@ export default function BoardMeetingNotes() {
                   </CardContent>
                 </Card>
               )}
-            </>
+              </div>
+            </div>
           ) : (
             <Card>
               <CardContent className="p-12 text-center text-muted-foreground">
