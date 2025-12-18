@@ -26528,6 +26528,8 @@ export type Database = {
           load_id: string | null
           outcome: string | null
           owner_id: string | null
+          post_call_webhook_error: string | null
+          post_call_webhook_status: string | null
           receiver_number: string | null
           recording_url: string | null
           routed_to_voicemail: boolean | null
@@ -26539,6 +26541,7 @@ export type Database = {
           twilio_call_sid: string | null
           twilio_stream_sid: string | null
           voicemail_transcript: string | null
+          webhook_event_id: string | null
         }
         Insert: {
           analysis_summary?: string | null
@@ -26578,6 +26581,8 @@ export type Database = {
           load_id?: string | null
           outcome?: string | null
           owner_id?: string | null
+          post_call_webhook_error?: string | null
+          post_call_webhook_status?: string | null
           receiver_number?: string | null
           recording_url?: string | null
           routed_to_voicemail?: boolean | null
@@ -26589,6 +26594,7 @@ export type Database = {
           twilio_call_sid?: string | null
           twilio_stream_sid?: string | null
           voicemail_transcript?: string | null
+          webhook_event_id?: string | null
         }
         Update: {
           analysis_summary?: string | null
@@ -26628,6 +26634,8 @@ export type Database = {
           load_id?: string | null
           outcome?: string | null
           owner_id?: string | null
+          post_call_webhook_error?: string | null
+          post_call_webhook_status?: string | null
           receiver_number?: string | null
           recording_url?: string | null
           routed_to_voicemail?: boolean | null
@@ -26639,6 +26647,7 @@ export type Database = {
           twilio_call_sid?: string | null
           twilio_stream_sid?: string | null
           voicemail_transcript?: string | null
+          webhook_event_id?: string | null
         }
         Relationships: [
           {
@@ -26653,6 +26662,13 @@ export type Database = {
             columns: ["load_id"]
             isOneToOne: false
             referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_call_logs_webhook_event_id_fkey"
+            columns: ["webhook_event_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_webhook_events"
             referencedColumns: ["id"]
           },
         ]
@@ -27620,6 +27636,72 @@ export type Database = {
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "trucking_agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trucking_webhook_events: {
+        Row: {
+          call_log_id: string | null
+          created_at: string
+          elevenlabs_conversation_id: string
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          lead_id: string | null
+          owner_id: string | null
+          processed_at: string | null
+          processing_attempts: number
+          processing_status: string
+          raw_payload: Json
+          received_at: string
+        }
+        Insert: {
+          call_log_id?: string | null
+          created_at?: string
+          elevenlabs_conversation_id: string
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          lead_id?: string | null
+          owner_id?: string | null
+          processed_at?: string | null
+          processing_attempts?: number
+          processing_status?: string
+          raw_payload: Json
+          received_at?: string
+        }
+        Update: {
+          call_log_id?: string | null
+          created_at?: string
+          elevenlabs_conversation_id?: string
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          lead_id?: string | null
+          owner_id?: string | null
+          processed_at?: string | null
+          processing_attempts?: number
+          processing_status?: string
+          raw_payload?: Json
+          received_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_webhook_events_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_webhook_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_carrier_leads"
             referencedColumns: ["id"]
           },
         ]
