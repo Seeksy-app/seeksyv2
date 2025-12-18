@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Loader2, FileSpreadsheet, CheckCircle2, AlertCircle } from "lucide-react";
+import { Upload, Loader2, FileSpreadsheet, CheckCircle2, AlertCircle, Download } from "lucide-react";
 import { toast } from "sonner";
 import Papa from "papaparse";
 import * as XLSX from "xlsx";
@@ -259,27 +259,19 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const hazmat = hazmatRaw === 'y' || hazmatRaw === 'yes' ? 'Yes' : 'No';
       const tarps = tarpsRaw === 'y' || tarpsRaw === 'yes' ? 'Yes' : 'No';
 
+      // Only keep essential fields for import
       parsedData.push({
-        "Load #": proNumber,  // Use Pro # directly as Load #
-        "Status": getVal(row, "N"),
+        "Load #": proNumber,
         "Origin City": originCity,
         "Origin State": getVal(row, "AG"),
-        "Origin Zip": getVal(row, "AH"),
         "Destination City": destCity,
         "Destination State": getVal(row, "AK"),
-        "Destination Zip": getVal(row, "AL"),
         "Pickup Date": pickupDate,
         "Equipment": getVal(row, "J"),
-        "Commodity": getVal(row, "AQ"),
         "Weight": weight,
-        "Footage": getVal(row, "AS"),
         "Miles": miles,
-        "Customer Invoice": customerInvoice > 0 ? String(customerInvoice) : '',
         "Target Pay": targetRate > 0 ? String(targetRate) : '',
         "Max Pay": floorRate > 0 ? String(floorRate) : '',
-        "Hazmat": hazmat,
-        "Tarps": tarps,
-        "Tarp Size": getVal(row, "GK"),
       });
     }
 
@@ -290,12 +282,12 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
 
     console.log("Parsed", parsedData.length, "loads. Sample:", parsedData[0]);
 
-    // Only use essential columns for cleaner preview
-    const essentialHeaders = ["Load #", "Origin City", "Origin State", "Destination City", "Destination State", "Pickup Date", "Equipment", "Customer Invoice", "Target Pay", "Max Pay"];
+    // Essential columns only
+    const essentialHeaders = ["Load #", "Origin City", "Origin State", "Destination City", "Destination State", "Pickup Date", "Equipment", "Weight", "Miles", "Target Pay", "Max Pay"];
     setCsvHeaders(essentialHeaders);
     setCsvData(parsedData);
     
-    // Auto-map to DB fields - only the essential fields
+    // Auto-map to DB fields
     setColumnMapping({
       "Load #": "load_number",
       "Origin City": "origin_city",
@@ -304,14 +296,15 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       "Destination State": "destination_state",
       "Pickup Date": "pickup_date",
       "Equipment": "equipment_type",
-      "Customer Invoice": "floor_rate",
+      "Weight": "weight_lbs",
+      "Miles": "miles",
       "Target Pay": "target_rate",
       "Max Pay": "floor_rate",
     });
     
     // Skip mapping UI - go straight to preview since we've hardcoded the mappings
     setStep("preview");
-    toast.success(`Aljex TMS: Found ${parsedData.length} loads — ready to import`);
+    toast.success(`Aljex TMS: Found ${parsedData.length} loads — ready to export/import`);
   };
 
   // Parse "STATE CITY" format like "AL CENTRE" → ["AL", "CENTRE"]
@@ -846,6 +839,34 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
     if (fileInput) fileInput.value = '';
   };
 
+  // Export converted data as Excel for review
+  const handleExportPreview = () => {
+    if (csvData.length === 0) {
+      toast.error("No data to export");
+      return;
+    }
+
+    // Create worksheet from the parsed data with only the essential headers
+    const exportData = csvData.map(row => {
+      const exportRow: Record<string, string> = {};
+      csvHeaders.forEach(header => {
+        exportRow[header] = row[header] || '';
+      });
+      return exportRow;
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Converted Loads");
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().split('T')[0];
+    const filename = `aljex_converted_${timestamp}.xlsx`;
+    
+    XLSX.writeFile(workbook, filename);
+    toast.success(`Exported ${csvData.length} loads to ${filename}`);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -1005,21 +1026,27 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
               </Table>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-between gap-2">
               <Button variant="outline" onClick={() => setStep("map")}>Back</Button>
-              <Button onClick={handleImport} disabled={uploading}>
-                {uploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Importing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Import {csvData.length} Loads
-                  </>
-                )}
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={handleExportPreview}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export to Excel
+                </Button>
+                <Button onClick={handleImport} disabled={uploading}>
+                  {uploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import {csvData.length} Loads
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         )}
