@@ -636,8 +636,8 @@ export default function TruckingDashboardPage() {
           </div>
         </Card>
         <Card 
-          className="p-4 bg-white cursor-pointer transition-all hover:shadow-md"
-          onClick={() => navigate("/trucking/call-logs")}
+          className={`p-4 bg-white cursor-pointer transition-all hover:shadow-md ${activeTab === 'calls' ? 'ring-2 ring-slate-500' : ''}`}
+          onClick={() => setActiveTab("calls")}
         >
           <div className="flex items-center justify-between">
             <div>
@@ -723,6 +723,13 @@ export default function TruckingDashboardPage() {
               <Badge className="ml-2 bg-green-400 text-green-900 border-0">{confirmedLoads.length}</Badge>
             </TabsTrigger>
             <TabsTrigger 
+              value="calls"
+              className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
+            >
+              Calls
+              <Badge className="ml-2 bg-slate-400 text-slate-900 border-0">{callLogs.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger 
               value="voicemail"
               className="rounded-full px-4 data-[state=active]:bg-white data-[state=active]:shadow-sm"
             >
@@ -740,8 +747,68 @@ export default function TruckingDashboardPage() {
         </Tabs>
       </div>
 
-      {/* Voicemail Section */}
-      {activeTab === "voicemail" ? (
+      {/* Calls Section */}
+      {activeTab === "calls" ? (
+        <Card className="bg-white border border-slate-200 overflow-hidden">
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-slate-900">AI Call Logs</h3>
+              <p className="text-sm text-slate-500">Recent calls handled by AI</p>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => navigate("/trucking/call-logs")}>
+              View All
+            </Button>
+          </div>
+          {callLogs.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 text-slate-500 py-12">
+              <Phone className="h-10 w-10 text-slate-300" />
+              <p>No calls yet</p>
+              <p className="text-sm">AI call logs will appear here</p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50 border-b border-slate-200">
+                  <TableHead className="font-medium text-slate-600">Phone</TableHead>
+                  <TableHead className="font-medium text-slate-600">Outcome</TableHead>
+                  <TableHead className="font-medium text-slate-600">Duration</TableHead>
+                  <TableHead className="font-medium text-slate-600">Time</TableHead>
+                  <TableHead className="font-medium text-slate-600">Summary</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {callLogs.slice(0, 20).map((call) => (
+                  <TableRow key={call.id} className="hover:bg-slate-50">
+                    <TableCell className="font-medium">{call.carrier_phone || "Unknown"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className={
+                        call.call_outcome === 'completed' || call.call_outcome === 'confirmed' 
+                          ? 'bg-green-50 text-green-700 border-green-200'
+                          : call.call_outcome === 'callback_requested'
+                          ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                          : 'bg-slate-50 text-slate-700'
+                      }>
+                        {call.call_outcome || "—"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-slate-500">
+                      {call.duration_seconds 
+                        ? `${Math.floor(call.duration_seconds / 60)}m ${call.duration_seconds % 60}s` 
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-sm">
+                      {format(new Date(call.call_started_at || call.created_at), "MMM d, h:mm a")}
+                    </TableCell>
+                    <TableCell className="text-slate-600 text-sm max-w-xs truncate">
+                      {call.summary || "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Card>
+      ) : activeTab === "voicemail" ? (
         <Card className="bg-white border border-slate-200 overflow-hidden">
           <div className="p-4 border-b border-slate-200">
             <h3 className="font-semibold text-slate-900">Voicemails</h3>
@@ -1108,18 +1175,6 @@ export default function TruckingDashboardPage() {
                       <TableCell className="whitespace-nowrap">{getStatusBadge(load.status)}</TableCell>
                       <TableCell className="whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
-                          {load.status === "open" && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => takeLoad(load.id, fetchData)}
-                              disabled={assignmentLoading === load.id}
-                              className="h-8"
-                            >
-                              <UserPlus className="h-4 w-4 mr-1" />
-                              {assignmentLoading === load.id ? "..." : "Assign"}
-                            </Button>
-                          )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
