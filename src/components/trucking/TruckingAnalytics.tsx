@@ -79,7 +79,8 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       // IMPORTANT: Use call_started_at for call logs (actual call time from ElevenLabs)
       // to prevent backfilled calls from being counted as "today"
       let loadsQuery = supabase.from("trucking_loads").select("id, status, target_rate, created_at");
-      let callsQuery = supabase.from("trucking_call_logs").select("id, call_outcome, outcome, routed_to_voicemail, call_started_at, duration_seconds, summary, estimated_cost_usd, call_status").is("deleted_at", null);
+      // Include elevenlabs_metadata to get accurate call duration (stored as call_duration_secs in metadata)
+      let callsQuery = supabase.from("trucking_call_logs").select("id, call_outcome, outcome, routed_to_voicemail, call_started_at, duration_seconds, summary, estimated_cost_usd, call_status, elevenlabs_metadata, transcript, analysis_summary, data_collection_results").is("deleted_at", null);
       let leadsQuery = supabase.from("trucking_carrier_leads").select("id, status, rate_offered, rate_requested, created_at");
       let transcriptsQuery = supabase.from("trucking_call_transcripts").select("duration_seconds, rate_discussed, negotiation_outcome, summary, key_topics, created_at");
       
@@ -150,11 +151,24 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       const totalCallCount = calls.length;
       
       // Calculate call behavior metrics from calls and transcripts
-      // Filter for calls with ACTUAL duration data (> 0)
-      const validDurations = [
-        ...calls.filter(c => c.duration_seconds && c.duration_seconds > 0).map(c => c.duration_seconds || 0),
-        ...transcripts.filter(t => t.duration_seconds && t.duration_seconds > 0).map(t => t.duration_seconds || 0)
-      ];
+      // FIXED: Extract duration from elevenlabs_metadata.call_duration_secs when duration_seconds is 0
+      const getCallDuration = (call: typeof calls[0]): number => {
+        // First try duration_seconds column
+        if (call.duration_seconds && call.duration_seconds > 0) {
+          return call.duration_seconds;
+        }
+        // Then try elevenlabs_metadata.call_duration_secs (ElevenLabs stores duration here)
+        const metadata = call.elevenlabs_metadata as Record<string, unknown> | null;
+        if (metadata?.call_duration_secs) {
+          return Number(metadata.call_duration_secs);
+        }
+        return 0;
+      };
+
+      // Get valid durations from calls (prioritize metadata duration)
+      const callDurations = calls.map(c => getCallDuration(c)).filter(d => d > 0);
+      const transcriptDurations = transcripts.filter(t => t.duration_seconds && t.duration_seconds > 0).map(t => t.duration_seconds || 0);
+      const validDurations = [...callDurations, ...transcriptDurations];
       
       const avgDuration = validDurations.length > 0 
         ? validDurations.reduce((a, b) => a + b, 0) / validDurations.length 
@@ -165,27 +179,51 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       const callsUnder60Sec = validDurations.filter(d => d >= 30 && d < 60).length;
       const callsOver2Min = validDurations.filter(d => d >= 120).length;
 
-      // Analyze transcripts for rate discussion behavior
-      const rateDiscussed = transcripts.filter(t => t.rate_discussed && t.rate_discussed > 0);
-      const askedHigherRate = transcripts.filter(t => 
-        t.negotiation_outcome === 'counter_offered' || 
-        t.negotiation_outcome === 'rejected' ||
-        (t.key_topics && t.key_topics.some((topic: string) => 
-          topic.toLowerCase().includes('higher') || 
-          topic.toLowerCase().includes('negotiate') ||
-          topic.toLowerCase().includes('counter')
-        ))
-      ).length;
-      
-      const confirmedAtTarget = transcripts.filter(t => 
-        t.negotiation_outcome === 'accepted' || 
-        t.negotiation_outcome === 'confirmed'
-      ).length;
+      // Analyze call transcripts and summaries for rate discussion behavior
+      // Check transcript text for rate negotiations
+      const analyzeCallForRateNegotiation = (call: typeof calls[0]) => {
+        const transcript = (call.transcript || '').toLowerCase();
+        const summary = (call.summary || call.analysis_summary || '').toLowerCase();
+        const dataResults = call.data_collection_results as Record<string, unknown> | null;
+        
+        const hasRateDiscussion = 
+          transcript.includes('rate') || 
+          transcript.includes('dollar') || 
+          transcript.includes('per mile') ||
+          transcript.includes('$') ||
+          summary.includes('rate') ||
+          summary.includes('negotiat');
+        
+        const askedHigher = 
+          transcript.includes('higher') ||
+          transcript.includes('counter') ||
+          transcript.includes('more than') ||
+          transcript.includes('can you do') ||
+          transcript.includes('looking for') ||
+          summary.includes('counter') ||
+          summary.includes('negotiat');
+        
+        const confirmedAtTarget = 
+          dataResults?.confirmed === true ||
+          dataResults?.load_confirmed === true ||
+          transcript.includes('confirmed') ||
+          transcript.includes('book it') ||
+          transcript.includes('take the load') ||
+          summary.includes('confirmed') ||
+          summary.includes('booked');
+        
+        return { hasRateDiscussion, askedHigher, confirmedAtTarget };
+      };
 
-      // Estimate hung up before/after rate (based on call duration - short calls likely before rate)
-      // Only count if we have valid duration data
-      const hungUpBeforeRate = validDurations.filter(d => d < 45).length; // Very short calls
-      const hungUpAfterRate = validDurations.filter(d => d >= 45 && d < 120).length; // Medium calls with rate discussed
+      const callAnalysis = calls.map(analyzeCallForRateNegotiation);
+      const askedHigherRate = callAnalysis.filter(a => a.askedHigher).length;
+      const confirmedAtTarget = callAnalysis.filter(a => a.confirmedAtTarget).length;
+
+      // Estimate hung up before/after rate (based on call duration and rate discussion)
+      // Very short calls (< 45 sec) likely hung up before rate discussion
+      const hungUpBeforeRate = callDurations.filter(d => d < 45).length;
+      // Medium calls (45s - 2min) likely discussed rate then hung up
+      const hungUpAfterRate = callDurations.filter(d => d >= 45 && d < 120).length;
 
       // Calculate lead metrics
       const interestedLeads = leads.filter(l => l.status === 'interested').length;
