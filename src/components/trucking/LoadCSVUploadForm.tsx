@@ -313,8 +313,9 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       "Max Pay": "floor_rate",
     });
     
-    setStep("map");
-    toast.success(`Found ${parsedData.length} loads using column positions`);
+    // Skip mapping UI - go straight to preview since we've hardcoded the mappings
+    setStep("preview");
+    toast.success(`Aljex TMS: Found ${parsedData.length} loads — ready to import`);
   };
 
   // Parse "STATE CITY" format like "AL CENTRE" → ["AL", "CENTRE"]
