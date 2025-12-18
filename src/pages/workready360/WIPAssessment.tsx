@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Loader2, Info } from 'lucide-react';
@@ -14,10 +14,12 @@ export default function WIPAssessment() {
   const navigate = useNavigate();
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebrationMilestone, setCelebrationMilestone] = useState(0);
+  const hasStartedRef = useRef(false);
 
   const {
     values,
     needs,
+    rounds,
     assessmentId,
     currentRoundIndex,
     totalRounds,
@@ -35,12 +37,13 @@ export default function WIPAssessment() {
     isCompleting,
   } = useWIPAssessment('civilian');
 
-  // Start assessment on mount
+  // Start assessment on mount - only once
   useEffect(() => {
-    if (!assessmentId && !isLoading && needs.length > 0) {
+    if (!hasStartedRef.current && !assessmentId && !isLoading && needs.length > 0 && rounds.length > 0) {
+      hasStartedRef.current = true;
       startAssessment();
     }
-  }, [assessmentId, isLoading, needs.length, startAssessment]);
+  }, [assessmentId, isLoading, needs.length, rounds.length]);
 
   // Check for milestones
   useEffect(() => {
