@@ -127,11 +127,14 @@ export default function CallLogsPage() {
   };
 
   const handleBackfill = async () => {
+    console.log('BACKFILL CLICKED — invoking function');
     setBackfilling(true);
     try {
+      console.log('Calling supabase.functions.invoke("elevenlabs-backfill-calls")...');
       const { data, error } = await supabase.functions.invoke('elevenlabs-backfill-calls', {
         body: { limit: 100 }
       });
+      console.log('Response received:', { data, error });
       
       if (error) throw error;
       
