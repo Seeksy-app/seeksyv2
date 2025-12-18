@@ -65,8 +65,10 @@ body {
     --destructive: 0 72% 51%;           /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;              /* #E2E8F0 */
-    --input: 210 40% 98%;
+    --border: 214 32% 85%;              /* #CBD5E1 - stronger border */
+    --input: 0 0% 100%;                 /* Pure white background */
+    --input-border: 214 32% 78%;        /* #A1B2C9 - visible field border */
+    --input-placeholder: 215 16% 55%;   /* Darker placeholder */
     --ring: 220 84% 55%;                /* Seeksy Blue */
 
     /* Brand palette */
@@ -152,8 +154,10 @@ body {
     --destructive: 358 85% 52%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 213 15% 20%;
-    --input: 213 15% 20%;
+    --border: 213 15% 28%;
+    --input: 213 15% 16%;
+    --input-border: 213 15% 35%;
+    --input-placeholder: 213 10% 50%;
     --ring: 207 100% 45%;
 
     --brand-gold: 38 88% 58%;
