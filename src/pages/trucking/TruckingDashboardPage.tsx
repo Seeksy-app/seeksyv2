@@ -1021,6 +1021,24 @@ export default function TruckingDashboardPage() {
                               )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem 
+                                onClick={async () => {
+                                  try {
+                                    const { error } = await supabase
+                                      .from("trucking_loads")
+                                      .update({ status: "archived" })
+                                      .eq("id", load.id);
+                                    if (error) throw error;
+                                    toast({ title: "Load archived" });
+                                    fetchData();
+                                  } catch (error: any) {
+                                    toast({ title: "Error", description: error.message, variant: "destructive" });
+                                  }
+                                }}
+                              >
+                                <Archive className="h-4 w-4 mr-2 text-slate-500" />
+                                Archive
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
                                 onClick={() => handleDelete(load.id)}
                                 className="text-red-600"
                               >

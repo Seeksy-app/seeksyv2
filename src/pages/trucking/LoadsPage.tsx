@@ -40,6 +40,7 @@ import { formatPhoneNumber } from "@/utils/phoneFormat";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
+import { useTruckingRole } from "@/hooks/trucking/useTruckingRole";
 
 const US_STATES = [
   "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL",
@@ -134,6 +135,7 @@ export default function LoadsPage() {
   const { getRecentValues, addRecentValue } = useTruckingRecentValues();
   const { labels } = useTruckingFieldLabels();
   const { takeLoad, releaseLoad, loading: assignmentLoading } = useLoadAssignment();
+  const { ownerId, loading: roleLoading } = useTruckingRole();
 
   const [formData, setFormData] = useState({
     load_number: "",
@@ -197,8 +199,10 @@ export default function LoadsPage() {
   });
 
   useEffect(() => {
-    fetchLoads();
-  }, []);
+    if (!roleLoading && ownerId) {
+      fetchLoads();
+    }
+  }, [roleLoading, ownerId]);
 
   const fetchLoads = async () => {
     try {
@@ -206,18 +210,21 @@ export default function LoadsPage() {
       if (!user) return;
       setCurrentUserId(user.id);
 
+      // Use ownerId from trucking role (handles both owners and agents)
+      const effectiveOwnerId = ownerId || user.id;
+
       // Fetch loads and agents in parallel
       const [loadsResult, deletedResult, agentsResult] = await Promise.all([
         supabase
           .from("trucking_loads")
           .select("*")
-          .eq("owner_id", user.id)
+          .eq("owner_id", effectiveOwnerId)
           .is("deleted_at", null)
           .order("created_at", { ascending: false }),
         supabase
           .from("trucking_loads")
           .select("*")
-          .eq("owner_id", user.id)
+          .eq("owner_id", effectiveOwnerId)
           .not("deleted_at", "is", null)
           .order("deleted_at", { ascending: false }),
         supabase

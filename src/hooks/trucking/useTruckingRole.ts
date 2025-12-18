@@ -33,7 +33,7 @@ export function useTruckingRole(): TruckingRoleInfo {
       // Check if user is in trucking_admin_users (authorized)
       const { data: adminRecord } = await supabase
         .from("trucking_admin_users")
-        .select("role")
+        .select("role, agency_id")
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -41,7 +41,25 @@ export function useTruckingRole(): TruckingRoleInfo {
         // User is an admin - they're authorized and are owners
         setIsAuthorized(true);
         setRole("owner");
-        setOwnerId(user.id);
+        
+        // If user has agency_id, find the primary owner (super_admin) for that agency
+        if (adminRecord.agency_id) {
+          const { data: primaryOwner } = await supabase
+            .from("trucking_admin_users")
+            .select("user_id")
+            .eq("agency_id", adminRecord.agency_id)
+            .eq("role", "super_admin")
+            .limit(1)
+            .maybeSingle();
+          
+          if (primaryOwner) {
+            setOwnerId(primaryOwner.user_id);
+          } else {
+            setOwnerId(user.id);
+          }
+        } else {
+          setOwnerId(user.id);
+        }
         setLoading(false);
         return;
       }
