@@ -68,6 +68,7 @@ interface Lead {
   status: string;
   created_at: string;
   load_id: string | null;
+  call_log_id: string | null;
   negotiated_rate?: number;
   trucking_loads?: {
     id: string;
@@ -80,6 +81,13 @@ interface Lead {
     equipment_type: string;
     miles: number;
     pickup_date: string;
+  } | null;
+  trucking_call_logs?: {
+    id: string;
+    summary: string | null;
+    call_outcome: string | null;
+    call_status: string | null;
+    duration_seconds: number | null;
   } | null;
 }
 
@@ -175,7 +183,7 @@ export default function TruckingDashboardPage() {
       
       const [loadsRes, leadsRes, callsRes, voicemailRes, allCallsRes, transcriptsRes, agentsRes] = await Promise.all([
         supabase.from("trucking_loads").select("*").eq("is_active", true).order("created_at", { ascending: false }),
-        supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date)").order("created_at", { ascending: false }),
+        supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date), trucking_call_logs(id, summary, call_outcome, call_status, duration_seconds)").order("created_at", { ascending: false }),
         // Use call_started_at for "Calls Today" with proper timezone handling
         supabase.from("trucking_call_logs").select("id").gte("call_started_at", todayStartUTC).lte("call_started_at", todayEndUTC),
         supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, recording_url, voicemail_transcript, routed_to_voicemail, call_started_at").eq("routed_to_voicemail", true).order("call_started_at", { ascending: false }).limit(10),
@@ -969,58 +977,71 @@ export default function TruckingDashboardPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                    {expandedLeadId === lead.id && lead.trucking_loads && (
+                    {expandedLeadId === lead.id && (
                       <TableRow key={`${lead.id}-details`} className="bg-slate-50">
                         <TableCell colSpan={9} className="p-4">
                           <div className="space-y-4">
-                            {/* Lane Info */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                              <div>
-                                <p className="text-slate-500 text-xs">Lane</p>
-                                <p className="font-medium">
-                                  {lead.trucking_loads.origin_city}, {lead.trucking_loads.origin_state} → {lead.trucking_loads.destination_city}, {lead.trucking_loads.destination_state}
-                                </p>
+                            {/* Call Overview from ElevenLabs */}
+                            {lead.trucking_call_logs && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold text-slate-900">Call Overview</h4>
+                                  <div className="flex items-center gap-3">
+                                    {lead.trucking_call_logs.duration_seconds && (
+                                      <span className="text-sm text-slate-500">
+                                        {Math.floor(lead.trucking_call_logs.duration_seconds / 60)}:{String(lead.trucking_call_logs.duration_seconds % 60).padStart(2, '0')}
+                                      </span>
+                                    )}
+                                    <Badge 
+                                      className={
+                                        lead.trucking_call_logs.call_outcome === 'completed' || 
+                                        lead.trucking_call_logs.call_outcome === 'confirmed' ||
+                                        lead.trucking_call_logs.call_status === 'done'
+                                          ? 'bg-green-100 text-green-800'
+                                          : 'bg-slate-100 text-slate-700'
+                                      }
+                                    >
+                                      {lead.trucking_call_logs.call_outcome || lead.trucking_call_logs.call_status || 'Unknown'}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                {lead.trucking_call_logs.summary && (
+                                  <div className="bg-white border border-slate-200 rounded-lg p-3">
+                                    <p className="text-slate-500 text-xs mb-1">Summary</p>
+                                    <p className="text-sm text-slate-700 leading-relaxed">{lead.trucking_call_logs.summary}</p>
+                                  </div>
+                                )}
                               </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Equipment</p>
-                                <p className="font-medium">{lead.trucking_loads.equipment_type || "—"}</p>
+                            )}
+                            
+                            {/* Load Details (if available) */}
+                            {lead.trucking_loads && (
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm border-t border-slate-200 pt-4">
+                                <div>
+                                  <p className="text-slate-500 text-xs">Lane</p>
+                                  <p className="font-medium">
+                                    {lead.trucking_loads.origin_city}, {lead.trucking_loads.origin_state} → {lead.trucking_loads.destination_city}, {lead.trucking_loads.destination_state}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-slate-500 text-xs">Equipment</p>
+                                  <p className="font-medium">{lead.trucking_loads.equipment_type || "—"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-slate-500 text-xs">Target Rate</p>
+                                  <p className="font-medium">${lead.trucking_loads.target_rate?.toLocaleString() || "—"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-slate-500 text-xs">Confirmed Rate</p>
+                                  <p className="font-bold text-green-700">${lead.negotiated_rate?.toLocaleString() || "—"}</p>
+                                </div>
                               </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Pickup</p>
-                                <p className="font-medium">{lead.trucking_loads.pickup_date ? format(new Date(lead.trucking_loads.pickup_date), "MMM d, yyyy") : "—"}</p>
-                              </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Target Rate</p>
-                                <p className="font-medium">${lead.trucking_loads.target_rate?.toLocaleString() || "—"}</p>
-                              </div>
-                            </div>
-                            {/* Load Details */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
-                              <div>
-                                <p className="text-slate-500 text-xs">Commodity</p>
-                                <p className="font-medium">{(lead.trucking_loads as any).commodity || "General Freight"}</p>
-                              </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Weight</p>
-                                <p className="font-medium">{(lead.trucking_loads as any).weight_lbs ? `${(lead.trucking_loads as any).weight_lbs.toLocaleString()} lbs` : "—"}</p>
-                              </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Distance</p>
-                                <p className="font-medium">{lead.trucking_loads.miles ? `${lead.trucking_loads.miles.toLocaleString()} mi` : "—"}</p>
-                              </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Footage</p>
-                                <p className="font-medium">{(lead.trucking_loads as any).length_ft ? `${(lead.trucking_loads as any).length_ft} ft` : "—"}</p>
-                              </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Floor Rate</p>
-                                <p className="font-medium">${lead.trucking_loads.target_rate?.toLocaleString() || "—"}</p>
-                              </div>
-                              <div>
-                                <p className="text-slate-500 text-xs">Confirmed Rate</p>
-                                <p className="font-bold text-green-700 text-lg">${lead.negotiated_rate?.toLocaleString() || lead.trucking_loads.target_rate?.toLocaleString() || "—"}</p>
-                              </div>
-                            </div>
+                            )}
+                            
+                            {/* No data message */}
+                            {!lead.trucking_call_logs && !lead.trucking_loads && (
+                              <p className="text-sm text-slate-500 italic">No call or load details available</p>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
