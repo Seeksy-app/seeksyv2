@@ -79,8 +79,8 @@ const AUTO_MAP_HINTS: Record<string, string[]> = {
 // Adelphia Metals specific format detection
 const ADELPHIA_HEADERS = ["PICK UP AT", "RATE", "DESTINATION", "READY", "WEIGHT", "LENGTH", "TARP"];
 
-// Aljex TMS standard format detection (Status, Pro, Customer, Pick Up, Consignee, etc.)
-const ALJEX_TMS_HEADERS = ["Status", "Pro", "Customer", "Pick Up", "Consignee", "Ship Date", "Type", "Weight"];
+// Aljex TMS standard format detection - using actual column names from export
+const ALJEX_TMS_HEADERS = ["Status", "Pro #", "Load#", "Ship Date", "Pickup City", "Pickup State", "Consignee City", "Destination City", "Weight", "LH Revenue"];
 
 type ImportTemplate = "auto" | "adelphia" | "aljex" | "standard";
 
@@ -211,24 +211,35 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
 
     const headerRow = rawData[headerRowIndex].map(c => String(c || '').trim());
     
-    // Find column indices
+    // Find column indices - using actual Aljex column names
     const findCol = (names: string[]) => headerRow.findIndex(h => 
       names.some(n => h.toLowerCase() === n.toLowerCase())
     );
 
+    // Column mappings based on actual Aljex export:
+    // B: Pro #/Load#, J: Type/Equipment, N: Status, P: Ship date
+    // AF: Pickup City, AG: Pickup State, AH: Pickup Zip
+    // AJ: Consignee City/Destination City, AK: Consignee State/Destination State, AL: Consignee Zip/Destination Zip
+    // AQ: Description/Commodity, AR: Weight, AS: Footage/Truck Size, AW: Miles
+    // BA: LH Revenue/Customer Invoice, FU: Hazmat, GJ: Tarps, GK: Tarp Size
+    const proIdx = findCol(["Pro #", "Load#", "Pro"]);
+    const typeIdx = findCol(["Type", "Equipment"]);
     const statusIdx = findCol(["Status"]);
-    const proIdx = findCol(["Pro"]);
-    const customerIdx = findCol(["Customer"]);
-    const pickUpIdx = findCol(["Pick Up"]);
-    const consigneeIdx = findCol(["Consignee"]);
-    const shipDateIdx = findCol(["Ship Date"]);
-    const loadDateIdx = findCol(["Load Date"]);
-    const delDateIdx = findCol(["Del Date"]);
-    const carrierIdx = findCol(["Carrier"]);
-    const typeIdx = findCol(["Type"]);
+    const shipDateIdx = findCol(["Ship Date", "Ship date"]);
+    const pickupCityIdx = findCol(["Pickup City"]);
+    const pickupStateIdx = findCol(["Pickup State"]);
+    const pickupZipIdx = findCol(["Pickup Zip"]);
+    const destCityIdx = findCol(["Consignee City", "Destination City"]);
+    const destStateIdx = findCol(["Consignee State", "Destination State"]);
+    const destZipIdx = findCol(["Consignee Zip", "Destination Zip"]);
+    const commodityIdx = findCol(["Description", "Commodity"]);
     const weightIdx = findCol(["Weight"]);
-    // Rate columns - Aljex uses "LH Revenue" for linehaul revenue (customer invoice amount)
-    const rateIdx = findCol(["LH Revenue", "Invoice Amount", "Revenue", "Rate", "Total Revenue"]);
+    const footageIdx = findCol(["Footage", "Truck Size"]);
+    const milesIdx = findCol(["Miles"]);
+    const rateIdx = findCol(["LH Revenue", "Customer Invoice"]);
+    const hazmatIdx = findCol(["Hazmat"]);
+    const tarpsIdx = findCol(["Tarps"]);
+    const tarpSizeIdx = findCol(["Tarp Size"]);
 
     const parsedData: Record<string, string>[] = [];
 
@@ -236,33 +247,37 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const row = rawData[i];
       if (!row || row.every(c => !c)) continue;
 
-      // Parse "Pick Up" column - format is "STATE CITY" like "AL CENTRE"
-      const pickUpRaw = pickUpIdx >= 0 ? String(row[pickUpIdx] || '').trim() : '';
-      const consigneeRaw = consigneeIdx >= 0 ? String(row[consigneeIdx] || '').trim() : '';
-      const statusRaw = statusIdx >= 0 ? String(row[statusIdx] || '').trim() : '';
+      // Extract values from separate columns
       const proRaw = proIdx >= 0 ? String(row[proIdx] || '').trim() : '';
-      const customerRaw = customerIdx >= 0 ? String(row[customerIdx] || '').trim() : '';
-      const shipDateRaw = shipDateIdx >= 0 ? String(row[shipDateIdx] || '').trim() : '';
-      const loadDateRaw = loadDateIdx >= 0 ? String(row[loadDateIdx] || '').trim() : '';
-      const delDateRaw = delDateIdx >= 0 ? String(row[delDateIdx] || '').trim() : '';
-      const carrierRaw = carrierIdx >= 0 ? String(row[carrierIdx] || '').trim() : '';
       const typeRaw = typeIdx >= 0 ? String(row[typeIdx] || '').trim() : '';
+      const statusRaw = statusIdx >= 0 ? String(row[statusIdx] || '').trim() : '';
+      const shipDateRaw = shipDateIdx >= 0 ? String(row[shipDateIdx] || '').trim() : '';
+      const originCity = pickupCityIdx >= 0 ? String(row[pickupCityIdx] || '').trim() : '';
+      const originState = pickupStateIdx >= 0 ? String(row[pickupStateIdx] || '').trim() : '';
+      const originZip = pickupZipIdx >= 0 ? String(row[pickupZipIdx] || '').trim() : '';
+      const destCity = destCityIdx >= 0 ? String(row[destCityIdx] || '').trim() : '';
+      const destState = destStateIdx >= 0 ? String(row[destStateIdx] || '').trim() : '';
+      const destZip = destZipIdx >= 0 ? String(row[destZipIdx] || '').trim() : '';
+      const commodityRaw = commodityIdx >= 0 ? String(row[commodityIdx] || '').trim() : '';
       const weightRaw = weightIdx >= 0 ? String(row[weightIdx] || '').trim() : '';
+      const footageRaw = footageIdx >= 0 ? String(row[footageIdx] || '').trim() : '';
+      const milesRaw = milesIdx >= 0 ? String(row[milesIdx] || '').trim() : '';
       const rateRaw = rateIdx >= 0 ? String(row[rateIdx] || '').trim() : '';
+      const hazmatRaw = hazmatIdx >= 0 ? String(row[hazmatIdx] || '').trim().toLowerCase() : '';
+      const tarpsRaw = tarpsIdx >= 0 ? String(row[tarpsIdx] || '').trim().toLowerCase() : '';
+      const tarpSizeRaw = tarpSizeIdx >= 0 ? String(row[tarpSizeIdx] || '').trim() : '';
 
-      // Skip if no essential data
-      if (!pickUpRaw && !consigneeRaw) continue;
-
-      // Parse state-first location format: "AL CENTRE" → State: AL, City: CENTRE
-      const [originState, originCity] = parseStateFirstLocation(pickUpRaw);
-      const [destState, destCity] = parseStateFirstLocation(consigneeRaw);
+      // Skip if no essential location data
+      if (!originCity && !destCity) continue;
 
       // Parse ship date (format: "12/17/25" or "12/17/2025")
       const pickupDate = parseAljexDate(shipDateRaw);
-      const deliveryDate = parseAljexDate(delDateRaw);
 
       // Parse weight (remove commas)
       const weight = weightRaw.replace(/[,]/g, '');
+
+      // Parse miles (remove commas)
+      const miles = milesRaw.replace(/[,]/g, '');
 
       // Parse rate and calculate commission-based pricing
       // Customer Invoice (rate) → Target Pay (80% = 20% commission) → Max Pay (85% = 15% commission)
@@ -270,23 +285,32 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const targetRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.80) : 0; // 80% = 20% commission
       const floorRate = customerInvoice > 0 ? Math.round(customerInvoice * 0.85) : 0;  // 85% = 15% commission (max driver pay)
 
+      // Parse boolean fields
+      const hazmat = hazmatRaw === 'y' || hazmatRaw === 'yes' ? 'Yes' : 'No';
+      const tarps = tarpsRaw === 'y' || tarpsRaw === 'yes' ? 'Yes' : 'No';
+
       if (originCity || destCity) {
         parsedData.push({
           "Pro #": proRaw,
           "Status": statusRaw,
-          "Customer": customerRaw,
           "Origin City": originCity,
           "Origin State": originState,
+          "Origin Zip": originZip,
           "Destination City": destCity,
           "Destination State": destState,
+          "Destination Zip": destZip,
           "Pickup Date": pickupDate,
-          "Delivery Date": deliveryDate,
           "Equipment Type": typeRaw,
+          "Commodity": commodityRaw,
           "Weight": weight,
-          "Carrier": carrierRaw,
+          "Footage": footageRaw,
+          "Miles": miles,
           "Customer Invoice": customerInvoice > 0 ? String(customerInvoice) : '',
           "Target Pay": targetRate > 0 ? String(targetRate) : '',
           "Max Pay": floorRate > 0 ? String(floorRate) : '',
+          "Hazmat": hazmat,
+          "Tarps": tarps,
+          "Tarp Size": tarpSizeRaw,
         });
       }
     }
@@ -296,23 +320,22 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       return;
     }
 
-    const headers = ["Pro #", "Status", "Customer", "Origin City", "Origin State", "Destination City", "Destination State", "Pickup Date", "Delivery Date", "Equipment Type", "Weight", "Carrier", "Customer Invoice", "Target Pay", "Max Pay"];
+    const headers = ["Pro #", "Status", "Origin City", "Origin State", "Origin Zip", "Destination City", "Destination State", "Destination Zip", "Pickup Date", "Equipment Type", "Commodity", "Weight", "Footage", "Miles", "Customer Invoice", "Target Pay", "Max Pay", "Hazmat", "Tarps", "Tarp Size"];
     setCsvHeaders(headers);
     setCsvData(parsedData);
     
     // Auto-map to DB fields
     setColumnMapping({
       "Pro #": "load_number",
-      "Customer": "shipper_name",
       "Origin City": "origin_city",
       "Origin State": "origin_state",
       "Destination City": "destination_city",
       "Destination State": "destination_state",
       "Pickup Date": "pickup_date",
-      "Delivery Date": "delivery_date",
       "Equipment Type": "equipment_type",
+      "Commodity": "commodity",
       "Weight": "weight_lbs",
-      "Carrier": "carrier_name",
+      "Miles": "miles",
       "Target Pay": "target_rate",
       "Max Pay": "floor_rate",
     });
