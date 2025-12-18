@@ -253,20 +253,38 @@ export default function TruckingDashboardPage() {
   };
 
   const formatRate = (load: Load) => {
+    // Calculate commission breakdown
+    const targetRate = load.target_rate || 0;
+    const floorRate = load.floor_rate || 0;
+    
+    // Customer Invoice = floor_rate (ceiling for driver)
+    const customerInvoice = floorRate > 0 ? floorRate : targetRate * 1.25;
+    
+    // Est. Commission at 20% (target payout = 80% of invoice)
+    const estCommission = customerInvoice * 0.20;
+    const estCommissionPercent = 20;
+    
+    // Max Driver Pay = 85% of invoice (15% commission floor)
+    const maxDriverPay = customerInvoice * 0.85;
+    const minCommission = customerInvoice * 0.15;
+    const minCommissionPercent = 15;
+
     if (load.rate_type === "per_ton" && load.desired_rate_per_ton) {
       const total = load.desired_rate_per_ton * (load.tons || 0);
       return (
-        <div>
-          <div className="font-medium">${load.desired_rate_per_ton}/ton</div>
-          <div className="text-xs text-slate-500">≈ ${total.toLocaleString()}</div>
+        <div className="space-y-0.5">
+          <div className="font-semibold text-slate-900">${total.toLocaleString()}</div>
+          <div className="text-xs text-slate-500">${load.desired_rate_per_ton}/ton</div>
         </div>
       );
     }
-    const ratePerMile = load.miles && load.target_rate ? (load.target_rate / load.miles).toFixed(2) : null;
+
     return (
-      <div>
-        <div className="font-medium">${load.target_rate?.toLocaleString() || "—"}</div>
-        {ratePerMile && <div className="text-xs text-slate-500">~${ratePerMile}/mi</div>}
+      <div className="space-y-0.5">
+        <div className="font-semibold text-slate-900">${targetRate.toLocaleString()}</div>
+        <div className="text-xs text-slate-500">Customer Invoice: ${customerInvoice.toLocaleString()}</div>
+        <div className="text-xs text-green-600 font-medium">Est. Comm: ${estCommission.toLocaleString()} ({estCommissionPercent}%)</div>
+        <div className="text-xs text-amber-600 font-medium">Max Pay: ${maxDriverPay.toLocaleString()} ({minCommissionPercent}% = ${minCommission.toLocaleString()})</div>
       </div>
     );
   };
@@ -394,7 +412,7 @@ export default function TruckingDashboardPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Load Board</h1>
           <p className="text-slate-500 text-sm">Overview of your loads and leads</p>
         </div>
         <div className="flex items-center gap-3">
