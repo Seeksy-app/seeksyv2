@@ -158,11 +158,14 @@ export default function WIPAssessment() {
           >
             <Card>
               <CardHeader>
+                <p className="text-sm text-muted-foreground italic mb-3">
+                  There are no right or wrong answers — choose what matters most to you.
+                </p>
                 <CardTitle className="text-lg">
-                  Rank these work aspects from most to least important
+                  On my ideal job it is important that...
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  What matters most to you in a job? Drag to reorder.
+                  Drag to rank from most to least important.
                 </p>
               </CardHeader>
               <CardContent>
