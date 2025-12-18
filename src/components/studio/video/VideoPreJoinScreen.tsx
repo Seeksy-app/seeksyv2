@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MediaDevice {
   deviceId: string;
@@ -77,6 +78,27 @@ export function VideoPreJoinScreen({
 
   // Mic/Camera test status
   const [micLevel, setMicLevel] = useState(0);
+  const [profileImage, setProfileImage] = useState<string | null>(hostAvatar || null);
+
+  // Fetch user profile image
+  useEffect(() => {
+    async function fetchProfile() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        if (profile?.avatar_url) {
+          setProfileImage(profile.avatar_url);
+        }
+      }
+    }
+    if (!hostAvatar) {
+      fetchProfile();
+    }
+  }, [hostAvatar]);
 
   // Load devices and request permissions
   useEffect(() => {
@@ -284,9 +306,20 @@ export function VideoPreJoinScreen({
                     </div>
                     <span className="text-white/70 text-sm">Audio Only Mode</span>
                   </div>
+                ) : profileImage ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <img 
+                      src={profileImage} 
+                      alt="Profile" 
+                      className="w-20 h-20 rounded-full object-cover border-2 border-white/20"
+                    />
+                    <span className="text-white/70 text-sm">Camera Off</span>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2">
-                    <VideoOff className="w-10 h-10 text-white/50" />
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-400 to-cyan-400 flex items-center justify-center">
+                      <span className="text-white font-bold text-2xl">{name.charAt(0).toUpperCase() || "?"}</span>
+                    </div>
                     <span className="text-white/70 text-sm">Camera Off</span>
                   </div>
                 )}
