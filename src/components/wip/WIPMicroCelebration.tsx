@@ -32,17 +32,22 @@ export function WIPMicroCelebration({ show, milestone, onComplete }: WIPMicroCel
   const getMessage = () => {
     switch (milestone) {
       case 7:
-        return { icon: Star, text: "Great start! You're 1/3 done!" };
+        return { icon: Star, text: "1/3 Complete! Great start!" };
       case 14:
         return { icon: Sparkles, text: "Halfway there! Keep going!" };
       case 21:
-        return { icon: Trophy, text: "All done! Let's see your results!" };
+        return { icon: Trophy, text: "All done! Calculating your results..." };
       default:
-        return { icon: Star, text: "Nice progress!" };
+        return null;
     }
   };
 
-  const { icon: Icon, text } = getMessage();
+  const message = getMessage();
+  
+  // Don't show celebration for non-milestone rounds
+  if (!message) return null;
+  
+  const { icon: Icon, text } = message;
 
   return (
     <AnimatePresence>

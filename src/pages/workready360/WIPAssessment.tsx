@@ -73,9 +73,12 @@ export default function WIPAssessment() {
     setCelebrationMilestone(21);
     setShowCelebration(true);
     await completeAssessment();
-    // Navigate to results after brief celebration
+    // Navigate to results after brief celebration - capture assessmentId in closure
+    const currentAssessmentId = assessmentId;
     setTimeout(() => {
-      navigate(`/workready360/wip/results/${assessmentId}`);
+      if (currentAssessmentId) {
+        navigate(`/workready360/wip/results/${currentAssessmentId}`);
+      }
     }, 2000);
   };
 
