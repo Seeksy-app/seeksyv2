@@ -61,6 +61,10 @@ import MeetingJoin from "./pages/meetings/MeetingJoin";
 import PublicBookingPage from "./pages/public/PublicBookingPage";
 import PublicVideosPage from "./pages/public/PublicVideosPage";
 import VideoCollectionPage from "./pages/public/VideoCollectionPage";
+// WorkReady360
+import WorkReady360Home from "./pages/workready360/WorkReady360Home";
+import WIPAssessment from "./pages/workready360/WIPAssessment";
+import WIPResults from "./pages/workready360/WIPResults";
 // AITrucking
 import TruckingLandingPage from "./pages/trucking/TruckingLandingPage";
 import TruckingDashboardPage from "./pages/trucking/TruckingDashboardPage";
@@ -764,12 +768,15 @@ const AppContent = () => {
   // AITrucking is completely standalone - no Seeksy UI
   const isTruckingRoute = location.pathname.startsWith('/trucking');
   
+  // WorkReady360 is completely standalone - no Seeksy UI
+  const isWorkReady360Route = location.pathname.startsWith('/workready360');
+  
   // Legal signing pages are public standalone pages - no Seeksy UI
   const isLegalPublicRoute = location.pathname.startsWith('/legal/purchaser') || location.pathname.startsWith('/legal/chairman');
   
   // Hide sidebar in tour mode or on special routes
-  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute && !isLegalPublicRoute;
-  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute && !isLegalPublicRoute;
+  const shouldShowSidebar = user && !isStudioRoute && !isClipsStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute && !isLegalPublicRoute && !isWorkReady360Route;
+  const shouldShowTopNav = user && !isStudioRoute && !isTourMode && !isOnboardingComplete && !isVeteransRoute && !isCampaignRoute && !isVenueRoute && !isTruckingRoute && !isLegalPublicRoute && !isWorkReady360Route;
 
   // Render Veterans Platform separately - completely standalone
   if (isVeteransRoute) {
@@ -834,6 +841,19 @@ const AppContent = () => {
         <Route path="/trucking/agents" element={<TruckingLayout><TruckingAgentsPage /></TruckingLayout>} />
         <Route path="/trucking/admin/users" element={<TruckingLayout><TruckingAdminUsersPage /></TruckingLayout>} />
         <Route path="/trucking/admin/rate-preferences" element={<TruckingLayout><TruckingAdminRatePreferencesPage /></TruckingLayout>} />
+      </Routes>
+    );
+  }
+
+  // Render WorkReady360 Platform separately - completely standalone
+  if (isWorkReady360Route) {
+    return (
+      <Routes>
+        <Route path="/workready360" element={<WorkReady360Home />} />
+        <Route path="/workready360/wip" element={<WIPAssessment />} />
+        <Route path="/workready360/wip/results/:assessmentId" element={<WIPResults />} />
+        {/* Placeholder for Interest Profiler */}
+        <Route path="/workready360/ip" element={<WorkReady360Home />} />
       </Routes>
     );
   }
