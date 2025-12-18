@@ -90,8 +90,9 @@ export function KnowledgeHubPanel({ portal, contentKey }: KnowledgeHubPanelProps
   
   const handleViewFullHub = () => {
     close();
-    const route = portal === 'admin' ? '/admin/knowledge-base' : '/knowledge-hub';
-    navigate(route);
+    // Open public Knowledge Base in new tab (standalone page without sidebar)
+    const route = portal === 'admin' ? '/admin/knowledge-base' : '/knowledge-base';
+    window.open(route, '_blank');
   };
   
   if (isLoading) {
