@@ -186,10 +186,8 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
         return [...prev, response];
       });
 
-      // Move to next round or complete
-      if (currentRoundIndex < rounds.length) {
-        setCurrentRoundIndex((prev) => prev + 1);
-      }
+      // Move to next round (or past last round to trigger isComplete)
+      setCurrentRoundIndex((prev) => prev + 1);
     },
     [currentRoundIndex, rounds.length, saveRoundResponseMutation]
   );

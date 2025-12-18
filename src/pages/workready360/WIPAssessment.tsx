@@ -54,7 +54,9 @@ export default function WIPAssessment() {
     const completedRound = currentRoundIndex - 1;
     const isMovingForward = currentRoundIndex > previousRoundRef.current;
     
-    if (isMovingForward && completedRound > 0 && completedRound % 7 === 0 && !shownMilestonesRef.current.has(completedRound)) {
+    // Only trigger milestone celebrations at exactly rounds 7, 14 (not 21 - that's handled by handleComplete)
+    const milestoneRounds = [7, 14];
+    if (isMovingForward && milestoneRounds.includes(completedRound) && !shownMilestonesRef.current.has(completedRound)) {
       shownMilestonesRef.current.add(completedRound);
       setCelebrationMilestone(completedRound);
       setShowCelebration(true);
