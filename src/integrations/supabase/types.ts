@@ -26839,19 +26839,28 @@ export type Database = {
           dot_number: string | null
           email: string | null
           eta_to_pickup: string | null
+          extracted_carrier_name: string | null
+          extracted_load_reference: string | null
+          extracted_rate_offered: number | null
+          extracted_rate_requested: number | null
           id: string
+          intent_score: number | null
           is_archived: boolean | null
           is_confirmed: boolean | null
           load_id: string | null
           mc_number: string | null
           mc_pending: boolean | null
+          needs_review: boolean | null
           notes: string | null
           owner_id: string | null
           phone: string | null
           rate_offered: number | null
           rate_requested: number | null
           requires_callback: boolean | null
+          review_reason: string | null
           source: string | null
+          source_call_sid: string | null
+          source_conversation_id: string | null
           status: string | null
           truck_type: string | null
           voicemail_transcript: string | null
@@ -26868,19 +26877,28 @@ export type Database = {
           dot_number?: string | null
           email?: string | null
           eta_to_pickup?: string | null
+          extracted_carrier_name?: string | null
+          extracted_load_reference?: string | null
+          extracted_rate_offered?: number | null
+          extracted_rate_requested?: number | null
           id?: string
+          intent_score?: number | null
           is_archived?: boolean | null
           is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
           mc_pending?: boolean | null
+          needs_review?: boolean | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
           rate_offered?: number | null
           rate_requested?: number | null
           requires_callback?: boolean | null
+          review_reason?: string | null
           source?: string | null
+          source_call_sid?: string | null
+          source_conversation_id?: string | null
           status?: string | null
           truck_type?: string | null
           voicemail_transcript?: string | null
@@ -26897,19 +26915,28 @@ export type Database = {
           dot_number?: string | null
           email?: string | null
           eta_to_pickup?: string | null
+          extracted_carrier_name?: string | null
+          extracted_load_reference?: string | null
+          extracted_rate_offered?: number | null
+          extracted_rate_requested?: number | null
           id?: string
+          intent_score?: number | null
           is_archived?: boolean | null
           is_confirmed?: boolean | null
           load_id?: string | null
           mc_number?: string | null
           mc_pending?: boolean | null
+          needs_review?: boolean | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
           rate_offered?: number | null
           rate_requested?: number | null
           requires_callback?: boolean | null
+          review_reason?: string | null
           source?: string | null
+          source_call_sid?: string | null
+          source_conversation_id?: string | null
           status?: string | null
           truck_type?: string | null
           voicemail_transcript?: string | null

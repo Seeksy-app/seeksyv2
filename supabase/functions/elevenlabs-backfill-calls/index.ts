@@ -38,16 +38,13 @@ interface ElevenLabsConversationDetail {
     data_collection_results?: Record<string, unknown>;
   };
   metadata?: {
-    // Core metadata
     call_sid?: string;
     stream_sid?: string;
     caller_phone_number?: string;
     called_phone_number?: string;
     call_direction?: string;
-    // Twilio specific
     twilio_call_sid?: string;
     twilio_stream_sid?: string;
-    // Other metadata
     [key: string]: unknown;
   };
   call?: {
@@ -59,23 +56,36 @@ interface ElevenLabsConversationDetail {
     call_direction?: string;
     connection_duration_secs?: number;
   };
-  // Audio availability flags
   has_audio?: boolean;
   has_user_audio?: boolean;
   has_response_audio?: boolean;
-  // User and branch tracking
   user_id?: string;
   branch_id?: string;
-  // Conversation initiation data
   conversation_initiation_client_data?: {
     dynamic_variables?: Record<string, unknown>;
     [key: string]: unknown;
   };
 }
 
-// Cost per minute for ElevenLabs conversational AI
+interface IntentAnalysis {
+  intentScore: number;
+  hasStrongBookingPhrase: boolean;
+  hasVerificationScript: boolean;
+  hasLoadReference: boolean;
+  hasRateInfo: boolean;
+  carrierName: string | null;
+  rateOffered: number | null;
+  rateRequested: number | null;
+  needsCallback: boolean;
+  loadReference: string | null;
+  meetsIntentThreshold: boolean;
+}
+
+// Backfill modes
+type BackfillMode = 'missing_only' | 'conversation_id' | 'date_range' | 'all';
+
 const COST_PER_MINUTE = 0.07;
-const COST_PER_CREDIT = 0.00003; // Approximate credit to USD conversion
+const COST_PER_CREDIT = 0.00003;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -92,14 +102,12 @@ serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY not configured');
     }
     
-    // CRITICAL: Must have agent ID to prevent cross-agent contamination
     if (!JESS_AGENT_ID) {
-      throw new Error('ELEVENLABS_JESS_AGENT_ID not configured - cannot backfill without agent filter');
+      throw new Error('ELEVENLABS_JESS_AGENT_ID not configured');
     }
 
-    // Validate agent ID format - must be agent_*, NOT agtbrch_*
     if (!JESS_AGENT_ID.startsWith('agent_')) {
-      throw new Error(`Invalid agent ID format: ${JESS_AGENT_ID.substring(0, 15)}... - must start with 'agent_', not 'agtbrch_'`);
+      throw new Error(`Invalid agent ID format: ${JESS_AGENT_ID.substring(0, 15)}... - must start with 'agent_'`);
     }
 
     console.log(`Using Jess Agent ID: ${JESS_AGENT_ID}`);
@@ -109,7 +117,16 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const body = await req.json().catch(() => ({}));
-    const { owner_id, max_pages = 50 } = body; // Pagination limit to prevent infinite loops
+    const { 
+      owner_id, 
+      max_pages = 50,
+      mode = 'missing_only' as BackfillMode,
+      conversation_id: targetConversationId,
+      start_date,
+      end_date,
+    } = body;
+
+    console.log(`Backfill mode: ${mode}`);
 
     // Get owner_id if not provided
     let resolvedOwnerId = owner_id;
@@ -124,49 +141,107 @@ serve(async (req) => {
     }
 
     if (!resolvedOwnerId) {
-      throw new Error('No owner_id found - cannot create call logs without owner');
+      throw new Error('No owner_id found');
     }
 
     const results = {
+      mode,
       fetched_total: 0,
       upserted_total: 0,
-      skipped_total: 0,
-      skipped_wrong_agent: 0,
+      skipped_already_exists: 0,
+      skipped_no_phone: 0,
+      skipped_no_load_ref: 0,
+      skipped_low_intent: 0,
       errors_total: 0,
       pages_fetched: 0,
       leads_created: 0,
-      leads_linked: 0,
-      details: [] as Array<{ conversation_id: string; status: string; duration?: number; error?: string; lead_created?: boolean }>,
+      leads_skipped_existing: 0,
+      details: [] as Array<{ 
+        conversation_id: string; 
+        status: string; 
+        duration?: number; 
+        error?: string; 
+        lead_created?: boolean;
+        intent_score?: number;
+        skip_reason?: string;
+      }>,
     };
 
-    // Helper function to detect booking intent from transcript
-    const detectBookingIntent = (transcript: string): { 
-      hasIntent: boolean; 
-      carrierName: string | null; 
-      rateOffered: number | null;
-      rateRequested: number | null;
-      needsCallback: boolean;
-      loadReference: string | null;
-    } => {
+    // 2-signal intent detection with scoring
+    const analyzeIntent = (transcript: string): IntentAnalysis => {
       const lowerTranscript = transcript.toLowerCase();
       
-      // Intent indicators
-      const bookingPhrases = [
+      // Strong booking phrases (signal 1)
+      const strongBookingPhrases = [
         'bookload', 'book load', 'book it', 'i\'ll take it', 'we\'ll take it',
-        'confirm', 'confirming', 'yes, yes', 'that\'s correct', 'is that correct',
-        'i\'m interested', 'we\'re interested', 'i want', 'we want',
-        'dispatch to call', 'speak to dispatch', 'callback', 'call you back',
-        'hear back shortly', 'let me get dispatch'
+        'yes, yes', 'that\'s correct', 'great, i\'ll send this to dispatch',
+        'confirming you want load', 'you\'re booking load'
+      ];
+      const hasStrongBookingPhrase = strongBookingPhrases.some(p => lowerTranscript.includes(p));
+      
+      // Verification script indicators (signal 1 alternative)
+      const verificationPhrases = [
+        'just to confirm', 'the company is', 'callback number is',
+        'is that correct', 'dispatch to finalize', 'hear back shortly'
+      ];
+      const hasVerificationScript = verificationPhrases.filter(p => lowerTranscript.includes(p)).length >= 2;
+      
+      // Load reference detection (signal 2)
+      let loadReference: string | null = null;
+      const loadRefPatterns = [
+        /load (?:number |#)?(\d{3,6})/i,
+        /reference (?:number )?(\d{3,6})/i,
+        /load (?:one |two |three |four |five |six |seven |eight |nine |zero )+/i,
+      ];
+      for (const pattern of loadRefPatterns) {
+        const match = transcript.match(pattern);
+        if (match) {
+          loadReference = match[1] || 'detected';
+          break;
+        }
+      }
+      const hasLoadReference = loadReference !== null;
+      
+      // Rate info detection (signal 2 alternative)
+      let rateOffered: number | null = null;
+      let rateRequested: number | null = null;
+      
+      const ratePatterns = [
+        /(\d{1,2}(?:,\d{3}|\d{3}))\s*(?:dollars|for this load)/i,
+        /(?:offer|offering|at|pay(?:ing)?)\s*(?:\$)?(\d{3,4})/i,
+        /(?:one|two|three|four|five|six|seven|eight|nine)\s+(?:thousand|hundred)/i,
       ];
       
-      const hasIntent = bookingPhrases.some(phrase => lowerTranscript.includes(phrase));
+      for (const pattern of ratePatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+          const val = parseInt(match[1].replace(/,/g, ''));
+          if (!isNaN(val) && val >= 100 && val <= 10000) {
+            rateOffered = val;
+            break;
+          }
+        }
+      }
       
-      // Extract carrier/company name - look for patterns like "company is X" or "it's X"
+      const requestPatterns = [
+        /(?:would you go|can you (?:do|accept)|go)\s*(?:\$)?(\d{3,4})/i,
+      ];
+      for (const pattern of requestPatterns) {
+        const match = transcript.match(pattern);
+        if (match && match[1]) {
+          const val = parseInt(match[1].replace(/,/g, ''));
+          if (!isNaN(val)) rateRequested = val;
+          break;
+        }
+      }
+      
+      const hasRateInfo = rateOffered !== null || rateRequested !== null;
+      
+      // Carrier name extraction
       let carrierName: string | null = null;
       const companyPatterns = [
         /company (?:is|name is) ([A-Z][a-zA-Z\s]+?)(?:,|\.|the callback)/i,
         /it's ([A-Z][a-zA-Z\s]+?)(?:\.|phone|,)/i,
-        /name is ([A-Z][a-zA-Z\s]+?)(?:\.|and|,)/i,
         /your name is ([A-Z][a-zA-Z\s]+?)(?:\.|and|,)/i,
       ];
       for (const pattern of companyPatterns) {
@@ -177,60 +252,40 @@ serve(async (req) => {
         }
       }
       
-      // Extract rate offered (by agent)
-      let rateOffered: number | null = null;
-      const rateOfferedPatterns = [
-        /(?:offer|offering|at) (?:\$|one |two |three |four |five |six |seven |eight |nine )?(\d{1,2}(?:,\d{3}|\d{3})?(?:\.\d{2})?|\w+ (?:thousand|hundred)[\w\s]*?) (?:dollars|for this load)/i,
-        /(?:pay(?:ing)?|rate is) (?:\$)?(\d{1,2}(?:,\d{3}|\d{3})?(?:\.\d{2})?|\w+ (?:thousand|hundred)[\w\s]*?) (?:dollars)?/i,
-      ];
-      for (const pattern of rateOfferedPatterns) {
-        const match = transcript.match(pattern);
-        if (match) {
-          const rateStr = match[1].replace(/,/g, '');
-          const parsed = parseInt(rateStr);
-          if (!isNaN(parsed)) rateOffered = parsed;
-          break;
-        }
-      }
-      
-      // Extract rate requested (by caller)
-      let rateRequested: number | null = null;
-      const rateRequestedPatterns = [
-        /(?:would you go|can you (?:do|accept)|asking for|want|need) (?:\$)?(\d{1,2}(?:,\d{3}|\d{3})?)/i,
-      ];
-      for (const pattern of rateRequestedPatterns) {
-        const match = transcript.match(pattern);
-        if (match) {
-          const rateStr = match[1].replace(/,/g, '');
-          const parsed = parseInt(rateStr);
-          if (!isNaN(parsed)) rateRequested = parsed;
-          break;
-        }
-      }
-      
-      // Needs callback if rate negotiation exceeded agent's authority
+      // Needs callback detection
       const needsCallback = lowerTranscript.includes('dispatch to call') || 
         lowerTranscript.includes('above what i\'m authorized') ||
-        lowerTranscript.includes('let me get dispatch');
+        lowerTranscript.includes('let me get dispatch') ||
+        lowerTranscript.includes('get dispatch to call');
       
-      // Extract load reference
-      let loadReference: string | null = null;
-      const loadRefPatterns = [
-        /load (?:number |#)?(\d{3,6})/i,
-        /reference (?:number )?(\d{3,6})/i,
-      ];
-      for (const pattern of loadRefPatterns) {
-        const match = transcript.match(pattern);
-        if (match) {
-          loadReference = match[1];
-          break;
-        }
-      }
+      // Calculate intent score (0-100)
+      let intentScore = 0;
+      if (hasStrongBookingPhrase) intentScore += 40;
+      if (hasVerificationScript) intentScore += 30;
+      if (hasLoadReference) intentScore += 20;
+      if (hasRateInfo) intentScore += 10;
+      if (carrierName) intentScore += 10;
+      if (needsCallback) intentScore += 5;
       
-      return { hasIntent, carrierName, rateOffered, rateRequested, needsCallback, loadReference };
+      // 2-signal gate: (strong booking OR verification) AND (load OR rate)
+      const meetsIntentThreshold = (hasStrongBookingPhrase || hasVerificationScript) && (hasLoadReference || hasRateInfo);
+      
+      return {
+        intentScore,
+        hasStrongBookingPhrase,
+        hasVerificationScript,
+        hasLoadReference,
+        hasRateInfo,
+        carrierName,
+        rateOffered,
+        rateRequested,
+        needsCallback,
+        loadReference,
+        meetsIntentThreshold,
+      };
     };
 
-    // Helper function with retry logic
+    // Fetch helper with retry
     const fetchWithRetry = async (url: string, retries = 3): Promise<Response> => {
       for (let attempt = 1; attempt <= retries; attempt++) {
         const response = await fetch(url, {
@@ -241,75 +296,104 @@ serve(async (req) => {
         
         if (response.status === 429 && attempt < retries) {
           const delay = Math.pow(2, attempt) * 1000;
-          console.log(`Rate limited, waiting ${delay}ms before retry ${attempt + 1}...`);
+          console.log(`Rate limited, waiting ${delay}ms...`);
           await new Promise(r => setTimeout(r, delay));
           continue;
         }
         
-        return response; // Return failed response for error handling
+        return response;
       }
       throw new Error('Max retries exceeded');
     };
 
-    // Fetch ALL conversations from ElevenLabs with AGENT FILTER and FULL PAGINATION
-    let cursor: string | null = null;
-    let hasMore = true;
-    const allConversations: ElevenLabsConversation[] = [];
-
-    console.log('Fetching all conversations from ElevenLabs with agent filter...');
-
-    while (hasMore && results.pages_fetched < max_pages) {
-      // Build URL with agent_id filter
-      let url = `https://api.elevenlabs.io/v1/convai/conversations?page_size=100&agent_id=${encodeURIComponent(JESS_AGENT_ID)}`;
-      if (cursor) {
-        url += `&cursor=${encodeURIComponent(cursor)}`;
-      }
-
-      console.log(`Fetching page ${results.pages_fetched + 1}... URL: ${url.substring(0, 100)}...`);
-
-      const listResponse = await fetchWithRetry(url);
-
-      if (!listResponse.ok) {
-        const errorText = await listResponse.text();
-        console.error('Failed to fetch conversations:', errorText);
-        throw new Error(`ElevenLabs API error: ${listResponse.status} - ${errorText}`);
-      }
-
-      const listData = await listResponse.json();
-      const pageConversations: ElevenLabsConversation[] = listData.conversations || [];
+    // Get existing conversation IDs for missing_only mode
+    let existingConversationIds = new Set<string>();
+    if (mode === 'missing_only') {
+      const { data: existingLogs } = await supabase
+        .from('trucking_call_logs')
+        .select('elevenlabs_conversation_id')
+        .not('elevenlabs_conversation_id', 'is', null);
       
-      console.log(`Page ${results.pages_fetched + 1}: Found ${pageConversations.length} conversations`);
-      
-      // Double-check agent_id filter (defensive programming)
-      for (const conv of pageConversations) {
-        // Accept any conversation returned since we filtered by agent_id
-        // The API should only return conversations for the specified agent
-        allConversations.push(conv);
-      }
-
-      results.pages_fetched++;
-      results.fetched_total = allConversations.length;
-
-      // Check for next page
-      cursor = listData.next_cursor || null;
-      hasMore = !!cursor && pageConversations.length > 0;
-
-      // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 200));
+      existingConversationIds = new Set((existingLogs || []).map(l => l.elevenlabs_conversation_id));
+      console.log(`Found ${existingConversationIds.size} existing call logs`);
     }
 
-    console.log(`Total conversations fetched: ${allConversations.length} (pages: ${results.pages_fetched})`);
+    // Get existing leads by conversation_id for deduplication
+    const { data: existingLeads } = await supabase
+      .from('trucking_carrier_leads')
+      .select('source_conversation_id')
+      .not('source_conversation_id', 'is', null);
+    
+    const existingLeadConversationIds = new Set((existingLeads || []).map(l => l.source_conversation_id));
+    console.log(`Found ${existingLeadConversationIds.size} existing leads with conversation IDs`);
+
+    // Fetch conversations based on mode
+    const allConversations: ElevenLabsConversation[] = [];
+
+    if (mode === 'conversation_id' && targetConversationId) {
+      // Single conversation mode
+      allConversations.push({ 
+        conversation_id: targetConversationId, 
+        agent_id: JESS_AGENT_ID, 
+        status: 'unknown' 
+      });
+      results.fetched_total = 1;
+    } else {
+      // Fetch from API with pagination
+      let cursor: string | null = null;
+      let hasMore = true;
+
+      while (hasMore && results.pages_fetched < max_pages) {
+        let url = `https://api.elevenlabs.io/v1/convai/conversations?page_size=100&agent_id=${encodeURIComponent(JESS_AGENT_ID)}`;
+        if (cursor) url += `&cursor=${encodeURIComponent(cursor)}`;
+
+        const listResponse = await fetchWithRetry(url);
+
+        if (!listResponse.ok) {
+          const errorText = await listResponse.text();
+          throw new Error(`ElevenLabs API error: ${listResponse.status} - ${errorText}`);
+        }
+
+        const listData = await listResponse.json();
+        const pageConversations: ElevenLabsConversation[] = listData.conversations || [];
+        
+        for (const conv of pageConversations) {
+          // Filter by mode
+          if (mode === 'missing_only' && existingConversationIds.has(conv.conversation_id)) {
+            results.skipped_already_exists++;
+            continue;
+          }
+          
+          if (mode === 'date_range' && start_date && end_date) {
+            const convTime = conv.start_time_unix_secs ? conv.start_time_unix_secs * 1000 : 0;
+            const startTime = new Date(start_date).getTime();
+            const endTime = new Date(end_date).getTime();
+            if (convTime < startTime || convTime > endTime) continue;
+          }
+          
+          allConversations.push(conv);
+        }
+
+        results.pages_fetched++;
+        cursor = listData.next_cursor || null;
+        hasMore = !!cursor && pageConversations.length > 0;
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+      
+      results.fetched_total = allConversations.length;
+    }
+
+    console.log(`Processing ${allConversations.length} conversations...`);
 
     // Process each conversation
     for (const conv of allConversations) {
       try {
-        // Fetch detailed conversation data with retry
         const detailUrl = `https://api.elevenlabs.io/v1/convai/conversations/${conv.conversation_id}`;
         const detailResponse = await fetchWithRetry(detailUrl);
 
         if (!detailResponse.ok) {
           const errorText = await detailResponse.text();
-          console.warn(`Failed to fetch details for ${conv.conversation_id}: ${errorText}`);
           results.errors_total++;
           results.details.push({ conversation_id: conv.conversation_id, status: 'fetch_error', error: errorText });
           continue;
@@ -317,12 +401,10 @@ serve(async (req) => {
 
         const detail: ElevenLabsConversationDetail = await detailResponse.json();
 
-        // Build transcript text
+        // Build transcript
         let transcriptText: string | null = null;
         if (detail.transcript && Array.isArray(detail.transcript)) {
-          transcriptText = detail.transcript
-            .map(t => `${t.role}: ${t.message}`)
-            .join('\n');
+          transcriptText = detail.transcript.map(t => `${t.role}: ${t.message}`).join('\n');
         }
 
         const duration = detail.call_duration_secs || 
@@ -330,27 +412,15 @@ serve(async (req) => {
             ? detail.end_time_unix_secs - detail.start_time_unix_secs 
             : 0);
 
-        // Extract all available data from call object and metadata
+        // Extract phone and metadata
         const callData = detail.call || {};
         const metadata = detail.metadata || {};
-        
-        // Also check phone_call object in metadata (where ElevenLabs stores Twilio data)
         const phoneCall = (metadata.phone_call || {}) as Record<string, unknown>;
         
-        const audioUrl = callData.recording_url || null;
-        const callCostCredits = callData.call_cost_credits || null;
-        const endedReason = callData.ended_reason || null;
-        const connectionDuration = callData.connection_duration_secs || null;
-        
-        // Phone numbers - check ALL possible locations (ElevenLabs is inconsistent)
-        // phone_call.external_number = caller for inbound, called for outbound
-        // phone_call.agent_number = our number
         const phoneCallExternal = phoneCall.external_number as string || null;
         const phoneCallAgent = phoneCall.agent_number as string || null;
         const phoneCallDirection = phoneCall.direction as string || 'inbound';
         
-        // For inbound: external_number is caller, agent_number is receiver
-        // For outbound: agent_number is caller, external_number is receiver
         let callerPhone: string | null = null;
         let receiverPhone: string | null = null;
         
@@ -358,39 +428,23 @@ serve(async (req) => {
           callerPhone = phoneCallExternal || callData.from_number || metadata.caller_phone_number as string || null;
           receiverPhone = phoneCallAgent || callData.to_number || metadata.called_phone_number as string || null;
         } else {
-          callerPhone = phoneCallAgent || callData.from_number || metadata.caller_phone_number as string || null;
-          receiverPhone = phoneCallExternal || callData.to_number || metadata.called_phone_number as string || null;
+          callerPhone = phoneCallAgent || callData.from_number || null;
+          receiverPhone = phoneCallExternal || callData.to_number || null;
         }
         
-        // Fallback if still null - try any available number
         if (!callerPhone && phoneCallExternal) callerPhone = phoneCallExternal;
         
-        console.log(`Call ${conv.conversation_id}: direction=${phoneCallDirection}, caller=${callerPhone}, receiver=${receiverPhone}`);
+        const twilioCallSid = phoneCall.call_sid as string || metadata.call_sid as string || null;
+        const twilioStreamSid = phoneCall.stream_sid as string || metadata.stream_sid as string || null;
         
-        // Call direction - check phone_call object first (most reliable)
-        const callDirection = phoneCallDirection || callData.call_direction || metadata.call_direction as string || 'inbound';
-        
-        // Twilio SIDs - check phone_call object AND metadata
-        const twilioCallSid = phoneCall.call_sid as string || metadata.call_sid as string || metadata.twilio_call_sid as string || null;
-        const twilioStreamSid = phoneCall.stream_sid as string || metadata.stream_sid as string || metadata.twilio_stream_sid as string || null;
-        
-        // CRITICAL: Use actual ElevenLabs timestamps, NOT now()
-        // Check metadata.start_time_unix_secs as backup
         const startTimeUnix = detail.start_time_unix_secs || metadata.start_time_unix_secs as number || null;
-        const startTime = startTimeUnix 
-          ? new Date(startTimeUnix * 1000).toISOString()
-          : null;
-        const endTime = detail.end_time_unix_secs
-          ? new Date(detail.end_time_unix_secs * 1000).toISOString()
-          : null;
+        const startTime = startTimeUnix ? new Date(startTimeUnix * 1000).toISOString() : null;
+        const endTime = detail.end_time_unix_secs ? new Date(detail.end_time_unix_secs * 1000).toISOString() : null;
 
-        // Calculate estimated costs
         const estimatedCostUsd = duration > 0 ? (duration / 60) * COST_PER_MINUTE : 0;
+        const callCostCredits = callData.call_cost_credits || null;
         const callCostUsd = callCostCredits ? callCostCredits * COST_PER_CREDIT : estimatedCostUsd;
-        const llmCostUsdTotal = estimatedCostUsd * 0.3; // Approximate LLM portion
-        const llmCostUsdPerMin = duration > 0 ? (llmCostUsdTotal / (duration / 60)) : 0;
 
-        // Determine outcome from analysis
         let outcome = 'completed';
         if (detail.analysis?.data_collection_results) {
           const dataResults = detail.analysis.data_collection_results as Record<string, unknown>;
@@ -399,15 +453,10 @@ serve(async (req) => {
           else if (dataResults.confirmed) outcome = 'confirmed';
         }
         
-        // call_successful should be boolean, not string
-        // Ensure call_successful is strictly boolean
-        const rawCallSuccessful = detail.analysis?.call_successful;
-        const callSuccessful = rawCallSuccessful === true;
-
-        // Summary from analysis
+        const callSuccessful = detail.analysis?.call_successful === true;
         const summary = detail.analysis?.summary || null;
 
-        // UPSERT by elevenlabs_conversation_id - the ONLY reliable key
+        // Upsert call log
         const { data: existingLog } = await supabase
           .from('trucking_call_logs')
           .select('id')
@@ -418,154 +467,140 @@ serve(async (req) => {
           owner_id: resolvedOwnerId,
           carrier_phone: callerPhone,
           receiver_number: receiverPhone,
-          call_direction: callDirection,
-          summary: summary,
+          call_direction: phoneCallDirection,
+          summary,
           transcript: transcriptText,
-          recording_url: audioUrl,
+          recording_url: callData.recording_url || null,
           call_started_at: startTime,
           call_ended_at: endTime,
           duration_seconds: duration,
-          connection_duration_seconds: connectionDuration,
-          outcome: outcome,
+          connection_duration_seconds: callData.connection_duration_secs || null,
+          outcome,
           estimated_cost_usd: callCostUsd,
           is_demo: false,
-          // ElevenLabs tracking fields
           elevenlabs_conversation_id: conv.conversation_id,
           elevenlabs_agent_id: conv.agent_id,
           elevenlabs_user_id: detail.user_id || null,
           call_cost_credits: callCostCredits,
           call_cost_usd: callCostUsd,
-          llm_cost_usd_total: llmCostUsdTotal,
-          llm_cost_usd_per_min: llmCostUsdPerMin,
-          ended_reason: endedReason,
+          llm_cost_usd_total: estimatedCostUsd * 0.3,
+          llm_cost_usd_per_min: duration > 0 ? (estimatedCostUsd * 0.3) / (duration / 60) : 0,
+          ended_reason: callData.ended_reason || null,
           call_status: detail.status,
-          // Twilio integration
           twilio_call_sid: twilioCallSid,
           twilio_stream_sid: twilioStreamSid,
-          // Audio availability flags
           has_audio: detail.has_audio || false,
           has_user_audio: detail.has_user_audio || false,
           has_response_audio: detail.has_response_audio || false,
-          // Branch/version tracking
           branch_id: detail.branch_id || null,
-          // Analysis data
           analysis_summary: detail.analysis?.summary || null,
           call_successful: callSuccessful,
           data_collection_results: detail.analysis?.data_collection_results || null,
-          // Client initiation data
           initiation_client_data: detail.conversation_initiation_client_data || null,
-          // Full metadata blob for future fields
           elevenlabs_metadata: metadata,
         };
 
         let callLogId: string | null = null;
-        let leadCreated = false;
         
         if (existingLog) {
           callLogId = existingLog.id;
-          // Update existing record
-          const { error: updateError } = await supabase
-            .from('trucking_call_logs')
-            .update(callLogData)
-            .eq('id', existingLog.id);
-
-          if (updateError) {
-            console.error(`Update error for ${conv.conversation_id}:`, updateError);
-            results.errors_total++;
-            results.details.push({ conversation_id: conv.conversation_id, status: 'update_error', error: updateError.message });
-          } else {
-            results.upserted_total++;
-          }
+          await supabase.from('trucking_call_logs').update(callLogData).eq('id', existingLog.id);
         } else {
-          // Insert new record
-          const { data: insertedLog, error: insertError } = await supabase
+          const { data: insertedLog } = await supabase
             .from('trucking_call_logs')
             .insert(callLogData)
             .select('id')
             .single();
-
-          if (insertError) {
-            console.error(`Insert error for ${conv.conversation_id}:`, insertError);
-            results.errors_total++;
-            results.details.push({ conversation_id: conv.conversation_id, status: 'insert_error', error: insertError.message });
-          } else {
-            callLogId = insertedLog?.id;
-            results.upserted_total++;
-          }
+          callLogId = insertedLog?.id;
         }
         
-        // --- LEAD CREATION LOGIC ---
-        // Only create lead if: has phone, has transcript with booking intent, no existing lead
-        if (callLogId && callerPhone && transcriptText) {
-          // Check if lead already exists for this call
-          const { data: existingLead } = await supabase
-            .from('trucking_carrier_leads')
-            .select('id')
-            .eq('call_log_id', callLogId)
-            .maybeSingle();
-            
-          // Also check by phone + recent time window
-          const { data: recentLeadByPhone } = await supabase
-            .from('trucking_carrier_leads')
-            .select('id')
-            .eq('phone', callerPhone.replace(/\D/g, '').slice(-10))
-            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-            .maybeSingle();
+        results.upserted_total++;
+
+        // --- LEAD CREATION WITH PM REQUIREMENTS ---
+        let leadCreated = false;
+        let skipReason: string | undefined;
+        let intentScore = 0;
+        
+        // Check if lead already exists for this conversation (strict dedupe by conversation_id)
+        if (existingLeadConversationIds.has(conv.conversation_id)) {
+          results.leads_skipped_existing++;
+          skipReason = 'lead_exists_for_conversation';
+        } else if (!callerPhone) {
+          results.skipped_no_phone++;
+          skipReason = 'no_callback_phone';
+        } else if (transcriptText) {
+          const intent = analyzeIntent(transcriptText);
+          intentScore = intent.intentScore;
           
-          if (!existingLead && !recentLeadByPhone) {
-            const intent = detectBookingIntent(transcriptText);
-            console.log(`Call ${conv.conversation_id} intent analysis:`, intent);
-            
-            if (intent.hasIntent) {
-              // Try to find matching load
-              let loadId: string | null = null;
-              if (intent.loadReference) {
-                const { data: matchedLoad } = await supabase
-                  .from('trucking_loads')
-                  .select('id')
-                  .ilike('reference_number', `%${intent.loadReference}%`)
-                  .limit(1)
-                  .maybeSingle();
-                loadId = matchedLoad?.id || null;
-              }
-              
-              // Format phone for storage (10 digits)
-              const formattedPhone = callerPhone.replace(/\D/g, '').slice(-10);
-              const displayPhone = `${formattedPhone.slice(0,3)}-${formattedPhone.slice(3,6)}-${formattedPhone.slice(6)}`;
-              
-              // Create lead
-              const leadData = {
-                owner_id: resolvedOwnerId,
-                phone: displayPhone,
-                company_name: intent.carrierName || 'undisclosed',
-                contact_name: intent.carrierName || 'undisclosed',
-                load_id: loadId,
-                call_log_id: callLogId,
-                call_source: 'inbound',
-                source: 'ai_voice_agent',
-                status: 'new',
-                rate_requested: intent.rateRequested || intent.rateOffered,
-                requires_callback: intent.needsCallback,
-                mc_pending: true,
-                notes: `Rate offered: ${intent.rateOffered || 'unknown'} | ${intent.needsCallback ? 'Needs callback' : 'Standard booking'}`,
-                is_confirmed: false,
-                is_archived: false,
-              };
-              
-              const { error: leadError } = await supabase
-                .from('trucking_carrier_leads')
-                .insert(leadData);
-              
-              if (leadError) {
-                console.error(`Lead creation error for ${conv.conversation_id}:`, leadError);
-              } else {
-                leadCreated = true;
-                results.leads_created++;
-                console.log(`Created lead for call ${conv.conversation_id} - carrier: ${intent.carrierName}, phone: ${displayPhone}`);
-              }
+          console.log(`Call ${conv.conversation_id} intent: score=${intent.intentScore}, booking=${intent.hasStrongBookingPhrase}, verify=${intent.hasVerificationScript}, load=${intent.hasLoadReference}, rate=${intent.hasRateInfo}`);
+          
+          // Must have load reference to create lead
+          if (!intent.hasLoadReference) {
+            results.skipped_no_load_ref++;
+            skipReason = 'no_load_reference';
+          } else if (!intent.meetsIntentThreshold) {
+            // 2-signal gate not met
+            results.skipped_low_intent++;
+            skipReason = 'low_intent_score';
+          } else {
+            // All requirements met - create lead
+            let loadId: string | null = null;
+            if (intent.loadReference && intent.loadReference !== 'detected') {
+              const { data: matchedLoad } = await supabase
+                .from('trucking_loads')
+                .select('id')
+                .ilike('reference_number', `%${intent.loadReference}%`)
+                .limit(1)
+                .maybeSingle();
+              loadId = matchedLoad?.id || null;
             }
-          } else if (existingLead) {
-            results.leads_linked++;
+            
+            const formattedPhone = callerPhone.replace(/\D/g, '').slice(-10);
+            const displayPhone = formattedPhone.length === 10 
+              ? `${formattedPhone.slice(0,3)}-${formattedPhone.slice(3,6)}-${formattedPhone.slice(6)}`
+              : callerPhone;
+            
+            const leadData = {
+              owner_id: resolvedOwnerId,
+              phone: displayPhone,
+              company_name: intent.carrierName || 'undisclosed',
+              contact_name: intent.carrierName || 'undisclosed',
+              load_id: loadId,
+              call_log_id: callLogId,
+              call_source: 'inbound',
+              source: 'elevenlabs_backfill',
+              status: 'new',
+              rate_offered: intent.rateOffered,
+              rate_requested: intent.rateRequested,
+              requires_callback: intent.needsCallback,
+              mc_pending: true,
+              notes: `Intent score: ${intent.intentScore} | Load ref: ${intent.loadReference || 'N/A'} | Rate offered: ${intent.rateOffered || 'N/A'}`,
+              is_confirmed: false,
+              is_archived: false,
+              // Provenance fields
+              source_conversation_id: conv.conversation_id,
+              source_call_sid: twilioCallSid,
+              intent_score: intent.intentScore,
+              extracted_carrier_name: intent.carrierName,
+              extracted_rate_offered: intent.rateOffered,
+              extracted_rate_requested: intent.rateRequested,
+              extracted_load_reference: intent.loadReference,
+              needs_review: !loadId, // Needs review if we couldn't match load
+              review_reason: !loadId ? 'load_not_matched' : null,
+            };
+            
+            const { error: leadError } = await supabase
+              .from('trucking_carrier_leads')
+              .insert(leadData);
+            
+            if (leadError) {
+              console.error(`Lead creation error for ${conv.conversation_id}:`, leadError);
+            } else {
+              leadCreated = true;
+              results.leads_created++;
+              existingLeadConversationIds.add(conv.conversation_id); // Update set for subsequent iterations
+              console.log(`Created lead for ${conv.conversation_id} - carrier: ${intent.carrierName}, phone: ${displayPhone}, intent: ${intent.intentScore}`);
+            }
           }
         }
         
@@ -573,10 +608,11 @@ serve(async (req) => {
           conversation_id: conv.conversation_id, 
           status: existingLog ? 'updated' : 'created', 
           duration,
-          lead_created: leadCreated
+          lead_created: leadCreated,
+          intent_score: intentScore,
+          skip_reason: skipReason,
         });
 
-        // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 100));
 
       } catch (err) {
@@ -592,24 +628,30 @@ serve(async (req) => {
 
     console.log('=== BACKFILL COMPLETE ===');
     console.log({
+      mode: results.mode,
       fetched_total: results.fetched_total,
       upserted_total: results.upserted_total,
       leads_created: results.leads_created,
-      leads_linked: results.leads_linked,
-      skipped_wrong_agent: results.skipped_wrong_agent,
+      leads_skipped_existing: results.leads_skipped_existing,
+      skipped_no_phone: results.skipped_no_phone,
+      skipped_no_load_ref: results.skipped_no_load_ref,
+      skipped_low_intent: results.skipped_low_intent,
       errors_total: results.errors_total,
-      pages_fetched: results.pages_fetched,
     });
 
     return new Response(JSON.stringify({
       success: true,
       agent_id: JESS_AGENT_ID,
       results: {
+        mode: results.mode,
         fetched_total: results.fetched_total,
         upserted_total: results.upserted_total,
+        skipped_already_exists: results.skipped_already_exists,
         leads_created: results.leads_created,
-        leads_linked: results.leads_linked,
-        skipped_wrong_agent: results.skipped_wrong_agent,
+        leads_skipped_existing: results.leads_skipped_existing,
+        skipped_no_phone: results.skipped_no_phone,
+        skipped_no_load_ref: results.skipped_no_load_ref,
+        skipped_low_intent: results.skipped_low_intent,
         errors_total: results.errors_total,
         pages_fetched: results.pages_fetched,
       },
