@@ -91,7 +91,7 @@ export function KnowledgeHubPanel({ portal, contentKey }: KnowledgeHubPanelProps
   const handleViewFullHub = () => {
     close();
     // Open public Knowledge Base in new tab (standalone page without sidebar)
-    const route = portal === 'admin' ? '/admin/knowledge-base' : '/knowledge-base';
+    const route = portal === 'admin' ? '/admin/knowledge-base' : '/kb';
     window.open(route, '_blank');
   };
   

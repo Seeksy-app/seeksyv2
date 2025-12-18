@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,21 +36,37 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   BookOpen,
 };
 
-// Standalone public header for the help center (no auth required)
+// Standalone public header for the help center (shows different actions based on auth)
 function HelpCenterHeader() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    };
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/knowledge-base" className="flex items-center gap-2">
+          <Link to="/kb" className="flex items-center gap-2">
             <img src="/seeksy-logo.png" alt="Seeksy" className="h-8 w-auto" />
             <span className="text-lg font-semibold text-gray-700">Help Center</span>
           </Link>
           
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link to="/knowledge-base" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
+            <Link to="/kb" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
               Knowledge Base
             </Link>
             <Link to="/support" className="text-sm font-medium text-gray-600 hover:text-primary transition-colors">
@@ -58,19 +74,30 @@ function HelpCenterHeader() {
             </Link>
           </nav>
           
-          {/* Actions */}
+          {/* Actions - Different based on auth status */}
           <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/auth">
-                Sign In
-              </Link>
-            </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary/90" asChild>
-              <Link to="/">
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Go to App
-              </Link>
-            </Button>
+            {isLoggedIn ? (
+              <Button size="sm" className="bg-primary hover:bg-primary/90 rounded-full px-6" asChild>
+                <Link to="/">
+                  Go to my account
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/auth">
+                    Sign In
+                  </Link>
+                </Button>
+                <Button size="sm" className="bg-primary hover:bg-primary/90" asChild>
+                  <Link to="/">
+                    <ExternalLink className="h-4 w-4 mr-1" />
+                    Go to App
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
