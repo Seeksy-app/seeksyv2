@@ -79,27 +79,24 @@ const AUTO_MAP_HINTS: Record<string, string[]> = {
 // Adelphia Metals specific format detection
 const ADELPHIA_HEADERS = ["PICK UP AT", "RATE", "DESTINATION", "READY", "WEIGHT", "LENGTH", "TARP"];
 
-// Aljex TMS - Column position-based mapping (Excel column letters to 0-based indices)
-// Formula: Single letter = letter - 'A', Double letter XY = (X - 'A' + 1) * 26 + (Y - 'A')
+// Aljex TMS Real D&L Export - Column position-based mapping (0-based indices)
+// Based on Real D&L.csv format: Office,Pro #,Master Invoice,...
 const ALJEX_COLUMN_POSITIONS: Record<string, { index: number; field: string }> = {
-  "B": { index: 1, field: "load_number" },      // Pro # → Load #
-  "J": { index: 9, field: "equipment_type" },   // Type → Equipment
-  "N": { index: 13, field: "status" },          // Status
-  "P": { index: 15, field: "pickup_date" },     // Ship date
+  "B": { index: 1, field: "load_number" },      // Pro #
+  "J": { index: 9, field: "equipment_type" },   // Type of Shipment
+  "N": { index: 13, field: "status" },          // Dispatch Status
+  "P": { index: 15, field: "pickup_date" },     // Ship Date
   "AF": { index: 31, field: "origin_city" },    // Pickup City
   "AG": { index: 32, field: "origin_state" },   // Pickup State
-  "AH": { index: 33, field: "origin_zip" },     // Pickup Zip
-  "AJ": { index: 35, field: "destination_city" },   // Consignee City → Destination City
-  "AK": { index: 36, field: "destination_state" },  // Consignee State → Destination State
-  "AL": { index: 37, field: "destination_zip" },    // Consignee Zip → Destination Zip
-  "AQ": { index: 42, field: "commodity" },      // Description → Commodity
+  "AJ": { index: 35, field: "destination_city" },   // Consignee City
+  "AK": { index: 36, field: "destination_state" },  // Consignee State
+  "AQ": { index: 42, field: "commodity" },      // Description
   "AR": { index: 43, field: "weight_lbs" },     // Weight
-  "AS": { index: 44, field: "length_ft" },      // Footage → Truck Size
-  "AW": { index: 48, field: "miles" },          // Miles
-  "BA": { index: 52, field: "floor_rate" },     // LH Revenue → Customer Invoice
-  "FU": { index: 176, field: "hazmat" },        // Hazmat (y/n)
-  "GJ": { index: 191, field: "equipment_notes" }, // Tarps (y/n)
-  "GK": { index: 192, field: "tarp_size" },     // Tarp Size
+  "AS": { index: 44, field: "length_ft" },      // Footage
+  "AW": { index: 48, field: "miles" },          // Miles/Class
+  "BA": { index: 52, field: "floor_rate" },     // LH Revenue
+  "FU": { index: 176, field: "hazmat" },        // Tarps (Y/N) - column in Tarps section
+  "GK": { index: 178, field: "tarp_size" },     // Tarp Size
 };
 
 // Key columns to detect Aljex format (just need data in these positions)
