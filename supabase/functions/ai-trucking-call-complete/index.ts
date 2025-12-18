@@ -371,9 +371,52 @@ serve(async (req) => {
       call_outcome, outcome, status,
       company_name, mc_number, callback_phone, contact_number, phone, load_id, notes,
       conversation_id, call_id, agent_id, caller_id, caller_number, phone_number, from_number,
-      duration, duration_seconds, call_duration, transcript, summary, started_at, ended_at,
+      duration, duration_seconds, call_duration, transcript, summary: webhookSummary, started_at, ended_at,
       lead_id, lead_status, lead_error, confirmed_load_number, final_rate
     } = params;
+    
+    // Extract conversation ID for ElevenLabs API fetch
+    const elevenLabsConversationId = conversation_id || call_id || body.conversation_id || callData.conversation_id || null;
+    
+    // Fetch summary from ElevenLabs API if not in webhook payload
+    let summary = webhookSummary || analysis.summary || analysis.call_successful_summary || null;
+    
+    if (!summary && elevenLabsConversationId) {
+      const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
+      if (ELEVENLABS_API_KEY) {
+        try {
+          console.log('Fetching conversation details from ElevenLabs for:', elevenLabsConversationId);
+          const convResponse = await fetch(
+            `https://api.elevenlabs.io/v1/convai/conversations/${elevenLabsConversationId}`,
+            {
+              headers: {
+                'xi-api-key': ELEVENLABS_API_KEY,
+              },
+            }
+          );
+          
+          if (convResponse.ok) {
+            const convData = await convResponse.json();
+            console.log('ElevenLabs conversation analysis:', JSON.stringify(convData.analysis, null, 2));
+            
+            // Extract summary from the analysis object
+            if (convData.analysis) {
+              summary = convData.analysis.call_successful_summary || 
+                       convData.analysis.summary || 
+                       convData.analysis.transcript_summary ||
+                       null;
+              console.log('Extracted summary from ElevenLabs:', summary ? `${summary.substring(0, 100)}...` : 'null');
+            }
+          } else {
+            console.warn('Failed to fetch ElevenLabs conversation:', convResponse.status);
+          }
+        } catch (fetchError) {
+          console.error('Error fetching ElevenLabs conversation details:', fetchError);
+        }
+      } else {
+        console.warn('ELEVENLABS_API_KEY not configured, cannot fetch summary');
+      }
+    }
     
     // Extract duration
     const elevenLabsDuration = 
@@ -617,6 +660,7 @@ serve(async (req) => {
       call_outcome: callOutcome,
       summary: summary || callNotes || null,
       transcript: callTranscript,
+      elevenlabs_conversation_id: elevenLabsConversationId,
     };
 
     if (lead_id) {
@@ -656,6 +700,7 @@ serve(async (req) => {
         call_outcome: callOutcome,
         summary: summary || callNotes || null,
         transcript: callTranscript,
+        elevenlabs_conversation_id: elevenLabsConversationId,
         is_demo: false,
         total_characters: callTranscript ? callTranscript.length : null,
         call_direction: 'inbound'

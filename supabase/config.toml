@@ -564,8 +564,8 @@ verify_jwt = true
 [[functions.elevenlabs-process-pending-webhooks.schedules]]
 cron = "*/5 * * * *"
 
-[functions.elevenlabs-reconcile-calls]
-verify_jwt = true
+[functions.backfill-elevenlabs-summaries]
+verify_jwt = false
 
 [[functions.elevenlabs-reconcile-calls.schedules]]
 cron = "0 3 * * *"
