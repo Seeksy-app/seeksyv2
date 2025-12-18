@@ -134,7 +134,100 @@ serve(async (req) => {
       skipped_wrong_agent: 0,
       errors_total: 0,
       pages_fetched: 0,
-      details: [] as Array<{ conversation_id: string; status: string; duration?: number; error?: string }>,
+      leads_created: 0,
+      leads_linked: 0,
+      details: [] as Array<{ conversation_id: string; status: string; duration?: number; error?: string; lead_created?: boolean }>,
+    };
+
+    // Helper function to detect booking intent from transcript
+    const detectBookingIntent = (transcript: string): { 
+      hasIntent: boolean; 
+      carrierName: string | null; 
+      rateOffered: number | null;
+      rateRequested: number | null;
+      needsCallback: boolean;
+      loadReference: string | null;
+    } => {
+      const lowerTranscript = transcript.toLowerCase();
+      
+      // Intent indicators
+      const bookingPhrases = [
+        'bookload', 'book load', 'book it', 'i\'ll take it', 'we\'ll take it',
+        'confirm', 'confirming', 'yes, yes', 'that\'s correct', 'is that correct',
+        'i\'m interested', 'we\'re interested', 'i want', 'we want',
+        'dispatch to call', 'speak to dispatch', 'callback', 'call you back',
+        'hear back shortly', 'let me get dispatch'
+      ];
+      
+      const hasIntent = bookingPhrases.some(phrase => lowerTranscript.includes(phrase));
+      
+      // Extract carrier/company name - look for patterns like "company is X" or "it's X"
+      let carrierName: string | null = null;
+      const companyPatterns = [
+        /company (?:is|name is) ([A-Z][a-zA-Z\s]+?)(?:,|\.|the callback)/i,
+        /it's ([A-Z][a-zA-Z\s]+?)(?:\.|phone|,)/i,
+        /name is ([A-Z][a-zA-Z\s]+?)(?:\.|and|,)/i,
+        /your name is ([A-Z][a-zA-Z\s]+?)(?:\.|and|,)/i,
+      ];
+      for (const pattern of companyPatterns) {
+        const match = transcript.match(pattern);
+        if (match) {
+          carrierName = match[1].trim();
+          break;
+        }
+      }
+      
+      // Extract rate offered (by agent)
+      let rateOffered: number | null = null;
+      const rateOfferedPatterns = [
+        /(?:offer|offering|at) (?:\$|one |two |three |four |five |six |seven |eight |nine )?(\d{1,2}(?:,\d{3}|\d{3})?(?:\.\d{2})?|\w+ (?:thousand|hundred)[\w\s]*?) (?:dollars|for this load)/i,
+        /(?:pay(?:ing)?|rate is) (?:\$)?(\d{1,2}(?:,\d{3}|\d{3})?(?:\.\d{2})?|\w+ (?:thousand|hundred)[\w\s]*?) (?:dollars)?/i,
+      ];
+      for (const pattern of rateOfferedPatterns) {
+        const match = transcript.match(pattern);
+        if (match) {
+          const rateStr = match[1].replace(/,/g, '');
+          const parsed = parseInt(rateStr);
+          if (!isNaN(parsed)) rateOffered = parsed;
+          break;
+        }
+      }
+      
+      // Extract rate requested (by caller)
+      let rateRequested: number | null = null;
+      const rateRequestedPatterns = [
+        /(?:would you go|can you (?:do|accept)|asking for|want|need) (?:\$)?(\d{1,2}(?:,\d{3}|\d{3})?)/i,
+      ];
+      for (const pattern of rateRequestedPatterns) {
+        const match = transcript.match(pattern);
+        if (match) {
+          const rateStr = match[1].replace(/,/g, '');
+          const parsed = parseInt(rateStr);
+          if (!isNaN(parsed)) rateRequested = parsed;
+          break;
+        }
+      }
+      
+      // Needs callback if rate negotiation exceeded agent's authority
+      const needsCallback = lowerTranscript.includes('dispatch to call') || 
+        lowerTranscript.includes('above what i\'m authorized') ||
+        lowerTranscript.includes('let me get dispatch');
+      
+      // Extract load reference
+      let loadReference: string | null = null;
+      const loadRefPatterns = [
+        /load (?:number |#)?(\d{3,6})/i,
+        /reference (?:number )?(\d{3,6})/i,
+      ];
+      for (const pattern of loadRefPatterns) {
+        const match = transcript.match(pattern);
+        if (match) {
+          loadReference = match[1];
+          break;
+        }
+      }
+      
+      return { hasIntent, carrierName, rateOffered, rateRequested, needsCallback, loadReference };
     };
 
     // Helper function with retry logic
@@ -365,7 +458,11 @@ serve(async (req) => {
           elevenlabs_metadata: metadata,
         };
 
+        let callLogId: string | null = null;
+        let leadCreated = false;
+        
         if (existingLog) {
+          callLogId = existingLog.id;
           // Update existing record
           const { error: updateError } = await supabase
             .from('trucking_call_logs')
@@ -378,23 +475,106 @@ serve(async (req) => {
             results.details.push({ conversation_id: conv.conversation_id, status: 'update_error', error: updateError.message });
           } else {
             results.upserted_total++;
-            results.details.push({ conversation_id: conv.conversation_id, status: 'updated', duration });
           }
         } else {
           // Insert new record
-          const { error: insertError } = await supabase
+          const { data: insertedLog, error: insertError } = await supabase
             .from('trucking_call_logs')
-            .insert(callLogData);
+            .insert(callLogData)
+            .select('id')
+            .single();
 
           if (insertError) {
             console.error(`Insert error for ${conv.conversation_id}:`, insertError);
             results.errors_total++;
             results.details.push({ conversation_id: conv.conversation_id, status: 'insert_error', error: insertError.message });
           } else {
+            callLogId = insertedLog?.id;
             results.upserted_total++;
-            results.details.push({ conversation_id: conv.conversation_id, status: 'created', duration });
           }
         }
+        
+        // --- LEAD CREATION LOGIC ---
+        // Only create lead if: has phone, has transcript with booking intent, no existing lead
+        if (callLogId && callerPhone && transcriptText) {
+          // Check if lead already exists for this call
+          const { data: existingLead } = await supabase
+            .from('trucking_carrier_leads')
+            .select('id')
+            .eq('call_log_id', callLogId)
+            .maybeSingle();
+            
+          // Also check by phone + recent time window
+          const { data: recentLeadByPhone } = await supabase
+            .from('trucking_carrier_leads')
+            .select('id')
+            .eq('phone', callerPhone.replace(/\D/g, '').slice(-10))
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+            .maybeSingle();
+          
+          if (!existingLead && !recentLeadByPhone) {
+            const intent = detectBookingIntent(transcriptText);
+            console.log(`Call ${conv.conversation_id} intent analysis:`, intent);
+            
+            if (intent.hasIntent) {
+              // Try to find matching load
+              let loadId: string | null = null;
+              if (intent.loadReference) {
+                const { data: matchedLoad } = await supabase
+                  .from('trucking_loads')
+                  .select('id')
+                  .ilike('reference_number', `%${intent.loadReference}%`)
+                  .limit(1)
+                  .maybeSingle();
+                loadId = matchedLoad?.id || null;
+              }
+              
+              // Format phone for storage (10 digits)
+              const formattedPhone = callerPhone.replace(/\D/g, '').slice(-10);
+              const displayPhone = `${formattedPhone.slice(0,3)}-${formattedPhone.slice(3,6)}-${formattedPhone.slice(6)}`;
+              
+              // Create lead
+              const leadData = {
+                owner_id: resolvedOwnerId,
+                phone: displayPhone,
+                company_name: intent.carrierName || 'undisclosed',
+                contact_name: intent.carrierName || 'undisclosed',
+                load_id: loadId,
+                call_log_id: callLogId,
+                call_source: 'inbound',
+                source: 'ai_voice_agent',
+                status: 'new',
+                rate_requested: intent.rateRequested || intent.rateOffered,
+                requires_callback: intent.needsCallback,
+                mc_pending: true,
+                notes: `Rate offered: ${intent.rateOffered || 'unknown'} | ${intent.needsCallback ? 'Needs callback' : 'Standard booking'}`,
+                is_confirmed: false,
+                is_archived: false,
+              };
+              
+              const { error: leadError } = await supabase
+                .from('trucking_carrier_leads')
+                .insert(leadData);
+              
+              if (leadError) {
+                console.error(`Lead creation error for ${conv.conversation_id}:`, leadError);
+              } else {
+                leadCreated = true;
+                results.leads_created++;
+                console.log(`Created lead for call ${conv.conversation_id} - carrier: ${intent.carrierName}, phone: ${displayPhone}`);
+              }
+            }
+          } else if (existingLead) {
+            results.leads_linked++;
+          }
+        }
+        
+        results.details.push({ 
+          conversation_id: conv.conversation_id, 
+          status: existingLog ? 'updated' : 'created', 
+          duration,
+          lead_created: leadCreated
+        });
 
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -414,6 +594,8 @@ serve(async (req) => {
     console.log({
       fetched_total: results.fetched_total,
       upserted_total: results.upserted_total,
+      leads_created: results.leads_created,
+      leads_linked: results.leads_linked,
       skipped_wrong_agent: results.skipped_wrong_agent,
       errors_total: results.errors_total,
       pages_fetched: results.pages_fetched,
@@ -425,6 +607,8 @@ serve(async (req) => {
       results: {
         fetched_total: results.fetched_total,
         upserted_total: results.upserted_total,
+        leads_created: results.leads_created,
+        leads_linked: results.leads_linked,
         skipped_wrong_agent: results.skipped_wrong_agent,
         errors_total: results.errors_total,
         pages_fetched: results.pages_fetched,
