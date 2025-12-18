@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -76,10 +77,11 @@ const outcomeColors: Record<string, string> = {
 };
 
 export default function CallLogsPage() {
+  const [searchParams] = useSearchParams();
   const [logs, setLogs] = useState<CallLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [backfilling, setBackfilling] = useState(false);

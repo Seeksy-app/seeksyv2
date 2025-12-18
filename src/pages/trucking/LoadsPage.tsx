@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import TruckingLayout from "@/components/trucking/TruckingLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -116,13 +117,14 @@ interface Load {
 const equipmentTypes = ["Dry Van", "Reefer", "Flatbed", "Step Deck", "Power Only", "Hotshot", "Conestoga", "Double Drop", "RGN"];
 
 export default function LoadsPage() {
+  const [searchParams] = useSearchParams();
   const [loads, setLoads] = useState<Load[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newModalOpen, setNewModalOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
   const [activeTab, setActiveTab] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [equipmentFilter, setEquipmentFilter] = useState<string>("all");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, Phone, Users, Search, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw, Upload, UserPlus, Sparkles
+  ChevronDown, ChevronUp, Phone, Users, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw, Upload, UserPlus, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,7 @@ import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
 import { TruckingDailyBriefModal } from "@/components/trucking/TruckingDailyBriefModal";
+import { TruckingGlobalSearch } from "@/components/trucking/TruckingGlobalSearch";
 
 interface Load {
   id: string;
@@ -120,7 +121,6 @@ export default function TruckingDashboardPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingLoad, setEditingLoad] = useState<Load | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [aiCallsEnabled, setAiCallsEnabled] = useState(true);
   const [expandedLoadId, setExpandedLoadId] = useState<string | null>(null);
   const [expandedLeadId, setExpandedLeadId] = useState<string | null>(null);
@@ -473,16 +473,7 @@ export default function TruckingDashboardPage() {
     <div className="space-y-6">
       {/* Top Bar - Search + Theme Toggle */}
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            type="text"
-            placeholder="Search loads, carriers, leads..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-white border-slate-200"
-          />
-        </div>
+        <TruckingGlobalSearch className="flex-1 max-w-md" />
         <Button
           variant="outline"
           size="icon"
