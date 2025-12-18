@@ -22,6 +22,7 @@ import { useBoardMeetingVideo } from "@/hooks/useBoardMeetingVideo";
 import { useBoardMeetingHost } from "@/hooks/useBoardMeetingHost";
 import { useCarryForwardMeeting } from "@/hooks/useCarryForwardMeeting";
 import { AIMeetingNotes } from "@/components/board/AIMeetingNotes";
+import { MemberFeedbackSection } from "@/components/board/MemberFeedbackSection";
 import { MeetingInviteManager } from "@/components/board/MeetingInviteManager";
 import { HostMeetingTabs } from "@/components/board/HostMeetingTabs";
 import { WaitingForHostScreen } from "@/components/board/WaitingForHostScreen";
@@ -99,6 +100,8 @@ interface MeetingNote {
   // Recording fields
   recording_url: string | null;
   audio_file_url: string | null;
+  // Member feedback (JSON from DB)
+  member_notes: any;
 }
 
 interface CreateMeetingForm {
@@ -365,6 +368,7 @@ export default function BoardMeetingNotes() {
         duration_minutes: (meeting as any).duration_minutes || 45,
         agenda_items: [],
         member_questions: [],
+        member_notes: [],
       } as unknown as MeetingNote;
       setSelectedNote(typedMeeting);
       
@@ -456,6 +460,7 @@ export default function BoardMeetingNotes() {
           ai_decisions_draft: Array.isArray(freshMeeting.ai_decisions_draft) ? freshMeeting.ai_decisions_draft : [],
           ai_action_items_draft: Array.isArray(freshMeeting.ai_action_items_draft) ? freshMeeting.ai_action_items_draft : [],
           ai_agenda_recap_draft: Array.isArray(freshMeeting.ai_agenda_recap_draft) ? freshMeeting.ai_agenda_recap_draft : [],
+          member_notes: Array.isArray(freshMeeting.member_notes) ? freshMeeting.member_notes : [],
         };
         console.log("Setting selectedNote with agenda_items:", typedMeeting.agenda_items.length);
         setSelectedNote(typedMeeting);
@@ -1658,6 +1663,13 @@ export default function BoardMeetingNotes() {
                 meetingDate={selectedNote.meeting_date}
                 hostName={user?.email?.split('@')[0] || "Host"}
                 onSummaryUpdated={() => refetch()}
+              />
+
+              {/* Member Feedback Section */}
+              <MemberFeedbackSection
+                meetingId={selectedNote.id}
+                memberNotes={selectedNote.member_notes || []}
+                onNotesUpdated={() => refetch()}
               />
 
               {/* Bottom Complete Meeting button removed - duplicate with top End Meeting action */}
