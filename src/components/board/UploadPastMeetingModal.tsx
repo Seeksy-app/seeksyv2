@@ -84,10 +84,17 @@ export function UploadPastMeetingModal({
     if (generateNotes) setIsGeneratingNotes(true);
 
     try {
+      // Get current user
+      const { data: userData, error: authError } = await supabase.auth.getUser();
+      if (authError || !userData.user) {
+        toast.error("You must be logged in to upload meetings");
+        return;
+      }
+
       const hasTextTranscript = transcript.trim().length > 0;
       const needsAudioTranscription = !hasTextTranscript && audioFile;
 
-      // 1. Create the meeting record
+      // 1. Create the meeting record with host/creator info
       const { data: meeting, error: createError } = await supabase
         .from("board_meeting_notes")
         .insert({
@@ -98,6 +105,8 @@ export function UploadPastMeetingModal({
           ai_notes_status: hasTextTranscript ? "transcribed" : "pending",
           status: "completed",
           duration_minutes: 60, // default
+          host_user_id: userData.user.id,
+          created_by: userData.user.id,
         })
         .select()
         .single();
