@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
-import { MessageSquarePlus, Send, User, StickyNote } from "lucide-react";
+import { Send, User, StickyNote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,59 +19,83 @@ interface MemberNote {
 
 interface StickyMemberNotesProps {
   meetingId: string;
-  memberNotes: MemberNote[];
-  onNotesUpdated: () => void;
+  memberNotes?: MemberNote[];
+  onNotesUpdated?: () => void;
 }
 
 export const StickyMemberNotes: React.FC<StickyMemberNotesProps> = ({
   meetingId,
-  memberNotes = [],
+  memberNotes: initialMemberNotes = [],
   onNotesUpdated,
 }) => {
   const { user } = useAuth();
   const [newNote, setNewNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [myNotes, setMyNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const handleSubmitNote = async () => {
-    if (!newNote.trim() || !user) return;
+  // Fetch user's own notes from the dedicated table
+  const fetchMyNotes = useCallback(async () => {
+    if (!user || !meetingId) return;
 
-    setIsSubmitting(true);
+    const { data, error } = await supabase
+      .from("board_meeting_member_notes")
+      .select("notes_md, updated_at")
+      .eq("meeting_id", meetingId)
+      .eq("member_user_id", user.id)
+      .maybeSingle();
+
+    if (data) {
+      setMyNotes(data.notes_md || "");
+      setLastSaved(new Date(data.updated_at));
+    }
+  }, [user, meetingId]);
+
+  useEffect(() => {
+    fetchMyNotes();
+  }, [fetchMyNotes]);
+
+  const handleSaveNotes = async () => {
+    if (!user || !meetingId) return;
+
+    setIsSaving(true);
     try {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, account_full_name")
-        .eq("id", user.id)
-        .single();
-
-      const authorName = profile?.full_name || profile?.account_full_name || user.email?.split("@")[0] || "Board Member";
-
-      const newMemberNote: MemberNote = {
-        id: crypto.randomUUID(),
-        author_id: user.id,
-        author_name: authorName,
-        content: newNote.trim(),
-        created_at: new Date().toISOString(),
-      };
-
-      const updatedNotes = [...memberNotes, newMemberNote];
-
+      // Upsert notes to the dedicated member notes table
       const { error } = await supabase
-        .from("board_meeting_notes")
-        .update({ member_notes: updatedNotes as any })
-        .eq("id", meetingId);
+        .from("board_meeting_member_notes")
+        .upsert({
+          meeting_id: meetingId,
+          member_user_id: user.id,
+          notes_md: myNotes,
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: "meeting_id,member_user_id"
+        });
 
       if (error) throw error;
 
-      setNewNote("");
-      onNotesUpdated();
-      toast.success("Note added");
+      setLastSaved(new Date());
+      toast.success("Notes saved");
+      onNotesUpdated?.();
     } catch (error) {
-      console.error("Error adding note:", error);
-      toast.error("Failed to add note");
+      console.error("Error saving notes:", error);
+      toast.error("Failed to save notes");
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
+
+  // Auto-save after 2 seconds of inactivity
+  useEffect(() => {
+    if (!myNotes || !user) return;
+    
+    const timer = setTimeout(() => {
+      handleSaveNotes();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [myNotes]);
 
   return (
     <div className="sticky top-4 h-fit max-h-[calc(100vh-2rem)]">
@@ -88,54 +112,29 @@ export const StickyMemberNotes: React.FC<StickyMemberNotesProps> = ({
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
-          {/* Add New Note - Always visible at top */}
+          {/* Personal Notes Textarea */}
           <div className="space-y-2">
             <Textarea
-              placeholder="Add a note..."
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              className="min-h-[80px] resize-none text-sm"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.metaKey) {
-                  handleSubmitNote();
-                }
-              }}
+              placeholder="Type your notes here..."
+              value={myNotes}
+              onChange={(e) => setMyNotes(e.target.value)}
+              className="min-h-[120px] resize-none text-sm"
             />
-            <Button
-              onClick={handleSubmitNote}
-              disabled={!newNote.trim() || isSubmitting}
-              size="sm"
-              className="w-full gap-2"
-            >
-              <Send className="w-3 h-3" />
-              {isSubmitting ? "Saving..." : "Add Note"}
-            </Button>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground">
+                {lastSaved ? `Last saved ${format(lastSaved, "h:mm a")}` : "Not saved yet"}
+              </span>
+              <Button
+                onClick={handleSaveNotes}
+                disabled={isSaving}
+                size="sm"
+                className="gap-2"
+              >
+                <Send className="w-3 h-3" />
+                {isSaving ? "Saving..." : "Add Note"}
+              </Button>
+            </div>
           </div>
-
-          {/* Existing Notes */}
-          {memberNotes.length > 0 && (
-            <ScrollArea className="max-h-[300px]">
-              <div className="space-y-2 pt-2 border-t">
-                <p className="text-xs text-muted-foreground font-medium">
-                  {memberNotes.length} note{memberNotes.length !== 1 ? 's' : ''}
-                </p>
-                {memberNotes.map((note) => (
-                  <div
-                    key={note.id}
-                    className="p-3 bg-card border rounded-lg space-y-1.5"
-                  >
-                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                      <User className="w-3 h-3" />
-                      <span className="font-medium text-foreground">{note.author_name}</span>
-                      <span>•</span>
-                      <span>{format(new Date(note.created_at), "MMM d, h:mm a")}</span>
-                    </div>
-                    <p className="text-xs text-foreground leading-relaxed">{note.content}</p>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
         </CardContent>
       </Card>
     </div>
