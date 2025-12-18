@@ -26491,6 +26491,8 @@ export type Database = {
       }
       trucking_call_logs: {
         Row: {
+          analysis_summary: string | null
+          branch_id: string | null
           call_cost_credits: number | null
           call_cost_usd: number | null
           call_direction: string | null
@@ -26498,17 +26500,26 @@ export type Database = {
           call_outcome: string | null
           call_started_at: string | null
           call_status: string | null
+          call_successful: boolean | null
           carrier_phone: string | null
+          connection_duration_seconds: number | null
           created_at: string | null
+          data_collection_results: Json | null
           deleted_at: string | null
           deleted_by: string | null
           duration_seconds: number | null
           elevenlabs_agent_id: string | null
           elevenlabs_conversation_id: string | null
+          elevenlabs_metadata: Json | null
+          elevenlabs_user_id: string | null
           ended_reason: string | null
           estimated_cost_usd: number | null
           failure_reason: string | null
+          has_audio: boolean | null
+          has_response_audio: boolean | null
+          has_user_audio: boolean | null
           id: string
+          initiation_client_data: Json | null
           is_demo: boolean | null
           language: string | null
           lead_id: string | null
@@ -26517,6 +26528,7 @@ export type Database = {
           load_id: string | null
           outcome: string | null
           owner_id: string | null
+          receiver_number: string | null
           recording_url: string | null
           routed_to_voicemail: boolean | null
           source: string | null
@@ -26524,9 +26536,13 @@ export type Database = {
           total_characters: number | null
           transcript: string | null
           transcript_url: string | null
+          twilio_call_sid: string | null
+          twilio_stream_sid: string | null
           voicemail_transcript: string | null
         }
         Insert: {
+          analysis_summary?: string | null
+          branch_id?: string | null
           call_cost_credits?: number | null
           call_cost_usd?: number | null
           call_direction?: string | null
@@ -26534,17 +26550,26 @@ export type Database = {
           call_outcome?: string | null
           call_started_at?: string | null
           call_status?: string | null
+          call_successful?: boolean | null
           carrier_phone?: string | null
+          connection_duration_seconds?: number | null
           created_at?: string | null
+          data_collection_results?: Json | null
           deleted_at?: string | null
           deleted_by?: string | null
           duration_seconds?: number | null
           elevenlabs_agent_id?: string | null
           elevenlabs_conversation_id?: string | null
+          elevenlabs_metadata?: Json | null
+          elevenlabs_user_id?: string | null
           ended_reason?: string | null
           estimated_cost_usd?: number | null
           failure_reason?: string | null
+          has_audio?: boolean | null
+          has_response_audio?: boolean | null
+          has_user_audio?: boolean | null
           id?: string
+          initiation_client_data?: Json | null
           is_demo?: boolean | null
           language?: string | null
           lead_id?: string | null
@@ -26553,6 +26578,7 @@ export type Database = {
           load_id?: string | null
           outcome?: string | null
           owner_id?: string | null
+          receiver_number?: string | null
           recording_url?: string | null
           routed_to_voicemail?: boolean | null
           source?: string | null
@@ -26560,9 +26586,13 @@ export type Database = {
           total_characters?: number | null
           transcript?: string | null
           transcript_url?: string | null
+          twilio_call_sid?: string | null
+          twilio_stream_sid?: string | null
           voicemail_transcript?: string | null
         }
         Update: {
+          analysis_summary?: string | null
+          branch_id?: string | null
           call_cost_credits?: number | null
           call_cost_usd?: number | null
           call_direction?: string | null
@@ -26570,17 +26600,26 @@ export type Database = {
           call_outcome?: string | null
           call_started_at?: string | null
           call_status?: string | null
+          call_successful?: boolean | null
           carrier_phone?: string | null
+          connection_duration_seconds?: number | null
           created_at?: string | null
+          data_collection_results?: Json | null
           deleted_at?: string | null
           deleted_by?: string | null
           duration_seconds?: number | null
           elevenlabs_agent_id?: string | null
           elevenlabs_conversation_id?: string | null
+          elevenlabs_metadata?: Json | null
+          elevenlabs_user_id?: string | null
           ended_reason?: string | null
           estimated_cost_usd?: number | null
           failure_reason?: string | null
+          has_audio?: boolean | null
+          has_response_audio?: boolean | null
+          has_user_audio?: boolean | null
           id?: string
+          initiation_client_data?: Json | null
           is_demo?: boolean | null
           language?: string | null
           lead_id?: string | null
@@ -26589,6 +26628,7 @@ export type Database = {
           load_id?: string | null
           outcome?: string | null
           owner_id?: string | null
+          receiver_number?: string | null
           recording_url?: string | null
           routed_to_voicemail?: boolean | null
           source?: string | null
@@ -26596,6 +26636,8 @@ export type Database = {
           total_characters?: number | null
           transcript?: string | null
           transcript_url?: string | null
+          twilio_call_sid?: string | null
+          twilio_stream_sid?: string | null
           voicemail_transcript?: string | null
         }
         Relationships: [

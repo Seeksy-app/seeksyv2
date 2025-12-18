@@ -37,13 +37,39 @@ interface ElevenLabsConversationDetail {
     call_successful?: boolean;
     data_collection_results?: Record<string, unknown>;
   };
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    // Core metadata
+    call_sid?: string;
+    stream_sid?: string;
+    caller_phone_number?: string;
+    called_phone_number?: string;
+    call_direction?: string;
+    // Twilio specific
+    twilio_call_sid?: string;
+    twilio_stream_sid?: string;
+    // Other metadata
+    [key: string]: unknown;
+  };
   call?: {
     from_number?: string;
     to_number?: string;
     recording_url?: string;
     call_cost_credits?: number;
     ended_reason?: string;
+    call_direction?: string;
+    connection_duration_secs?: number;
+  };
+  // Audio availability flags
+  has_audio?: boolean;
+  has_user_audio?: boolean;
+  has_response_audio?: boolean;
+  // User and branch tracking
+  user_id?: string;
+  branch_id?: string;
+  // Conversation initiation data
+  conversation_initiation_client_data?: {
+    dynamic_variables?: Record<string, unknown>;
+    [key: string]: unknown;
   };
 }
 
@@ -211,25 +237,41 @@ serve(async (req) => {
             ? detail.end_time_unix_secs - detail.start_time_unix_secs 
             : 0);
 
-        const audioUrl = detail.call?.recording_url || null;
-        const callerPhone = detail.call?.from_number || null;
-        const callCostCredits = detail.call?.call_cost_credits || null;
-        const endedReason = detail.call?.ended_reason || null;
+        // Extract all available data from call object and metadata
+        const callData = detail.call || {};
+        const metadata = detail.metadata || {};
         
+        const audioUrl = callData.recording_url || null;
+        const callCostCredits = callData.call_cost_credits || null;
+        const endedReason = callData.ended_reason || null;
+        const connectionDuration = callData.connection_duration_secs || null;
+        
+        // Phone numbers - check both call object and metadata
+        const callerPhone = callData.from_number || metadata.caller_phone_number as string || null;
+        const receiverPhone = callData.to_number || metadata.called_phone_number as string || null;
+        
+        // Call direction - check call object and metadata
+        const callDirection = callData.call_direction || metadata.call_direction as string || 'inbound';
+        
+        // Twilio SIDs - check metadata for these
+        const twilioCallSid = metadata.call_sid as string || metadata.twilio_call_sid as string || null;
+        const twilioStreamSid = metadata.stream_sid as string || metadata.twilio_stream_sid as string || null;
+        
+        // CRITICAL: Use actual ElevenLabs timestamps, NOT now()
         const startTime = detail.start_time_unix_secs 
           ? new Date(detail.start_time_unix_secs * 1000).toISOString()
-          : new Date().toISOString();
+          : null; // Don't default to now() - leave null if no timestamp
         const endTime = detail.end_time_unix_secs
           ? new Date(detail.end_time_unix_secs * 1000).toISOString()
           : null;
 
         // Calculate estimated costs
-        const estimatedCostUsd = (duration / 60) * COST_PER_MINUTE;
+        const estimatedCostUsd = duration > 0 ? (duration / 60) * COST_PER_MINUTE : 0;
         const callCostUsd = callCostCredits ? callCostCredits * COST_PER_CREDIT : estimatedCostUsd;
         const llmCostUsdTotal = estimatedCostUsd * 0.3; // Approximate LLM portion
         const llmCostUsdPerMin = duration > 0 ? (llmCostUsdTotal / (duration / 60)) : 0;
 
-        // Determine outcome
+        // Determine outcome from analysis
         let outcome = 'completed';
         if (detail.analysis?.data_collection_results) {
           const dataResults = detail.analysis.data_collection_results as Record<string, unknown>;
@@ -251,25 +293,45 @@ serve(async (req) => {
         const callLogData = {
           owner_id: resolvedOwnerId,
           carrier_phone: callerPhone,
-          call_direction: 'inbound',
+          receiver_number: receiverPhone,
+          call_direction: callDirection,
           summary: summary,
           transcript: transcriptText,
           recording_url: audioUrl,
           call_started_at: startTime,
           call_ended_at: endTime,
           duration_seconds: duration,
+          connection_duration_seconds: connectionDuration,
           outcome: outcome,
           estimated_cost_usd: callCostUsd,
           is_demo: false,
-          // New ElevenLabs tracking fields
+          // ElevenLabs tracking fields
           elevenlabs_conversation_id: conv.conversation_id,
           elevenlabs_agent_id: conv.agent_id,
+          elevenlabs_user_id: detail.user_id || null,
           call_cost_credits: callCostCredits,
           call_cost_usd: callCostUsd,
           llm_cost_usd_total: llmCostUsdTotal,
           llm_cost_usd_per_min: llmCostUsdPerMin,
           ended_reason: endedReason,
           call_status: detail.status,
+          // Twilio integration
+          twilio_call_sid: twilioCallSid,
+          twilio_stream_sid: twilioStreamSid,
+          // Audio availability flags
+          has_audio: detail.has_audio || false,
+          has_user_audio: detail.has_user_audio || false,
+          has_response_audio: detail.has_response_audio || false,
+          // Branch/version tracking
+          branch_id: detail.branch_id || null,
+          // Analysis data
+          analysis_summary: detail.analysis?.summary || null,
+          call_successful: detail.analysis?.call_successful || null,
+          data_collection_results: detail.analysis?.data_collection_results || null,
+          // Client initiation data
+          initiation_client_data: detail.conversation_initiation_client_data || null,
+          // Full metadata blob for future fields
+          elevenlabs_metadata: metadata,
         };
 
         if (existingLog) {

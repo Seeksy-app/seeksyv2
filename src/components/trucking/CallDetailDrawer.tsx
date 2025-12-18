@@ -10,15 +10,20 @@ import { Slider } from '@/components/ui/slider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Play, Pause, SkipBack, SkipForward, Volume2, VolumeX,
-  Phone, Clock, FileText, Search, AlertCircle, CheckCircle2, DollarSign, Bot
+  Phone, Clock, FileText, Search, AlertCircle, CheckCircle2, DollarSign, Bot,
+  PhoneIncoming, PhoneOutgoing, Link2
 } from 'lucide-react';
 import { getOutcomeLabel, getOutcomeTooltip } from '@/constants/truckingOutcomes';
 
 interface CallLog {
   id: string;
   carrier_phone: string | null;
+  receiver_number?: string | null;
+  call_direction?: string | null;
   call_started_at: string | null;
+  call_ended_at?: string | null;
   duration_seconds: number | null;
+  connection_duration_seconds?: number | null;
   outcome: string | null;
   call_outcome: string | null;
   summary: string | null;
@@ -33,9 +38,21 @@ interface CallLog {
   call_cost_credits?: number | null;
   call_cost_usd?: number | null;
   llm_cost_usd_total?: number | null;
+  llm_cost_usd_per_min?: number | null;
   ended_reason?: string | null;
   call_status?: string | null;
   estimated_cost_usd?: number | null;
+  // Twilio integration
+  twilio_call_sid?: string | null;
+  twilio_stream_sid?: string | null;
+  // Audio flags
+  has_audio?: boolean | null;
+  has_user_audio?: boolean | null;
+  has_response_audio?: boolean | null;
+  // Analysis
+  analysis_summary?: string | null;
+  call_successful?: boolean | null;
+  // Relationships
   trucking_loads?: { load_number: string } | null;
   trucking_call_transcripts?: {
     transcript_text: string | null;
@@ -214,89 +231,155 @@ export function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerP
               </div>
             )}
 
-            {/* Call Metadata */}
+            {/* Call Direction & Phone Numbers */}
             <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm">
+                {call.call_direction === 'outbound' ? (
+                  <PhoneOutgoing className="h-4 w-4 text-blue-500" />
+                ) : (
+                  <PhoneIncoming className="h-4 w-4 text-green-500" />
+                )}
+                <span className="capitalize font-medium">{call.call_direction || 'Inbound'} Call</span>
+              </div>
+              
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
+                <div className="flex flex-col">
+                  <span className="text-muted-foreground text-xs">
+                    {call.call_direction === 'outbound' ? 'From (Agent)' : 'From (Caller)'}
+                  </span>
                   <span className="font-mono">{call.carrier_phone || 'Unknown'}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>
-                    {call.call_started_at 
-                      ? format(new Date(call.call_started_at), 'MMM d, h:mm a')
-                      : '—'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Duration:</span>
-                  <span className="font-medium">{formatDuration(call.duration_seconds)}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Load:</span>
-                  <span className="font-mono">{call.trucking_loads?.load_number || '—'}</span>
-                </div>
+                {call.receiver_number && (
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">
+                      {call.call_direction === 'outbound' ? 'To (Called)' : 'To (Agent)'}
+                    </span>
+                    <span className="font-mono">{call.receiver_number}</span>
+                  </div>
+                )}
               </div>
+            </div>
 
-              {/* Cost Info - Enhanced */}
-              <div className="grid grid-cols-2 gap-3 text-sm pt-2 p-3 bg-muted/30 rounded-lg">
+            {/* Timing & Duration */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-xs">Started</span>
+                <span>
+                  {call.call_started_at 
+                    ? format(new Date(call.call_started_at), 'MMM d, h:mm:ss a')
+                    : '—'}
+                </span>
+              </div>
+              {call.call_ended_at && (
                 <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Duration</span>
-                  <span className="font-medium">{formatDuration(call.duration_seconds)}</span>
+                  <span className="text-muted-foreground text-xs">Ended</span>
+                  <span>{format(new Date(call.call_ended_at), 'h:mm:ss a')}</span>
                 </div>
+              )}
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-xs">Duration</span>
+                <span className="font-medium">{formatDuration(call.duration_seconds)}</span>
+              </div>
+              {call.connection_duration_seconds && call.connection_duration_seconds !== call.duration_seconds && (
+                <div className="flex flex-col">
+                  <span className="text-muted-foreground text-xs">Connection Time</span>
+                  <span>{formatDuration(call.connection_duration_seconds)}</span>
+                </div>
+              )}
+              <div className="flex flex-col">
+                <span className="text-muted-foreground text-xs">Load</span>
+                <span className="font-mono">{call.trucking_loads?.load_number || '—'}</span>
+              </div>
+            </div>
+
+            {/* Cost Breakdown */}
+            <div className="p-3 bg-muted/30 rounded-lg">
+              <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                Cost Breakdown
+              </h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
                 <div className="flex flex-col">
                   <span className="text-muted-foreground text-xs">Total Cost</span>
                   <span className="font-medium">
                     ${(call.call_cost_usd || call.estimated_cost_usd || 0).toFixed(3)}
-                    {call.call_cost_credits && (
-                      <span className="text-xs text-muted-foreground ml-1">
-                        ({call.call_cost_credits} cr)
-                      </span>
-                    )}
                   </span>
                 </div>
-                {call.llm_cost_usd_total && (
-                  <>
-                    <div className="flex flex-col">
-                      <span className="text-muted-foreground text-xs">LLM Cost</span>
-                      <span className="font-medium">${call.llm_cost_usd_total.toFixed(3)}</span>
-                    </div>
-                    {(call as any).llm_cost_usd_per_min && (
-                      <div className="flex flex-col">
-                        <span className="text-muted-foreground text-xs">LLM $/min</span>
-                        <span className="font-medium">${(call as any).llm_cost_usd_per_min.toFixed(3)}</span>
-                      </div>
-                    )}
-                  </>
+                {call.call_cost_credits && (
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">Credits Used</span>
+                    <span>{call.call_cost_credits}</span>
+                  </div>
                 )}
-                <div className="flex flex-col">
-                  <span className="text-muted-foreground text-xs">Load</span>
-                  <span className="font-mono">{call.trucking_loads?.load_number || '—'}</span>
+                {call.llm_cost_usd_total && (
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">LLM Cost</span>
+                    <span>${call.llm_cost_usd_total.toFixed(3)}</span>
+                  </div>
+                )}
+                {call.llm_cost_usd_per_min && (
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">LLM $/min</span>
+                    <span>${call.llm_cost_usd_per_min.toFixed(3)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Twilio / Telephony Info */}
+            {(call.twilio_call_sid || call.twilio_stream_sid) && (
+              <div className="p-3 bg-muted/30 rounded-lg">
+                <h4 className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                  <Link2 className="h-3 w-3" />
+                  Telephony Details
+                </h4>
+                <div className="space-y-1 text-xs">
+                  {call.twilio_call_sid && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Call SID:</span>
+                      <span className="font-mono truncate">{call.twilio_call_sid}</span>
+                    </div>
+                  )}
+                  {call.twilio_stream_sid && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Stream SID:</span>
+                      <span className="font-mono truncate">{call.twilio_stream_sid}</span>
+                    </div>
+                  )}
                 </div>
               </div>
+            )}
 
-              <div className="flex items-center gap-2">
-                <Badge 
-                  variant="secondary"
-                  className={
-                    outcome === 'confirmed' || outcome === 'booked' ? 'bg-green-500/10 text-green-600' :
-                    outcome === 'declined' ? 'bg-red-500/10 text-red-600' :
-                    outcome === 'voicemail' ? 'bg-purple-500/10 text-purple-600' :
-                    outcome === 'callback_requested' ? 'bg-orange-500/10 text-orange-600' :
-                    'bg-gray-500/10 text-gray-600'
-                  }
-                  title={getOutcomeTooltip(outcome)}
-                >
-                  {getOutcomeLabel(outcome)}
+            {/* Status Badges */}
+            <div className="flex items-center flex-wrap gap-2">
+              <Badge 
+                variant="secondary"
+                className={
+                  outcome === 'confirmed' || outcome === 'booked' ? 'bg-green-500/10 text-green-600' :
+                  outcome === 'declined' ? 'bg-red-500/10 text-red-600' :
+                  outcome === 'voicemail' ? 'bg-purple-500/10 text-purple-600' :
+                  outcome === 'callback_requested' ? 'bg-orange-500/10 text-orange-600' :
+                  'bg-gray-500/10 text-gray-600'
+                }
+                title={getOutcomeTooltip(outcome)}
+              >
+                {getOutcomeLabel(outcome)}
+              </Badge>
+              {call.is_demo && (
+                <Badge variant="outline" className="text-xs">DEMO</Badge>
+              )}
+              {call.call_status && call.call_status !== 'done' && (
+                <Badge variant="outline" className="text-xs capitalize">{call.call_status}</Badge>
+              )}
+              {call.call_successful === true && (
+                <Badge variant="outline" className="text-xs text-green-600 border-green-200">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />
+                  Successful
                 </Badge>
-                {call.is_demo && (
-                  <Badge variant="outline" className="text-xs">DEMO</Badge>
-                )}
-                {call.call_status && call.call_status !== 'completed' && (
-                  <Badge variant="outline" className="text-xs capitalize">{call.call_status}</Badge>
-                )}
-              </div>
+              )}
+              {call.has_audio && (
+                <Badge variant="outline" className="text-xs">Has Audio</Badge>
+              )}
             </div>
 
             {/* Audio Player */}
