@@ -942,46 +942,51 @@ export default function TruckingDashboardPage() {
                       <TableCell className="whitespace-nowrap">{formatRate(load)}</TableCell>
                       <TableCell className="whitespace-nowrap">{getStatusBadge(load.status)}</TableCell>
                       <TableCell className="whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
+                        <div className="flex items-center gap-2">
+                          {load.status === "open" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => takeLoad(load.id, fetchData)}
+                              disabled={assignmentLoading === load.id}
+                              className="h-8"
+                            >
+                              <UserPlus className="h-4 w-4 mr-1" />
+                              {assignmentLoading === load.id ? "..." : "Assign"}
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(load)}>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicate(load)}>
-                              <Copy className="h-4 w-4 mr-2" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            {load.status === "open" && (
-                              <>
-                                <DropdownMenuItem 
-                                  onClick={() => takeLoad(load.id, fetchData)}
-                                  disabled={assignmentLoading === load.id}
-                                >
-                                  <UserPlus className="h-4 w-4 mr-2" />
-                                  {assignmentLoading === load.id ? "Assigning..." : "Assign to Me"}
-                                </DropdownMenuItem>
+                          )}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(load)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDuplicate(load)}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Duplicate
+                              </DropdownMenuItem>
+                              {load.status === "open" && (
                                 <DropdownMenuItem onClick={() => handleConfirm(load.id)}>
                                   <CheckCircle2 className="h-4 w-4 mr-2" />
                                   Confirm
                                 </DropdownMenuItem>
-                              </>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleDelete(load.id)}
-                              className="text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => handleDelete(load.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                     {expandedLoadId === load.id && (
