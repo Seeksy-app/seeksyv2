@@ -545,3 +545,9 @@ verify_jwt = true
 
 [functions.ai-trucking-generate-cei-report]
 verify_jwt = true
+
+[functions.elevenlabs-usage]
+verify_jwt = true
+
+[functions.elevenlabs-backfill-calls]
+verify_jwt = true

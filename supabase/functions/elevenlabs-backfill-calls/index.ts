@@ -45,6 +45,9 @@ interface ElevenLabsConversationDetail {
   };
 }
 
+// Cost per minute for ElevenLabs conversational AI
+const COST_PER_MINUTE = 0.07;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -89,28 +92,6 @@ serve(async (req) => {
     const conversations: ElevenLabsConversation[] = listData.conversations || [];
     console.log(`Found ${conversations.length} conversations`);
 
-    // Step 2: Get existing call_external_ids to avoid duplicates
-    const { data: existingCalls } = await supabase
-      .from('trucking_calls')
-      .select('call_external_id')
-      .not('call_external_id', 'is', null);
-
-    const existingIds = new Set((existingCalls || []).map(c => c.call_external_id));
-
-    // Also check trucking_call_logs
-    const { data: existingLogs } = await supabase
-      .from('trucking_call_logs')
-      .select('id, transcript, duration_seconds, recording_url')
-      .not('transcript', 'is', null);
-
-    const results = {
-      processed: 0,
-      updated: 0,
-      skipped: 0,
-      errors: 0,
-      details: [] as Array<{ conversation_id: string; status: string; error?: string }>,
-    };
-
     // Get owner_id if not provided
     let resolvedOwnerId = owner_id;
     if (!resolvedOwnerId) {
@@ -122,7 +103,16 @@ serve(async (req) => {
       resolvedOwnerId = anyOwner?.owner_id;
     }
 
-    // Step 3: For each conversation, fetch details and update database
+    const results = {
+      processed: 0,
+      created: 0,
+      updated: 0,
+      skipped: 0,
+      errors: 0,
+      details: [] as Array<{ conversation_id: string; status: string; duration?: number; error?: string }>,
+    };
+
+    // Step 2: Process each conversation
     for (const conv of conversations) {
       try {
         results.processed++;
@@ -155,89 +145,98 @@ serve(async (req) => {
         const duration = detail.call_duration_secs || 
           (detail.end_time_unix_secs && detail.start_time_unix_secs 
             ? detail.end_time_unix_secs - detail.start_time_unix_secs 
-            : null);
+            : 0);
 
         const audioUrl = detail.call?.recording_url || null;
         const callerPhone = detail.call?.from_number || null;
         const startTime = detail.start_time_unix_secs 
           ? new Date(detail.start_time_unix_secs * 1000).toISOString()
+          : new Date().toISOString();
+        const endTime = detail.end_time_unix_secs
+          ? new Date(detail.end_time_unix_secs * 1000).toISOString()
           : null;
 
-        // Check if this conversation already exists in trucking_calls
-        if (existingIds.has(conv.conversation_id)) {
-          // Update existing record with any missing data
+        // Calculate estimated cost
+        const estimatedCost = (duration / 60) * COST_PER_MINUTE;
+
+        // Determine outcome
+        let outcome = 'completed';
+        if (detail.analysis?.data_collection_results) {
+          const results = detail.analysis.data_collection_results as Record<string, unknown>;
+          if (results.callback_requested) outcome = 'callback_requested';
+          else if (results.declined) outcome = 'declined';
+          else if (results.confirmed) outcome = 'confirmed';
+        }
+
+        // Summary from analysis
+        const summary = detail.analysis?.summary || null;
+
+        // Check if record exists with this conversation_id in trucking_call_logs
+        // We'll use the id as a unique key - try to match by time window
+        const searchStart = new Date(new Date(startTime).getTime() - 60 * 1000).toISOString();
+        const searchEnd = new Date(new Date(startTime).getTime() + 60 * 1000).toISOString();
+
+        const { data: existingLog } = await supabase
+          .from('trucking_call_logs')
+          .select('id, transcript, recording_url, duration_seconds')
+          .gte('call_started_at', searchStart)
+          .lte('call_started_at', searchEnd)
+          .limit(1)
+          .maybeSingle();
+
+        if (existingLog) {
+          // Update existing record
           const { error: updateError } = await supabase
-            .from('trucking_calls')
-            .update({
-              call_duration_seconds: duration,
-              transcript_text: transcriptText,
-              audio_url: audioUrl,
-            })
-            .eq('call_external_id', conv.conversation_id)
-            .is('transcript_text', null); // Only update if transcript is missing
-
-          if (!updateError) {
-            results.updated++;
-            results.details.push({ conversation_id: conv.conversation_id, status: 'updated' });
-          }
-          continue;
-        }
-
-        // Try to find matching record in trucking_call_logs by phone/time
-        let matchedLogId: string | null = null;
-        if (callerPhone && startTime) {
-          const cleanPhone = callerPhone.replace(/[^0-9]/g, '');
-          const { data: matchedLog } = await supabase
             .from('trucking_call_logs')
-            .select('id, transcript, duration_seconds, recording_url')
-            .or(`carrier_phone.ilike.%${cleanPhone}%`)
-            .gte('created_at', new Date(new Date(startTime).getTime() - 5 * 60 * 1000).toISOString())
-            .lte('created_at', new Date(new Date(startTime).getTime() + 5 * 60 * 1000).toISOString())
-            .limit(1)
-            .maybeSingle();
+            .update({
+              duration_seconds: duration || existingLog.duration_seconds,
+              transcript: transcriptText || existingLog.transcript,
+              recording_url: audioUrl || existingLog.recording_url,
+              summary: summary,
+              estimated_cost_usd: estimatedCost,
+              call_ended_at: endTime,
+            })
+            .eq('id', existingLog.id);
 
-          if (matchedLog) {
-            matchedLogId = matchedLog.id;
-            // Update the log with backfilled data
-            await supabase
-              .from('trucking_call_logs')
-              .update({
-                duration_seconds: duration || matchedLog.duration_seconds,
-                transcript: transcriptText || matchedLog.transcript,
-                recording_url: audioUrl || matchedLog.recording_url,
-              })
-              .eq('id', matchedLog.id);
+          if (updateError) {
+            console.error(`Update error for ${conv.conversation_id}:`, updateError);
+            results.errors++;
+            results.details.push({ conversation_id: conv.conversation_id, status: 'update_error', error: updateError.message });
+          } else {
+            results.updated++;
+            results.details.push({ conversation_id: conv.conversation_id, status: 'updated', duration });
+          }
+        } else {
+          // Create new record in trucking_call_logs
+          const { error: insertError } = await supabase
+            .from('trucking_call_logs')
+            .insert({
+              owner_id: resolvedOwnerId,
+              carrier_phone: callerPhone,
+              call_direction: 'inbound',
+              summary: summary,
+              transcript: transcriptText,
+              recording_url: audioUrl,
+              call_started_at: startTime,
+              call_ended_at: endTime,
+              duration_seconds: duration,
+              outcome: outcome,
+              estimated_cost_usd: estimatedCost,
+              is_demo: false,
+            });
+
+          if (insertError) {
+            console.error(`Insert error for ${conv.conversation_id}:`, insertError);
+            results.errors++;
+            results.details.push({ conversation_id: conv.conversation_id, status: 'insert_error', error: insertError.message });
+          } else {
+            results.created++;
+            results.details.push({ conversation_id: conv.conversation_id, status: 'created', duration });
           }
         }
 
-        // Create new trucking_calls record
-        const { error: insertError } = await supabase
-          .from('trucking_calls')
-          .insert({
-            call_provider: 'elevenlabs',
-            call_external_id: conv.conversation_id,
-            agent_name: 'Jess',
-            caller_phone: callerPhone,
-            call_duration_seconds: duration,
-            transcript_text: transcriptText,
-            audio_url: audioUrl,
-            call_outcome: detail.status === 'done' ? 'completed' : 'incomplete',
-            handoff_requested: false,
-            lead_created: false,
-            cei_score: 50, // Default score for backfilled calls
-            cei_band: '50-74',
-            owner_id: resolvedOwnerId,
-            created_at: startTime || new Date().toISOString(),
-          });
-
-        if (insertError) {
-          console.error(`Insert error for ${conv.conversation_id}:`, insertError);
-          results.errors++;
-          results.details.push({ conversation_id: conv.conversation_id, status: 'insert_error', error: insertError.message });
-        } else {
-          results.updated++;
-          results.details.push({ conversation_id: conv.conversation_id, status: 'created' });
-        }
+        // Small delay to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100));
 
       } catch (err) {
         console.error(`Error processing ${conv.conversation_id}:`, err);
@@ -250,7 +249,12 @@ serve(async (req) => {
       }
     }
 
-    console.log('Backfill complete:', results);
+    console.log('Backfill complete:', {
+      processed: results.processed,
+      created: results.created,
+      updated: results.updated,
+      errors: results.errors,
+    });
 
     return new Response(JSON.stringify({
       success: true,

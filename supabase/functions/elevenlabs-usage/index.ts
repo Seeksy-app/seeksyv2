@@ -20,48 +20,55 @@ serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY not configured');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    console.log('=== ELEVENLABS USAGE FETCH ===');
 
-    // Get current usage from ElevenLabs
-    const usageResponse = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
-      headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
-      },
-    });
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    let elevenLabsUsage = null;
-    if (usageResponse.ok) {
-      elevenLabsUsage = await usageResponse.json();
+    // Fetch conversations from ElevenLabs API directly
+    const conversationsResponse = await fetch(
+      'https://api.elevenlabs.io/v1/convai/conversations?page_size=100',
+      {
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+        },
+      }
+    );
+
+    if (!conversationsResponse.ok) {
+      const errorText = await conversationsResponse.text();
+      console.error('Failed to fetch conversations:', errorText);
+      throw new Error(`ElevenLabs API error: ${conversationsResponse.status}`);
     }
 
-    // Calculate usage from our database (trucking_calls table)
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const conversationsData = await conversationsResponse.json();
+    const conversations = conversationsData.conversations || [];
+    
+    console.log(`Found ${conversations.length} conversations from ElevenLabs`);
 
-    // Get monthly call stats
-    const { data: monthlyCalls, error: monthlyError } = await supabase
-      .from('trucking_calls')
-      .select('call_duration_seconds')
-      .gte('created_at', startOfMonth);
+    // Calculate usage from actual ElevenLabs conversations
+    let monthlyTotalSeconds = 0;
+    let todayTotalSeconds = 0;
+    let monthlyCallCount = 0;
+    let todayCallCount = 0;
 
-    // Get today's call stats
-    const { data: todayCalls, error: todayError } = await supabase
-      .from('trucking_calls')
-      .select('call_duration_seconds')
-      .gte('created_at', startOfDay);
+    for (const conv of conversations) {
+      const duration = conv.call_duration_secs || 0;
+      const startTime = conv.start_time_unix_secs 
+        ? new Date(conv.start_time_unix_secs * 1000) 
+        : null;
 
-    // Calculate totals
-    const monthlyTotalSeconds = (monthlyCalls || []).reduce(
-      (sum, c) => sum + (c.call_duration_seconds || 0), 
-      0
-    );
-    const todayTotalSeconds = (todayCalls || []).reduce(
-      (sum, c) => sum + (c.call_duration_seconds || 0), 
-      0
-    );
+      if (startTime && startTime >= startOfMonth) {
+        monthlyTotalSeconds += duration;
+        monthlyCallCount++;
+
+        if (startTime >= startOfDay) {
+          todayTotalSeconds += duration;
+          todayCallCount++;
+        }
+      }
+    }
 
     const monthlyMinutes = monthlyTotalSeconds / 60;
     const todayMinutes = todayTotalSeconds / 60;
@@ -73,20 +80,45 @@ serve(async (req) => {
     // Project monthly spend based on current rate
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const dayOfMonth = now.getDate();
-    const projectedMonthlySpend = (estimatedMonthlySpend / dayOfMonth) * daysInMonth;
+    const projectedMonthlySpend = dayOfMonth > 0 
+      ? (estimatedMonthlySpend / dayOfMonth) * daysInMonth 
+      : 0;
+
+    // Also get subscription info
+    let elevenLabsUsage = null;
+    try {
+      const usageResponse = await fetch('https://api.elevenlabs.io/v1/user/subscription', {
+        headers: {
+          'xi-api-key': ELEVENLABS_API_KEY,
+        },
+      });
+      if (usageResponse.ok) {
+        elevenLabsUsage = await usageResponse.json();
+      }
+    } catch (e) {
+      console.warn('Failed to fetch subscription info:', e);
+    }
+
+    console.log('Usage calculated:', {
+      monthlyCallCount,
+      monthlyMinutes,
+      todayCallCount,
+      todayMinutes,
+      estimatedMonthlySpend,
+    });
 
     return new Response(JSON.stringify({
       success: true,
       usage: {
         monthly: {
-          calls: monthlyCalls?.length || 0,
+          calls: monthlyCallCount,
           total_seconds: monthlyTotalSeconds,
           total_minutes: Math.round(monthlyMinutes * 10) / 10,
           estimated_cost: Math.round(estimatedMonthlySpend * 100) / 100,
           projected_cost: Math.round(projectedMonthlySpend * 100) / 100,
         },
         today: {
-          calls: todayCalls?.length || 0,
+          calls: todayCallCount,
           total_seconds: todayTotalSeconds,
           total_minutes: Math.round(todayMinutes * 10) / 10,
           estimated_cost: Math.round(estimatedTodaySpend * 100) / 100,

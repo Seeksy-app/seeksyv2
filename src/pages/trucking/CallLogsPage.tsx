@@ -24,6 +24,7 @@ interface CallLog {
   call_outcome: string | null;
   summary: string | null;
   transcript_url: string | null;
+  transcript: string | null;
   recording_url: string | null;
   routed_to_voicemail: boolean | null;
   voicemail_transcript: string | null;
@@ -112,7 +113,7 @@ export default function CallLogsPage() {
         const results = data.results;
         toast({ 
           title: "Backfill Complete", 
-          description: `Processed ${results.processed} calls. Updated: ${results.updated}, Errors: ${results.errors}` 
+          description: `Processed ${results.processed} calls. Created: ${results.created}, Updated: ${results.updated}, Errors: ${results.errors}` 
         });
         // Refresh the logs
         await fetchLogs();
@@ -254,7 +255,7 @@ export default function CallLogsPage() {
                 {filteredLogs.map((log) => {
                   const outcome = getOutcome(log);
                   const transcript = log.trucking_call_transcripts?.[0];
-                  const hasTranscript = transcript?.transcript_text || log.voicemail_transcript;
+                  const hasTranscript = transcript?.transcript_text || log.transcript || log.voicemail_transcript;
                   const hasRecording = log.recording_url;
                   
                   return (

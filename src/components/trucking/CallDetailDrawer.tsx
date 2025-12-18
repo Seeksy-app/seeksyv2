@@ -21,6 +21,7 @@ interface CallLog {
   outcome: string | null;
   call_outcome: string | null;
   summary: string | null;
+  transcript: string | null;
   recording_url: string | null;
   routed_to_voicemail: boolean | null;
   voicemail_transcript: string | null;
@@ -145,7 +146,7 @@ export function CallDetailDrawer({ call, open, onOpenChange }: CallDetailDrawerP
   if (!call) return null;
 
   const outcome = call.routed_to_voicemail ? 'voicemail' : (call.outcome || call.call_outcome || 'unknown');
-  const transcriptText = call.trucking_call_transcripts?.[0]?.transcript_text || call.voicemail_transcript;
+  const transcriptText = call.trucking_call_transcripts?.[0]?.transcript_text || call.transcript || call.voicemail_transcript;
   const hasRecording = !!call.recording_url;
 
   // Filter transcript by search
