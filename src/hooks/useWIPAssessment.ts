@@ -56,16 +56,13 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
     },
   });
 
-  // Generate placeholder rounds if none exist (for initial setup)
-  const activeRounds = rounds.length > 0 ? rounds : generatePlaceholderRounds(needs);
-
   // Scoring engine
   const {
     calculateScores,
     calculatePartialScores,
     getTopValues,
     getTopNeeds,
-  } = useWIPScoring(needs, values, activeRounds);
+  } = useWIPScoring(needs, values, rounds);
 
   // Create assessment mutation
   const createAssessmentMutation = useMutation({
@@ -190,11 +187,11 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
       });
 
       // Move to next round or complete
-      if (currentRoundIndex < activeRounds.length) {
+      if (currentRoundIndex < rounds.length) {
         setCurrentRoundIndex((prev) => prev + 1);
       }
     },
-    [currentRoundIndex, activeRounds.length, saveRoundResponseMutation]
+    [currentRoundIndex, rounds.length, saveRoundResponseMutation]
   );
 
   // Go back to previous round
@@ -211,7 +208,7 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
 
   // Get current round data
   const getCurrentRound = useCallback(() => {
-    const round = activeRounds.find((r) => r.round_index === currentRoundIndex);
+    const round = rounds.find((r) => r.round_index === currentRoundIndex);
     if (!round) return null;
 
     const roundNeeds = round.need_ids
@@ -222,7 +219,7 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
       ...round,
       needs: roundNeeds,
     };
-  }, [activeRounds, currentRoundIndex, needs]);
+  }, [rounds, currentRoundIndex, needs]);
 
   // Get live/partial scores for real-time display
   const getLiveScores = useCallback(() => {
@@ -231,16 +228,16 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
   }, [responses, calculatePartialScores]);
 
   // Check if assessment is complete
-  const isComplete = currentRoundIndex > activeRounds.length;
+  const isComplete = currentRoundIndex > rounds.length;
   const isLoading = valuesLoading || needsLoading || roundsLoading;
-  const totalRounds = activeRounds.length;
-  const progress = ((currentRoundIndex - 1) / totalRounds) * 100;
+  const totalRounds = rounds.length;
+  const progress = totalRounds > 0 ? ((currentRoundIndex - 1) / totalRounds) * 100 : 0;
 
   return {
     // Data
     values,
     needs,
-    rounds: activeRounds,
+    rounds,
     assessmentId,
     currentRoundIndex,
     totalRounds,
@@ -263,43 +260,4 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
     isSaving: saveRoundResponseMutation.isPending,
     isCompleting: completeAssessmentMutation.isPending,
   };
-}
-
-// Generate placeholder rounds for initial setup (until official matrix is loaded)
-function generatePlaceholderRounds(needs: WIPNeed[]): WIPRound[] {
-  if (needs.length < 21) return [];
-
-  // Create 21 rounds, each with 5 different needs
-  // This is a simple distribution - will be replaced with official matrix
-  const rounds: WIPRound[] = [];
-  const shuffledNeeds = [...needs].sort(() => Math.random() - 0.5);
-
-  for (let i = 0; i < 21; i++) {
-    const startIndex = (i * 5) % needs.length;
-    const roundNeeds: string[] = [];
-    
-    for (let j = 0; j < 5; j++) {
-      const needIndex = (startIndex + j * 4) % needs.length;
-      const need = shuffledNeeds[needIndex];
-      if (need && !roundNeeds.includes(need.id)) {
-        roundNeeds.push(need.id);
-      }
-    }
-
-    // Fill any remaining slots
-    while (roundNeeds.length < 5) {
-      const randomNeed = shuffledNeeds.find((n) => !roundNeeds.includes(n.id));
-      if (randomNeed) roundNeeds.push(randomNeed.id);
-    }
-
-    rounds.push({
-      id: `placeholder-${i + 1}`,
-      round_index: i + 1,
-      need_ids: roundNeeds.slice(0, 5),
-      is_active: true,
-      version: 'placeholder',
-    });
-  }
-
-  return rounds;
 }
