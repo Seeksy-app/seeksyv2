@@ -7,6 +7,7 @@ import {
   TrendingDown, MessageSquare, DollarSign
 } from "lucide-react";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 interface AnalyticsData {
   // Load metrics
@@ -62,10 +63,16 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
 
   const fetchAnalytics = async () => {
     try {
-      const today = new Date();
-      const todayStart = startOfDay(today).toISOString();
-      const todayEnd = endOfDay(today).toISOString();
-      const weekAgo = subDays(today, 7).toISOString();
+      // Use Mountain Time (America/Denver) for accurate "today" calculation
+      const TIMEZONE = 'America/Denver';
+      const now = new Date();
+      const nowInDenver = toZonedTime(now, TIMEZONE);
+      const todayStartDenver = startOfDay(nowInDenver);
+      const todayEndDenver = endOfDay(nowInDenver);
+      // Convert back to UTC for database query
+      const todayStart = fromZonedTime(todayStartDenver, TIMEZONE).toISOString();
+      const todayEnd = fromZonedTime(todayEndDenver, TIMEZONE).toISOString();
+      const weekAgo = fromZonedTime(subDays(nowInDenver, 7), TIMEZONE).toISOString();
       
       // Use date range if provided, otherwise all time
       const rangeStart = dateRange?.from ? startOfDay(dateRange.from).toISOString() : undefined;
@@ -120,7 +127,7 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       // Calculate load metrics
       const openLoads = loads.filter(l => l.status === 'open').length;
       const pendingLoads = loads.filter(l => l.status === 'pending').length;
-      const confirmedLoads = loads.filter(l => l.status === 'confirmed').length;
+      const confirmedLoads = loads.filter(l => l.status === 'confirmed' || l.status === 'booked').length;
       const archivedLoads = loads.filter(l => l.status === 'archived').length;
 
       // Calculate call metrics
@@ -129,19 +136,20 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       const voicemailCalls = calls.filter(c => c.routed_to_voicemail).length;
 
       // Calculate call behavior metrics from calls and transcripts
-      const allDurations = [
-        ...calls.filter(c => c.duration_seconds).map(c => c.duration_seconds || 0),
-        ...transcripts.filter(t => t.duration_seconds).map(t => t.duration_seconds || 0)
+      // Filter for calls with ACTUAL duration data (> 0)
+      const validDurations = [
+        ...calls.filter(c => c.duration_seconds && c.duration_seconds > 0).map(c => c.duration_seconds || 0),
+        ...transcripts.filter(t => t.duration_seconds && t.duration_seconds > 0).map(t => t.duration_seconds || 0)
       ];
       
-      const avgDuration = allDurations.length > 0 
-        ? allDurations.reduce((a, b) => a + b, 0) / allDurations.length 
+      const avgDuration = validDurations.length > 0 
+        ? validDurations.reduce((a, b) => a + b, 0) / validDurations.length 
         : 0;
 
-      // Call duration breakdowns
-      const callsUnder30Sec = allDurations.filter(d => d < 30).length;
-      const callsUnder60Sec = allDurations.filter(d => d >= 30 && d < 60).length;
-      const callsOver2Min = allDurations.filter(d => d >= 120).length;
+      // Call duration breakdowns - only count valid durations
+      const callsUnder30Sec = validDurations.filter(d => d < 30).length;
+      const callsUnder60Sec = validDurations.filter(d => d >= 30 && d < 60).length;
+      const callsOver2Min = validDurations.filter(d => d >= 120).length;
 
       // Analyze transcripts for rate discussion behavior
       const rateDiscussed = transcripts.filter(t => t.rate_discussed && t.rate_discussed > 0);
@@ -161,8 +169,9 @@ export default function TruckingAnalytics({ dateRange }: TruckingAnalyticsProps)
       ).length;
 
       // Estimate hung up before/after rate (based on call duration - short calls likely before rate)
-      const hungUpBeforeRate = allDurations.filter(d => d > 0 && d < 45).length; // Very short calls
-      const hungUpAfterRate = allDurations.filter(d => d >= 45 && d < 120).length; // Medium calls with rate discussed
+      // Only count if we have valid duration data
+      const hungUpBeforeRate = validDurations.filter(d => d < 45).length; // Very short calls
+      const hungUpAfterRate = validDurations.filter(d => d >= 45 && d < 120).length; // Medium calls with rate discussed
 
       // Calculate lead metrics
       const interestedLeads = leads.filter(l => l.status === 'interested').length;
