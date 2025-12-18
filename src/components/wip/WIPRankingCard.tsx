@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, Reorder, useDragControls } from 'framer-motion';
 import { GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,11 @@ export function WIPRankingCard({ needs, onComplete, isSubmitting }: WIPRankingCa
   const [items, setItems] = useState<RankableItem[]>(() =>
     needs.map((need, index) => ({ need, rank: index + 1 }))
   );
+
+  // Reset items when needs change (new round)
+  useEffect(() => {
+    setItems(needs.map((need, index) => ({ need, rank: index + 1 })));
+  }, [needs]);
 
   const handleReorder = useCallback((newItems: RankableItem[]) => {
     // Update ranks based on new order
