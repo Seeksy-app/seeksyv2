@@ -27129,6 +27129,9 @@ export type Database = {
           hazmat: boolean | null
           height_ft: number | null
           id: string
+          import_batch_id: string | null
+          import_source: string | null
+          imported_at: string | null
           internal_notes: string | null
           is_active: boolean | null
           layover_rate: number | null
@@ -27213,6 +27216,9 @@ export type Database = {
           hazmat?: boolean | null
           height_ft?: number | null
           id?: string
+          import_batch_id?: string | null
+          import_source?: string | null
+          imported_at?: string | null
           internal_notes?: string | null
           is_active?: boolean | null
           layover_rate?: number | null
@@ -27297,6 +27303,9 @@ export type Database = {
           hazmat?: boolean | null
           height_ft?: number | null
           id?: string
+          import_batch_id?: string | null
+          import_source?: string | null
+          imported_at?: string | null
           internal_notes?: string | null
           is_active?: boolean | null
           layover_rate?: number | null

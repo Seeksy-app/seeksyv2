@@ -147,7 +147,7 @@ export default function TruckingDashboardPage() {
   const fetchData = async () => {
     try {
       const [loadsRes, leadsRes, callsRes, voicemailRes, allCallsRes, transcriptsRes] = await Promise.all([
-        supabase.from("trucking_loads").select("*").order("created_at", { ascending: false }),
+        supabase.from("trucking_loads").select("*").eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date)").order("created_at", { ascending: false }),
         supabase.from("trucking_call_logs").select("id").gte("created_at", new Date().toISOString().split("T")[0]),
         supabase.from("trucking_call_logs").select("id, carrier_phone, call_outcome, recording_url, voicemail_transcript, routed_to_voicemail, created_at").eq("routed_to_voicemail", true).order("created_at", { ascending: false }).limit(10),

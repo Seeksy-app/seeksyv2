@@ -671,6 +671,27 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
+      // Generate unique batch ID for this import
+      const importBatchId = `${selectedTemplate}-${Date.now()}`;
+      const importSource = selectedTemplate === "auto" 
+        ? (isAdelphiaFormat ? "adelphia" : "standard") 
+        : selectedTemplate;
+
+      // Soft-delete existing loads from this template (mark as inactive on Load Board)
+      // They will still appear on Loads page but not on Load Board
+      if (importSource !== "standard") {
+        const { error: deactivateError } = await supabase
+          .from("trucking_loads")
+          .update({ is_active: false })
+          .eq("owner_id", user.id)
+          .eq("import_source", importSource)
+          .eq("is_active", true);
+        
+        if (deactivateError) {
+          console.warn("Warning: Could not deactivate old loads:", deactivateError);
+        }
+      }
+
       // Get the max sequential load number to continue the sequence
       const { data: maxLoadData } = await supabase
         .from("trucking_loads")
@@ -690,6 +711,8 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
         }
       }
 
+      const importedAt = new Date().toISOString();
+
       for (const row of csvData) {
         try {
           // Map CSV row to database fields
@@ -697,6 +720,9 @@ export function LoadCSVUploadForm({ onUploadSuccess }: LoadCSVUploadFormProps) {
             owner_id: user.id,
             status: "open",
             is_active: true,
+            import_source: importSource,
+            import_batch_id: importBatchId,
+            imported_at: importedAt,
           };
 
           for (const [csvCol, dbField] of Object.entries(columnMapping)) {
