@@ -5,17 +5,12 @@ import {
   FileText, 
   CheckCircle2, 
   AlertTriangle, 
-  ListTodo, 
   ClipboardList,
   ChevronDown,
   ChevronUp,
   Copy,
   Check,
-  Square,
-  CheckSquare,
   User,
-  Calendar,
-  Volume2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,9 +152,6 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             AI Meeting Notes
-            <Badge variant="outline" className={`ml-2 ${aiNotesStatus === 'draft' ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-green-100 text-green-700 border-green-300'}`}>
-              {aiNotesStatus === 'draft' ? 'Draft' : 'Generated'}
-            </Badge>
           </CardTitle>
           <div className="flex items-center gap-2">
             {generatedAt && (
@@ -175,24 +167,6 @@ export const AIMeetingNotes: React.FC<AIMeetingNotesProps> = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Audio Player - at top for visibility */}
-        {audioUrl && (
-          <div className="bg-card border rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Volume2 className="h-4 w-4 text-primary" />
-              </div>
-              <span className="text-sm font-medium">Meeting Recording</span>
-            </div>
-            <audio
-              controls
-              className="w-full h-10 rounded-lg"
-              src={audioUrl}
-            >
-              Your browser does not support the audio element.
-            </audio>
-          </div>
-        )}
 
         {/* Executive Summary */}
         {aiSummary && (
