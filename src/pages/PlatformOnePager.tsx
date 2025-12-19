@@ -60,8 +60,8 @@ const navItems = [
   { id: "architecture", label: "Architecture" },
   { id: "apps", label: "Apps" },
   { id: "business", label: "Business" },
-  { id: "appendix-a", label: "Appendix A" },
-  { id: "exhibit-a", label: "Exhibit A" },
+  { id: "appendix-a", label: "Core Tech" },
+  { id: "exhibit-a", label: "Tech/IP" },
 ];
 
 const PlatformOnePager = () => {
@@ -513,7 +513,7 @@ const PlatformOnePager = () => {
           {/* Appendix A - Technology & IP Summary */}
           <section id="appendix-a" className="mt-16 print:break-before-page scroll-mt-20">
             <div className="border-t-2 border-primary/20 pt-8">
-              <h2 className="text-3xl font-bold text-center mb-2 print:text-2xl">Appendix A</h2>
+              <h2 className="text-3xl font-bold text-center mb-2 print:text-2xl">Core Tech</h2>
               <p className="text-xl text-muted-foreground text-center mb-8 print:text-lg">
                 Technology & Intellectual Property Summary
               </p>
@@ -889,7 +889,7 @@ const PlatformOnePager = () => {
           {/* Exhibit A - Technology and IP Description */}
           <section id="exhibit-a" className="mt-16 print:break-before-page scroll-mt-20">
             <div className="border-t-2 border-amber-500/30 pt-8">
-              <h2 className="text-3xl font-bold text-center mb-2 print:text-2xl">Exhibit A</h2>
+              <h2 className="text-3xl font-bold text-center mb-2 print:text-2xl">Tech/IP</h2>
               <p className="text-xl text-muted-foreground text-center mb-2 print:text-lg">
                 Technology and Intellectual Property Description
               </p>
