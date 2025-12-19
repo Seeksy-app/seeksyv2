@@ -132,7 +132,7 @@ export default function TruckingDashboardPage() {
   const [callsToday, setCallsToday] = useState(0);
   const [confirmedToday, setConfirmedToday] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [ownerFilter, setOwnerFilter] = useState<"all" | "mine">("mine");
+  const [ownerFilter, setOwnerFilter] = useState<"all" | "mine">("all");
   const [activeTab, setActiveTab] = useState("open");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
