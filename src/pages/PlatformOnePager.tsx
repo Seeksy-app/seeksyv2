@@ -73,39 +73,31 @@ const PlatformOnePager = () => {
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 print:bg-white">
         <div className="max-w-5xl mx-auto px-6 py-12 print:py-6 print:px-8">
           
-          {/* Header */}
-          <header className="text-center mb-12 print:mb-8">
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <SparkAvatar size={48} pose="idle" />
-              <h1 className="text-4xl font-bold tracking-tight print:text-3xl">
+          {/* Hero */}
+          <header className="text-center mb-16 print:mb-10">
+            <div className="flex items-center justify-center gap-4 mb-8">
+              <SparkAvatar size={56} pose="idle" />
+              <h1 className="text-5xl font-bold tracking-tight print:text-4xl">
                 <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent print:text-foreground">
                   Seeksy
                 </span>
               </h1>
             </div>
-            <p className="text-xl text-muted-foreground font-medium print:text-lg">
+            <h2 className="text-2xl md:text-3xl text-foreground/80 font-light tracking-wide print:text-2xl">
               A Modular Identity & Interaction Platform
-            </p>
+            </h2>
           </header>
 
           {/* What Seeksy Is */}
-          <section className="mb-10 print:mb-6">
-            <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2 print:text-xl">
+          <section className="mb-12 print:mb-8">
+            <h2 className="text-2xl font-semibold mb-5 flex items-center gap-2 print:text-xl">
               <Zap className="h-5 w-5 text-primary" />
               What Seeksy Is
             </h2>
-            <Card className="border-primary/20 bg-primary/5 print:bg-transparent print:border-muted">
-              <CardContent className="pt-6">
-                <p className="text-foreground/90 leading-relaxed">
-                  Seeksy is a <strong>modular, app-driven platform</strong> that allows individuals, creators, and businesses 
-                  to activate digital capabilities through a single identity layer. Users enable apps as needed — 
-                  communications, media, monetization, scheduling, commerce, and analytics — without rebuilding 
-                  infrastructure or managing multiple tools.
-                </p>
-                <Separator className="my-4" />
-                <p className="text-muted-foreground text-sm italic">
-                  Seeksy is designed to be licensed, white-labeled, or acquired as IP, supporting a wide range of 
-                  verticals including creator economy, media, events, commerce, logistics, and enterprise communications.
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent print:bg-transparent print:border-muted">
+              <CardContent className="pt-6 pb-6">
+                <p className="text-lg text-foreground/90 leading-relaxed">
+                  Seeksy is a modular, app-driven platform that allows individuals, creators, and businesses to activate digital capabilities through a single identity layer. Users enable apps as needed — communications, media, monetization, scheduling, commerce, and analytics — without rebuilding infrastructure or managing multiple tools.
                 </p>
               </CardContent>
             </Card>
