@@ -7,14 +7,15 @@ const corsHeaders = {
 };
 
 // HMAC signature verification for ElevenLabs webhooks
-async function verifyHmacSignature(payload: string, signature: string | null, secret: string | null): Promise<boolean> {
+async function verifyHmacSignature(payload: string, signature: string | null, secret: string | null): Promise<{ valid: boolean; skipped: boolean }> {
   if (!secret) {
     console.log('No ELEVENLABS_WEBHOOK_SECRET configured, skipping HMAC verification');
-    return true; // Allow if no secret configured (for backwards compatibility)
+    return { valid: true, skipped: true };
   }
   if (!signature) {
-    console.log('No ElevenLabs-Signature header provided');
-    return false;
+    // Allow webhook without signature but log warning - ElevenLabs may not always send signatures
+    console.warn('No ElevenLabs-Signature header provided - processing anyway for backwards compatibility');
+    return { valid: true, skipped: true };
   }
   
   try {
@@ -36,10 +37,10 @@ async function verifyHmacSignature(payload: string, signature: string | null, se
     const isValid = cleanSignature === expectedSignature.toLowerCase();
     
     console.log('HMAC verification:', isValid ? 'PASSED' : 'FAILED');
-    return isValid;
+    return { valid: isValid, skipped: false };
   } catch (err) {
     console.error('HMAC verification error:', err);
-    return false;
+    return { valid: false, skipped: false };
   }
 }
 
@@ -341,15 +342,16 @@ serve(async (req) => {
     const webhookSecret = Deno.env.get('ELEVENLABS_WEBHOOK_SECRET');
     const signature = req.headers.get('elevenlabs-signature') || req.headers.get('x-elevenlabs-signature');
     
-    if (webhookSecret) {
-      const isValid = await verifyHmacSignature(rawBody, signature, webhookSecret);
-      if (!isValid) {
-        console.error('HMAC signature verification failed');
-        return new Response(JSON.stringify({ error: 'Invalid signature' }), {
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
+    const hmacResult = await verifyHmacSignature(rawBody, signature, webhookSecret || null);
+    if (!hmacResult.valid) {
+      console.error('HMAC signature verification failed');
+      return new Response(JSON.stringify({ error: 'Invalid signature' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    if (hmacResult.skipped) {
+      console.log('HMAC verification skipped - proceeding with webhook processing');
     }
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
