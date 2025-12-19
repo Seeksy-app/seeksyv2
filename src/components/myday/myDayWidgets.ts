@@ -19,10 +19,10 @@ import {
 /**
  * My Day Widget Definitions
  * 
- * IMPORTANT: Each widget MUST have a `requiredModuleId` to link it to an installed module.
+ * CRITICAL: Every widget MUST have a `requiredModuleId` to link it to an installed module.
  * Widgets will ONLY appear if their required module is installed in the workspace.
  * 
- * Widgets without requiredModuleId are "core" widgets and should be minimal.
+ * There are NO "core" widgets - every widget requires a module.
  */
 
 export interface MyDayWidget {
@@ -34,10 +34,10 @@ export interface MyDayWidget {
   isHideable: boolean;
   minHeight?: string;
   /** 
-   * The module ID that must be installed for this widget to appear.
-   * If undefined, widget is "core" and always available (use sparingly).
+   * REQUIRED: The module ID that must be installed for this widget to appear.
+   * Every widget MUST have this set - no exceptions.
    */
-  requiredModuleId?: string;
+  requiredModuleId: string;
   /**
    * If true, widget is visible by default when module is installed.
    * If false, user must manually enable in Customize.
@@ -51,12 +51,12 @@ export interface MyDaySection {
   defaultOrder: number;
   icon: ComponentType<{ className?: string }>;
   /**
-   * If set, this section only appears if at least one of these modules is installed.
+   * REQUIRED: Modules that must be installed for this section to appear.
    */
-  requiredModuleIds?: string[];
+  requiredModuleIds: string[];
 }
 
-// Section definitions - sections appear if they have visible widgets
+// Section definitions - sections ONLY appear if at least one required module is installed
 export const MY_DAY_SECTIONS: MyDaySection[] = [
   { 
     id: "identity-rights", 
@@ -84,7 +84,7 @@ export const MY_DAY_SECTIONS: MyDaySection[] = [
     title: "Today's Focus", 
     defaultOrder: 3, 
     icon: Zap,
-    // Core section - always visible
+    requiredModuleIds: ["email", "meetings", "tasks"],
   },
   { 
     id: "schedule-tasks", 
@@ -93,8 +93,6 @@ export const MY_DAY_SECTIONS: MyDaySection[] = [
     icon: Calendar,
     requiredModuleIds: ["meetings", "tasks", "events"],
   },
-  // NOTE: "quick-create" section removed from defaults
-  // It should only appear if user has relevant modules and enables it
 ];
 
 // Widget registry with required module linkage
@@ -236,16 +234,6 @@ export const MY_DAY_WIDGETS: MyDayWidget[] = [
     requiredModuleId: "tasks",
     defaultEnabled: true,
   },
-  { 
-    id: "alerts", 
-    title: "Alerts", 
-    icon: Bell, 
-    section: "todays-focus", 
-    defaultOrder: 3, 
-    isHideable: false,
-    // Core widget - no module required
-    defaultEnabled: true,
-  },
 
   // Schedule & Tasks - requires scheduling modules
   { 
@@ -335,27 +323,34 @@ export interface LayoutConfig {
  * Get the default layout filtered by installed modules.
  * This is the NEW function that should be used instead of DEFAULT_LAYOUT.
  * 
+ * CRITICAL: If no modules are installed, returns empty layout.
+ * 
  * @param installedModuleIds - Array of module IDs installed in the workspace
  */
 export function getFilteredDefaultLayout(installedModuleIds: string[]): LayoutConfig {
+  // If no modules installed, return completely empty layout
+  if (!installedModuleIds || installedModuleIds.length === 0) {
+    return {
+      sectionOrder: [],
+      widgetOrder: {},
+      hiddenWidgets: [],
+    };
+  }
+
   // Filter widgets to only those whose required module is installed
+  // NO core widgets - every widget MUST have requiredModuleId
   const availableWidgets = MY_DAY_WIDGETS.filter(widget => {
-    // Core widgets (no requiredModuleId) are always available
-    if (!widget.requiredModuleId) return true;
-    // Otherwise, check if the required module is installed
     return installedModuleIds.includes(widget.requiredModuleId);
   });
 
-  // Filter sections to only those with at least one available widget
+  // Filter sections to only those with at least one available widget AND required modules installed
   const sectionIdsWithWidgets = new Set(availableWidgets.map(w => w.section));
   const availableSections = MY_DAY_SECTIONS.filter(section => {
-    // If section has required modules, check if any are installed
-    if (section.requiredModuleIds && section.requiredModuleIds.length > 0) {
-      const hasRequiredModule = section.requiredModuleIds.some(
-        id => installedModuleIds.includes(id)
-      );
-      if (!hasRequiredModule) return false;
-    }
+    // Section MUST have at least one of its required modules installed
+    const hasRequiredModule = section.requiredModuleIds.some(
+      id => installedModuleIds.includes(id)
+    );
+    if (!hasRequiredModule) return false;
     // Section must have at least one widget
     return sectionIdsWithWidgets.has(section.id);
   });
@@ -388,28 +383,35 @@ export function getFilteredDefaultLayout(installedModuleIds: string[]): LayoutCo
 
 /**
  * Get widgets available for the Customize modal based on installed modules.
+ * Returns ONLY widgets whose required module is installed.
  */
 export function getAvailableWidgetsForCustomize(installedModuleIds: string[]): MyDayWidget[] {
+  if (!installedModuleIds || installedModuleIds.length === 0) {
+    return [];
+  }
   return MY_DAY_WIDGETS.filter(widget => {
-    if (!widget.requiredModuleId) return true;
     return installedModuleIds.includes(widget.requiredModuleId);
   });
 }
 
 /**
  * Get sections that have at least one available widget.
+ * Returns ONLY sections whose required modules are installed.
  */
 export function getAvailableSections(installedModuleIds: string[]): MyDaySection[] {
+  if (!installedModuleIds || installedModuleIds.length === 0) {
+    return [];
+  }
+  
   const availableWidgets = getAvailableWidgetsForCustomize(installedModuleIds);
   const sectionIdsWithWidgets = new Set(availableWidgets.map(w => w.section));
   
   return MY_DAY_SECTIONS.filter(section => {
-    if (section.requiredModuleIds && section.requiredModuleIds.length > 0) {
-      const hasRequiredModule = section.requiredModuleIds.some(
-        id => installedModuleIds.includes(id)
-      );
-      if (!hasRequiredModule) return false;
-    }
+    // Check if any required module is installed
+    const hasRequiredModule = section.requiredModuleIds.some(
+      id => installedModuleIds.includes(id)
+    );
+    if (!hasRequiredModule) return false;
     return sectionIdsWithWidgets.has(section.id);
   });
 }

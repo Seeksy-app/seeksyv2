@@ -52,6 +52,7 @@ import { HolidayCreatorBanner } from "@/components/dashboard/HolidayCreatorBanne
 import { useHolidaySettings } from "@/hooks/useHolidaySettings";
 import { useRole } from "@/contexts/RoleContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
+import { MyDayEmptyState } from "@/components/myday/MyDayEmptyState";
 
 interface DashboardStats {
   totalEvents: number;
@@ -92,7 +93,10 @@ interface TrackingStats {
   total: number;
 }
 
-// Widget to module mapping - which modules are required for each widget
+/**
+ * Widget to module mapping - which modules are required for each widget
+ * CRITICAL: Every widget must have at least one required module
+ */
 const WIDGET_MODULE_MAP: Record<string, string[]> = {
   "profile-views": ["my-page", "mypage"],
   "link-clicks": ["my-page", "mypage"],
@@ -101,27 +105,31 @@ const WIDGET_MODULE_MAP: Record<string, string[]> = {
   "clicks-by-type": ["my-page", "mypage"],
   "top-links": ["my-page", "mypage"],
   "social-media": ["social-media", "social-analytics"],
-  "emails-sent": ["email", "newsletters", "email-signatures", "email-client"],
-  "emails-opened": ["email", "newsletters", "email-signatures", "email-client"],
-  "email-clicks": ["email", "newsletters", "email-signatures", "email-client"],
+  "emails-sent": ["email", "newsletter", "email-signatures", "email-client"],
+  "emails-opened": ["email", "newsletter", "email-signatures", "email-client"],
+  "email-clicks": ["email", "newsletter", "email-signatures", "email-client"],
   "events": ["events"],
   "meetings": ["meetings"],
   "polls": ["polls"],
   "signup-sheets": ["signup-sheets"],
-  "quick-actions": [], // Always show
+  "quick-actions": ["studio", "podcasts", "meetings", "media-library"], // Requires at least one
   "podcasts": ["podcasts", "podcast-hosting"],
   "media": ["media-library", "studio"],
   "revenue": ["monetization", "advertising"],
   "impressions": ["monetization", "advertising"],
 };
 
-// Feature cards to module mapping
+/**
+ * Feature cards to module mapping
+ * CRITICAL: Every card must have at least one required module - NO empty arrays
+ */
 const FEATURE_CARD_MODULE_MAP: Record<string, string[]> = {
   "identity": ["identity-verification", "identity"],
-  "clips": ["ai-clips", "clips", "media-library"],
-  "media": ["media-library", "studio", "media"],
+  "clips": ["ai-clips", "clips"],
+  "media": ["media-library", "studio"],
   "advertiser": ["monetization", "advertising"],
-  "quick-create": [], // Always show
+  "quick-create": ["studio", "podcasts", "media-library"], // Requires at least one creator module
+  "book-mia": ["meetings"],
 };
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
@@ -178,7 +186,8 @@ export default function MyDay() {
   // Check if a widget should be visible based on active modules
   const isWidgetVisible = (widgetId: string): boolean => {
     const requiredModules = WIDGET_MODULE_MAP[widgetId] || [];
-    if (requiredModules.length === 0) return true; // No module requirement
+    // CRITICAL: If no required modules defined, widget should NOT show
+    if (requiredModules.length === 0) return false;
     return requiredModules.some(modId => 
       activeModuleIds.has(modId) || 
       Array.from(activeModuleIds).some(activeId => 
@@ -190,7 +199,8 @@ export default function MyDay() {
   // Check if a feature card should be visible based on active modules
   const isFeatureCardVisible = (cardId: string): boolean => {
     const requiredModules = FEATURE_CARD_MODULE_MAP[cardId] || [];
-    if (requiredModules.length === 0) return true; // No module requirement
+    // CRITICAL: If no required modules defined, card should NOT show
+    if (requiredModules.length === 0) return false;
     return requiredModules.some(modId => 
       activeModuleIds.has(modId) || 
       Array.from(activeModuleIds).some(activeId => 
@@ -198,6 +208,9 @@ export default function MyDay() {
       )
     );
   };
+
+  // Check if workspace has zero modules
+  const hasZeroModules = activeModuleIds.size === 0;
 
   // Load widgets from localStorage but filter by active modules
   const [widgets, setWidgets] = useState<WidgetConfig[]>(() => {
@@ -463,6 +476,41 @@ export default function MyDay() {
     );
   }
 
+  // CRITICAL HARD GUARD: If zero modules installed, show ONLY empty state
+  if (hasZeroModules) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="px-6 lg:px-10 pt-8 pb-16 flex flex-col items-start w-full">
+          {/* Minimal header for empty state */}
+          <div className="w-full mb-8 flex items-start justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-16 w-16 ring-2 ring-primary/20">
+                <AvatarImage src={avatarUrl || undefined} alt={firstName} />
+                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                  {firstName?.charAt(0) || "U"}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="flex items-center gap-3">
+                  {greeting.icon}
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-blue to-brand-navy bg-clip-text text-transparent">
+                    {greeting.text}{firstName ? `, ${firstName}` : ""}!
+                  </h1>
+                </div>
+                <p className="text-muted-foreground mt-1">
+                  Let's set up your workspace.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* ONLY show empty state - nothing else */}
+          <MyDayEmptyState onAddSeeksy={() => navigate('/apps')} />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <main className="px-6 lg:px-10 pt-8 pb-16 flex flex-col items-start w-full">
@@ -490,10 +538,12 @@ export default function MyDay() {
           <div className="flex items-center gap-2">
             <DailyBriefButton audienceType="creator" variant="outline" />
             <DashboardCustomizer widgets={widgets} onSave={handleWidgetsSave} />
-            <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule Meeting
-            </Button>
+            {isFeatureCardVisible("book-mia") && (
+              <Button variant="outline" size="sm" onClick={() => navigate("/meetings/create")}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule Meeting
+              </Button>
+            )}
             {trackingStats.total > 0 && (
               <Button 
                 variant="outline" 
@@ -525,17 +575,20 @@ export default function MyDay() {
         {/* Recommended Seeksies Banner */}
         <RecommendedSeeksiesBanner />
 
-        {/* Quick Actions Row */}
+        {/* Quick Actions Row - only renders if modules installed */}
         <QuickActionsRow />
 
         {/* Identity & Content Dashboard Cards - filtered by module */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8 w-full">
-          {isFeatureCardVisible("identity") && <IdentityStatusCard />}
-          {isFeatureCardVisible("clips") && <CertifiedClipsCard />}
-          {isFeatureCardVisible("media") && <MediaVaultCard />}
-          {isFeatureCardVisible("advertiser") && <AdvertiserAccessCard />}
-          {isFeatureCardVisible("quick-create") && <QuickCreateCard />}
-        </div>
+        {/* Only render grid if at least one card is visible */}
+        {(isFeatureCardVisible("identity") || isFeatureCardVisible("clips") || isFeatureCardVisible("media") || isFeatureCardVisible("advertiser") || isFeatureCardVisible("quick-create")) && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8 w-full">
+            {isFeatureCardVisible("identity") && <IdentityStatusCard />}
+            {isFeatureCardVisible("clips") && <CertifiedClipsCard />}
+            {isFeatureCardVisible("media") && <MediaVaultCard />}
+            {isFeatureCardVisible("advertiser") && <AdvertiserAccessCard />}
+            {isFeatureCardVisible("quick-create") && <QuickCreateCard />}
+          </div>
+        )}
 
         {/* Customizable Widgets */}
         {stats && (

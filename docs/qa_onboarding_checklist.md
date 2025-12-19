@@ -4,6 +4,21 @@ This checklist validates the Seeksy onboarding and module installation flow.
 
 ---
 
+## Critical Rules Verified
+
+1. **NO "core" widgets** - Every widget has `requiredModuleId` set
+2. **Zero-modules behavior** - My Day shows ONLY `MyDayEmptyState`
+3. **Quick Actions gated** - Only appears if relevant modules installed
+4. **Ask Spark NOT in Quick Actions** - Lives in sidebar nav only
+5. **Feature cards bound to modules:**
+   - Identity Status → `identity-verification` / `identity`
+   - Certified Clips → `ai-clips` / `clips`
+   - Media Vault → `media-library` / `studio`
+   - Quick Create → `studio` / `podcasts` / `media-library`
+   - Book with Mia → `meetings`
+
+---
+
 ## Pre-Test Setup
 
 1. Open browser DevTools (F12) → Console tab

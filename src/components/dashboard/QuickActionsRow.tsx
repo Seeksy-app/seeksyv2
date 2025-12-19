@@ -1,16 +1,24 @@
 import { Button } from "@/components/ui/button";
-import { Calendar, Upload, Mic, MonitorPlay, Sparkles } from "lucide-react";
+import { Calendar, Upload, Mic, MonitorPlay } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { useMemo } from "react";
 
-// Map action to required modules
+/**
+ * Quick Actions Row for My Day
+ * 
+ * CRITICAL: 
+ * - Only shows actions for installed modules
+ * - Returns null if no modules installed (zero-modules = no Quick Actions)
+ * - Ask Spark is NOT here - it lives in the sidebar nav only
+ */
+
+// Map action to required modules - EVERY action requires at least one module
 const ACTION_MODULE_MAP: Record<string, string[]> = {
   meeting: ["meetings"],
   upload: ["media-library", "studio", "media"],
   episode: ["podcasts", "podcast-hosting"],
   studio: ["studio", "podcasts"],
-  spark: [], // Always available
 };
 
 interface QuickAction {
@@ -22,6 +30,7 @@ interface QuickAction {
   route: string;
 }
 
+// All actions require modules - no "always visible" actions
 const ALL_ACTIONS: QuickAction[] = [
   { 
     id: "meeting", 
@@ -55,14 +64,6 @@ const ALL_ACTIONS: QuickAction[] = [
     bgColor: "bg-[hsl(270,80%,95%)]", 
     route: "/studio" 
   },
-  { 
-    id: "spark", 
-    label: "Ask Spark", 
-    icon: Sparkles, 
-    color: "text-[hsl(45,90%,45%)]", 
-    bgColor: "bg-[hsl(45,90%,95%)]", 
-    route: "" // Opens Spark panel
-  },
 ];
 
 export const QuickActionsRow = () => {
@@ -77,10 +78,16 @@ export const QuickActionsRow = () => {
     return moduleIds;
   }, [workspaceModules, currentWorkspace]);
 
+  // CRITICAL: If no modules installed, don't render anything
+  if (activeModuleIds.size === 0) {
+    return null;
+  }
+
   // Check if an action should be visible based on active modules
   const isActionVisible = (actionId: string): boolean => {
     const requiredModules = ACTION_MODULE_MAP[actionId] || [];
-    if (requiredModules.length === 0) return true;
+    // Every action requires at least one module - no empty arrays allowed
+    if (requiredModules.length === 0) return false;
     return requiredModules.some(modId => 
       activeModuleIds.has(modId) || 
       Array.from(activeModuleIds).some(activeId => 
@@ -91,16 +98,12 @@ export const QuickActionsRow = () => {
 
   const visibleActions = ALL_ACTIONS.filter(action => isActionVisible(action.id));
 
-  const handleAction = (action: QuickAction) => {
-    if (action.id === "spark") {
-      // Dispatch custom event to open Spark panel
-      window.dispatchEvent(new CustomEvent("open-spark-panel"));
-    } else {
-      navigate(action.route);
-    }
-  };
-
+  // If no visible actions (no matching modules), don't render
   if (visibleActions.length === 0) return null;
+
+  const handleAction = (action: QuickAction) => {
+    navigate(action.route);
+  };
 
   return (
     <div className="w-full mb-6">
