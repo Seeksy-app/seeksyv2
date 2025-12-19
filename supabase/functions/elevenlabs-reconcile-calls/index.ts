@@ -96,19 +96,37 @@ serve(async (req) => {
 
         if (detailResponse.ok) {
           const detail = await detailResponse.json();
-          console.log('Fetched detail for summary update. Analysis keys:', Object.keys(detail.analysis || {}));
           
-          // Try multiple possible summary field names
+          // Log the full structure to find where summary is located
+          console.log(`=== DETAIL FOR ${convId} ===`);
+          console.log('Top-level keys:', Object.keys(detail));
+          console.log('Analysis keys:', Object.keys(detail.analysis || {}));
+          if (detail.analysis?.evaluation_criteria_results) {
+            console.log('Evaluation criteria keys:', Object.keys(detail.analysis.evaluation_criteria_results));
+          }
+          // Log actual values for summary-related fields
+          console.log('detail.analysis?.summary:', detail.analysis?.summary);
+          console.log('detail.analysis?.call_summary:', detail.analysis?.call_summary);
+          console.log('detail.analysis?.transcript_summary:', detail.analysis?.transcript_summary);
+          console.log('detail.summary:', detail.summary);
+          console.log('detail.conversation_summary:', detail.conversation_summary);
+          
+          // Try multiple possible summary field names - ElevenLabs uses various structures
           const summary = detail.analysis?.summary || 
                          detail.analysis?.call_summary ||
                          detail.analysis?.transcript_summary ||
                          detail.analysis?.evaluation_criteria_results?.call_summary ||
+                         detail.analysis?.evaluation_criteria_results?.summary ||
+                         detail.analysis?.agent_response_summary ||
                          detail.metadata?.summary ||
                          detail.conversation_summary ||
                          detail.summary ||
+                         detail.output?.summary ||
                          (detail.analysis?.data_collection_results ? 
                            `Call with ${detail.analysis.data_collection_results.company_name || 'carrier'}. Outcome: ${detail.analysis.call_successful ? 'Successful' : 'Unknown'}` : 
                            null);
+          
+          console.log('Extracted summary:', summary ? summary.substring(0, 100) : 'null');
           
           if (summary) {
             await supabase
@@ -117,6 +135,8 @@ serve(async (req) => {
               .eq('id', existingCallLog.id);
             summariesUpdated++;
             console.log(`Updated summary for call log: ${existingCallLog.id}`);
+          } else {
+            console.log(`No summary found for ${convId} - check ElevenLabs agent settings`);
           }
         }
         continue; // Skip to next conversation

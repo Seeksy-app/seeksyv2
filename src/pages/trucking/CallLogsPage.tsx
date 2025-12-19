@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2, FileText, Headphones, RefreshCw, Loader2, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Phone, PhoneOff, Voicemail, Clock, Search, AlertCircle, CheckCircle2, FileText, Headphones, RefreshCw, Loader2, Trash2, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { TruckingPageWrapper, TruckingContentCard } from "@/components/trucking/TruckingPageWrapper";
@@ -81,6 +82,7 @@ export default function CallLogsPage() {
   const [logs, setLogs] = useState<CallLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
+  const [callTypeFilter, setCallTypeFilter] = useState("all"); // all, ai, pending
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [selectedLog, setSelectedLog] = useState<CallLog | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -184,6 +186,12 @@ export default function CallLogsPage() {
       (activeTab === "unconfirmed" && !log.lead_id && outcome !== "voicemail" && outcome !== "failed") ||
       (activeTab === "voicemail" && log.routed_to_voicemail);
     
+    // Call type filter (AI calls vs Pending)
+    const matchesCallType = 
+      callTypeFilter === "all" ||
+      (callTypeFilter === "ai" && log.elevenlabs_conversation_id) ||
+      (callTypeFilter === "pending" && (outcome === "pending" || outcome === "unknown" || !log.summary));
+    
     // Comprehensive search across all relevant fields
     const searchLower = searchQuery.toLowerCase().trim();
     const matchesSearch = 
@@ -200,7 +208,7 @@ export default function CallLogsPage() {
       log.transcript?.toLowerCase().includes(searchLower) ||
       log.voicemail_transcript?.toLowerCase().includes(searchLower);
 
-    return matchesTab && matchesSearch;
+    return matchesTab && matchesCallType && matchesSearch;
   });
 
   const stats = {
@@ -252,30 +260,49 @@ export default function CallLogsPage() {
 
       <TruckingContentCard>
         <div className="space-y-4">
-          {/* Tabs and Search */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="all">All Calls</TabsTrigger>
-                <TabsTrigger value="confirmed" className="flex items-center gap-1">
-                  <CheckCircle2 className="h-3 w-3" />
-                  Confirmed
-                </TabsTrigger>
-                <TabsTrigger value="unconfirmed" className="flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  Unconfirmed
-                </TabsTrigger>
-                <TabsTrigger value="voicemail">Voicemails</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search phone, name, load, city, conv ID..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-80"
-              />
+          {/* Tabs, Filters and Search */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList>
+                  <TabsTrigger value="all">All Calls</TabsTrigger>
+                  <TabsTrigger value="confirmed" className="flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" />
+                    Confirmed
+                  </TabsTrigger>
+                  <TabsTrigger value="unconfirmed" className="flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    Unconfirmed
+                  </TabsTrigger>
+                  <TabsTrigger value="voicemail">Voicemails</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <div className="flex items-center gap-3">
+                <Select value={callTypeFilter} onValueChange={setCallTypeFilter}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Call Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="ai">
+                      <div className="flex items-center gap-2">
+                        <Bot className="h-3 w-3" />
+                        AI Calls
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search phone, name, load, city, conv ID..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 w-80"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
