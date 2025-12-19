@@ -56,15 +56,15 @@ export const useLoadStats = () => {
         return;
       }
 
-      // Check if user is an agent (not owner)
-      const { data: agentRecord } = await supabase
-        .from('trucking_agents')
-        .select('owner_id')
+      // Check user's role in trucking_admin_users
+      const { data: adminRecord } = await supabase
+        .from('trucking_admin_users')
+        .select('role, agency_id')
         .eq('user_id', userIdToUse)
         .eq('is_active', true)
         .maybeSingle();
 
-      const isAgent = !!agentRecord;
+      const isAgent = adminRecord?.role === 'agent';
 
       const now = new Date();
       const zonedNow = toZonedTime(now, TIMEZONE);
@@ -77,12 +77,13 @@ export const useLoadStats = () => {
       const monthStart = fromZonedTime(startOfMonth(zonedNow), TIMEZONE).toISOString();
       const monthEnd = fromZonedTime(endOfMonth(zonedNow), TIMEZONE).toISOString();
 
-      // Build query base - agents filter by assigned_agent_id, owners by owner_id
+      // Build query base - agents see only their assigned loads, admins/owners see all
       const buildQuery = (query: any) => {
         if (isAgent) {
           return query.eq('assigned_agent_id', userIdToUse);
         }
-        return query.eq('owner_id', userIdToUse);
+        // For super_admin/admin, show all loads (no user filter)
+        return query;
       };
 
       // Fetch today's confirmed loads - FILTER BY USER TYPE
