@@ -14,7 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
   ChevronDown, ChevronUp, ChevronRight, Phone, Users, Voicemail, Play, Pause, Archive, Upload, UserPlus, Sparkles, RefreshCw,
-  ArrowUpDown, ArrowUp, ArrowDown
+  ArrowUpDown, ArrowUp, ArrowDown, User
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,8 @@ import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
+import { useLeadAssignment } from "@/hooks/trucking/useLeadAssignment";
+import { useTruckingRole } from "@/hooks/trucking/useTruckingRole";
 import { TruckingDailyBriefModal } from "@/components/trucking/TruckingDailyBriefModal";
 import { TruckingWelcomeBanner } from "@/components/trucking/TruckingWelcomeBanner";
 import { HighIntentKeywordsCard } from "@/components/trucking/HighIntentKeywordsCard";
@@ -72,6 +74,8 @@ interface Lead {
   load_id: string | null;
   call_log_id: string | null;
   negotiated_rate?: number;
+  assigned_agent_id?: string | null;
+  assigned_at?: string | null;
   trucking_loads?: {
     id: string;
     load_number: string;
@@ -145,6 +149,8 @@ export default function TruckingDashboardPage() {
   const { celebrate } = useCelebration();
   const navigate = useNavigate();
   const { takeLoad, releaseLoad, loading: assignmentLoading } = useLoadAssignment();
+  const { takeLead, releaseLead, loading: leadAssignmentLoading } = useLeadAssignment();
+  const { role: truckingRole, isAgent, isOwner, ownerId } = useTruckingRole();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSyncingCalls, setIsSyncingCalls] = useState(false);
@@ -267,14 +273,24 @@ export default function TruckingDashboardPage() {
     }
   };
 
-  // Filter loads based on owner filter
+  // Filter loads based on owner filter and agent role
   const filteredLoads = ownerFilter === "mine" && currentUserId 
-    ? loads.filter(l => l.owner_id === currentUserId)
+    ? loads.filter(l => l.owner_id === currentUserId || l.assigned_agent_id === currentUserId)
     : loads;
 
+  // Filter leads - agents only see leads assigned to them or unassigned
+  const filteredLeads = isAgent && currentUserId
+    ? leads.filter(l => l.assigned_agent_id === currentUserId || !l.assigned_agent_id)
+    : leads;
+
+  // Filter call logs - agents only see their calls (when agent_id tracking is enabled)
+  const filteredCallLogs = isAgent && currentUserId
+    ? callLogs // For now, show all - agent_id filtering will apply once calls are tracked per agent
+    : callLogs;
+
   const openLoads = filteredLoads.filter((l) => l.status === "open");
-  const pendingLeads = leads.filter((l) => (l.status === "pending" || l.status === "interested" || l.status === "new") && !(l as any).is_archived);
-  const archivedLeads = leads.filter((l) => (l as any).is_archived);
+  const pendingLeads = filteredLeads.filter((l) => (l.status === "pending" || l.status === "interested" || l.status === "new") && !(l as any).is_archived);
+  const archivedLeads = filteredLeads.filter((l) => (l as any).is_archived);
   const confirmedLoads = filteredLoads.filter((l) => l.status === "booked");
   // Sort loads function
   const sortLoads = (loadsToSort: Load[]) => {
@@ -1020,17 +1036,34 @@ export default function TruckingDashboardPage() {
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2">
-                          {lead.load_id && (
+                          {/* Lead Assignment Button */}
+                          {!lead.assigned_agent_id ? (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => takeLoad(lead.load_id!, fetchData)}
-                              disabled={assignmentLoading === lead.load_id}
+                              onClick={() => takeLead(lead.id, () => fetchData(currentUserId))}
+                              disabled={leadAssignmentLoading === lead.id}
                               className="h-8"
                             >
                               <UserPlus className="h-4 w-4 mr-1" />
-                              {assignmentLoading === lead.load_id ? "..." : "Assign"}
+                              {leadAssignmentLoading === lead.id ? "..." : "Take"}
                             </Button>
+                          ) : lead.assigned_agent_id === currentUserId ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => releaseLead(lead.id, () => fetchData(currentUserId))}
+                              disabled={leadAssignmentLoading === lead.id}
+                              className="h-8 text-amber-600 border-amber-300 hover:bg-amber-50"
+                            >
+                              <User className="h-4 w-4 mr-1" />
+                              {leadAssignmentLoading === lead.id ? "..." : "Mine"}
+                            </Button>
+                          ) : (
+                            <Badge variant="outline" className="bg-slate-50 text-slate-500">
+                              <User className="h-3 w-3 mr-1" />
+                              Taken
+                            </Badge>
                           )}
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

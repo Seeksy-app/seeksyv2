@@ -26897,6 +26897,7 @@ export type Database = {
       }
       trucking_call_logs: {
         Row: {
+          agent_id: string | null
           analysis_summary: string | null
           branch_id: string | null
           call_cost_credits: number | null
@@ -26958,6 +26959,7 @@ export type Database = {
           webhook_event_id: string | null
         }
         Insert: {
+          agent_id?: string | null
           analysis_summary?: string | null
           branch_id?: string | null
           call_cost_credits?: number | null
@@ -27019,6 +27021,7 @@ export type Database = {
           webhook_event_id?: string | null
         }
         Update: {
+          agent_id?: string | null
           analysis_summary?: string | null
           branch_id?: string | null
           call_cost_credits?: number | null
@@ -27266,6 +27269,8 @@ export type Database = {
       trucking_carrier_leads: {
         Row: {
           archived_at: string | null
+          assigned_agent_id: string | null
+          assigned_at: string | null
           call_log_id: string | null
           call_source: string | null
           carrier_id: string | null
@@ -27304,6 +27309,8 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          assigned_agent_id?: string | null
+          assigned_at?: string | null
           call_log_id?: string | null
           call_source?: string | null
           carrier_id?: string | null
@@ -27342,6 +27349,8 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          assigned_agent_id?: string | null
+          assigned_at?: string | null
           call_log_id?: string | null
           call_source?: string | null
           carrier_id?: string | null
