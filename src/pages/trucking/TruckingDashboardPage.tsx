@@ -13,19 +13,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, Phone, Users, Sun, Moon, Voicemail, Play, Pause, Archive, RefreshCw, Upload, UserPlus, Sparkles
+  ChevronDown, ChevronUp, Phone, Users, Voicemail, Play, Pause, Archive, Upload, UserPlus, Sparkles
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useCelebration } from "@/hooks/useCelebration";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
-import { useTheme } from "next-themes";
 import AddLoadModal from "@/components/trucking/AddLoadModal";
 import { LoadCSVUploadForm } from "@/components/trucking/LoadCSVUploadForm";
 import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
 import { TruckingDailyBriefModal } from "@/components/trucking/TruckingDailyBriefModal";
-import { TruckingGlobalSearch } from "@/components/trucking/TruckingGlobalSearch";
 import { TruckingWelcomeBanner } from "@/components/trucking/TruckingWelcomeBanner";
 import { HighIntentKeywordsCard } from "@/components/trucking/HighIntentKeywordsCard";
 
@@ -144,7 +142,6 @@ export default function TruckingDashboardPage() {
   const { toast } = useToast();
   const { celebrate } = useCelebration();
   const navigate = useNavigate();
-  const { theme: appTheme, setTheme } = useTheme();
   const { takeLoad, releaseLoad, loading: assignmentLoading } = useLoadAssignment();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -500,28 +497,6 @@ export default function TruckingDashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Top Bar - Search + Theme Toggle */}
-      <div className="flex items-center justify-between gap-4">
-        <TruckingGlobalSearch className="flex-1 max-w-md" />
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleManualRefresh}
-          disabled={isRefreshing}
-          className="shrink-0"
-          title="Refresh dashboard"
-        >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon"
-          onClick={() => setTheme(appTheme === 'dark' ? 'light' : 'dark')}
-          className="h-10 w-10"
-        >
-          {appTheme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </Button>
-      </div>
 
       {/* Welcome Banner */}
       <TruckingWelcomeBanner />
