@@ -64,7 +64,9 @@ export const useLoadStats = () => {
         .eq('is_active', true)
         .maybeSingle();
 
-      const isAgent = adminRecord?.role === 'agent';
+      const userRole = adminRecord?.role || '';
+      // Only super_admin sees all loads - everyone else (agent, board, etc.) sees only their own
+      const isAdmin = userRole === 'super_admin' || userRole === 'admin';
 
       const now = new Date();
       const zonedNow = toZonedTime(now, TIMEZONE);
@@ -77,10 +79,11 @@ export const useLoadStats = () => {
       const monthStart = fromZonedTime(startOfMonth(zonedNow), TIMEZONE).toISOString();
       const monthEnd = fromZonedTime(endOfMonth(zonedNow), TIMEZONE).toISOString();
 
-      // Build query base - agents see only their assigned loads, admins/owners see all
+      // Build query base - admins see all loads, everyone else sees only their assigned loads
       const buildQuery = (query: any) => {
-        if (isAgent) {
-          return query.eq('assigned_agent_id', userIdToUse);
+        if (!isAdmin) {
+          // For agents, board members, etc. - filter by assigned_agent_id OR owner_id
+          return query.or(`assigned_agent_id.eq.${userIdToUse},owner_id.eq.${userIdToUse}`);
         }
         // For super_admin/admin, show all loads (no user filter)
         return query;
