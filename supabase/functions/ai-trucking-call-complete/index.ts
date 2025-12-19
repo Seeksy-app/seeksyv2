@@ -761,6 +761,46 @@ serve(async (req) => {
           .from('trucking_carrier_leads')
           .update({ call_log_id: callLog.id })
           .eq('id', lead_id);
+      } else if (callerPhone && owner_id && (callOutcome === 'completed' || callOutcome === 'callback_requested')) {
+        // AUTO-CREATE LEAD for completed calls without existing lead
+        // This ensures every meaningful call gets a pending lead for follow-up
+        console.log('Auto-creating pending lead for completed call without existing lead');
+        try {
+          const autoLeadData = {
+            owner_id,
+            load_id: actualLoadId,
+            phone: callerPhone,
+            company_name: company_name || null,
+            mc_number: mc_number || null,
+            notes: `Auto-created from AI call. ${summary || ''}\nCall outcome: ${callOutcome}`,
+            source: 'ai_voice_agent',
+            status: 'new',
+            is_confirmed: false,
+            requires_callback: true,
+            call_source: 'inbound',
+            call_log_id: callLog.id,
+            mc_pending: !mc_number
+          };
+          
+          const { data: autoLead, error: autoLeadError } = await supabase
+            .from('trucking_carrier_leads')
+            .insert(autoLeadData)
+            .select()
+            .single();
+          
+          if (autoLeadError) {
+            console.error('Failed to auto-create lead:', autoLeadError);
+          } else if (autoLead) {
+            console.log('Auto-created pending lead:', autoLead.id);
+            // Update call log with the new lead_id
+            await supabase
+              .from('trucking_call_logs')
+              .update({ lead_id: autoLead.id })
+              .eq('id', callLog.id);
+          }
+        } catch (autoLeadErr) {
+          console.error('Error auto-creating lead:', autoLeadErr);
+        }
       }
 
       // Send SMS notification
