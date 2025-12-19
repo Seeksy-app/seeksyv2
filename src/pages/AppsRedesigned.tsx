@@ -33,9 +33,11 @@ type ViewMode = "spark" | "collections" | "modules";
 
 export default function AppsRedesigned() {
   const navigate = useNavigate();
-  const { effectivePortal } = usePortal();
-  const { installedModuleIds } = useWorkspace();
+  const { workspaceModules } = useWorkspace();
   const { activateModule } = useModuleActivation();
+  
+  // Derive installed module IDs from workspace modules
+  const installedModuleIds = workspaceModules.map(m => m.module_id);
   
   const [viewMode, setViewMode] = useState<ViewMode>("spark");
   const [searchQuery, setSearchQuery] = useState("");
@@ -372,13 +374,14 @@ export default function AppsRedesigned() {
         onConfirm={handleIntentConfirm}
       />
 
-      <CollectionPreviewModal
-        isOpen={!!previewCollection}
-        onClose={() => setPreviewCollection(null)}
-        collection={previewCollection}
-        installedModuleIds={installedModuleIds}
-        onInstall={() => previewCollection && handleInstallCollection(previewCollection)}
-      />
+      {previewCollection && (
+        <CollectionPreviewModal
+          open={!!previewCollection}
+          onOpenChange={(open) => !open && setPreviewCollection(null)}
+          collectionId={previewCollection.id}
+          onInstallComplete={() => setPreviewCollection(null)}
+        />
+      )}
     </div>
   );
 }
