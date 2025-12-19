@@ -142,7 +142,9 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
             {/* Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-primary to-primary/80 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <SparkIcon variant="holiday" size={32} animated />
+                <div className="bg-white rounded-full p-1 shadow-sm">
+                  <SparkIcon variant="holiday" size={28} animated />
+                </div>
                 <div>
                   <h3 className="text-primary-foreground font-semibold text-sm">Ask Seeksy</h3>
                   <p className="text-primary-foreground/80 text-xs">Learn about our platform</p>
@@ -164,7 +166,7 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
                 <div className="space-y-4">
                   {/* Welcome Message */}
                   <div className="flex gap-3">
-                    <div className="shrink-0">
+                    <div className="shrink-0 bg-white rounded-full p-0.5">
                       <SparkIcon variant="holiday" size={24} pose="waving" />
                     </div>
                     <div className="bg-muted rounded-xl rounded-tl-sm px-4 py-3 shadow-sm">
@@ -208,7 +210,7 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
                       className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       {msg.role === "assistant" && (
-                        <div className="shrink-0 mt-1">
+                        <div className="shrink-0 mt-1 bg-white rounded-full p-0.5">
                           <SparkIcon variant="holiday" size={20} pose="idle" />
                         </div>
                       )}
@@ -226,7 +228,7 @@ I can help you learn about Seeksy's features for podcasters, creators, event hos
 
                   {loading && (
                     <div className="flex gap-3">
-                      <div className="shrink-0 mt-1">
+                      <div className="shrink-0 mt-1 bg-white rounded-full p-0.5">
                         <SparkIcon variant="holiday" size={20} pose="typing" animated />
                       </div>
                       <div className="bg-muted rounded-xl rounded-tl-sm px-4 py-2.5 shadow-sm">
