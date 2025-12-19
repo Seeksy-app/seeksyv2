@@ -1,14 +1,42 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { DEFAULT_LAYOUT, LayoutConfig } from "@/components/myday/myDayWidgets";
+import { 
+  LayoutConfig, 
+  getFilteredDefaultLayout,
+  getAvailableWidgetsForCustomize,
+  getAvailableSections,
+  MY_DAY_WIDGETS,
+  MY_DAY_SECTIONS,
+} from "@/components/myday/myDayWidgets";
 import { toast } from "sonner";
 
+/**
+ * My Day Layout Hook
+ * 
+ * IMPORTANT: This hook now filters widgets based on installed modules.
+ * Widgets will only appear if their requiredModuleId is installed in the workspace.
+ */
 export function useMyDayLayout() {
-  const { currentWorkspace } = useWorkspace();
-  const [layout, setLayout] = useState<LayoutConfig>(DEFAULT_LAYOUT);
+  const { currentWorkspace, workspaceModules } = useWorkspace();
+  const [layout, setLayout] = useState<LayoutConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Get installed module IDs for the current workspace
+  const installedModuleIds = workspaceModules?.map(wm => wm.module_id) || [];
+
+  // Get the filtered default layout based on installed modules
+  const getDefaultLayoutForWorkspace = useCallback(() => {
+    return getFilteredDefaultLayout(installedModuleIds);
+  }, [installedModuleIds]);
+
+  // Check if workspace has any modules installed
+  const hasNoModules = installedModuleIds.length === 0;
+
+  // Get widgets available for customization (filtered by installed modules)
+  const availableWidgets = getAvailableWidgetsForCustomize(installedModuleIds);
+  const availableSections = getAvailableSections(installedModuleIds);
 
   // Load layout from database
   useEffect(() => {
@@ -17,7 +45,7 @@ export function useMyDayLayout() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          setLayout(DEFAULT_LAYOUT);
+          setLayout(getDefaultLayoutForWorkspace());
           return;
         }
 
@@ -30,31 +58,73 @@ export function useMyDayLayout() {
 
         if (error) {
           console.error("Error loading layout:", error);
-          setLayout(DEFAULT_LAYOUT);
+          setLayout(getDefaultLayoutForWorkspace());
           return;
         }
 
         if (data?.layout_json) {
-          // Merge with defaults to ensure new widgets are included
           const savedLayout = data.layout_json as unknown as LayoutConfig;
+          
+          // Merge saved layout with filtered defaults
+          // This ensures new widgets from newly installed modules appear
+          const defaultLayout = getDefaultLayoutForWorkspace();
+          
+          // Filter saved sections/widgets to only include those still available
+          const filteredSectionOrder = savedLayout.sectionOrder.filter(
+            sectionId => availableSections.some(s => s.id === sectionId)
+          );
+          
+          // Add any new sections from installed modules not in saved order
+          const newSections = defaultLayout.sectionOrder.filter(
+            sectionId => !filteredSectionOrder.includes(sectionId)
+          );
+          
+          const mergedSectionOrder = [...filteredSectionOrder, ...newSections];
+          
+          // Merge widget orders
+          const mergedWidgetOrder: Record<string, string[]> = {};
+          for (const sectionId of mergedSectionOrder) {
+            const savedOrder = savedLayout.widgetOrder[sectionId] || [];
+            const defaultOrder = defaultLayout.widgetOrder[sectionId] || [];
+            
+            // Filter saved widgets to only those still available
+            const availableWidgetIds = new Set(
+              availableWidgets.filter(w => w.section === sectionId).map(w => w.id)
+            );
+            
+            const filteredSavedOrder = savedOrder.filter(id => availableWidgetIds.has(id));
+            
+            // Add new widgets not in saved order
+            const newWidgets = defaultOrder.filter(id => !filteredSavedOrder.includes(id));
+            
+            mergedWidgetOrder[sectionId] = [...filteredSavedOrder, ...newWidgets];
+          }
+          
+          // Filter hidden widgets to only those still available
+          const availableWidgetIds = new Set(availableWidgets.map(w => w.id));
+          const filteredHiddenWidgets = (savedLayout.hiddenWidgets || []).filter(
+            id => availableWidgetIds.has(id)
+          );
+          
           setLayout({
-            sectionOrder: savedLayout.sectionOrder || DEFAULT_LAYOUT.sectionOrder,
-            widgetOrder: { ...DEFAULT_LAYOUT.widgetOrder, ...savedLayout.widgetOrder },
-            hiddenWidgets: savedLayout.hiddenWidgets || [],
+            sectionOrder: mergedSectionOrder,
+            widgetOrder: mergedWidgetOrder,
+            hiddenWidgets: filteredHiddenWidgets,
           });
         } else {
-          setLayout(DEFAULT_LAYOUT);
+          // No saved layout - use filtered default
+          setLayout(getDefaultLayoutForWorkspace());
         }
       } catch (error) {
         console.error("Error loading layout:", error);
-        setLayout(DEFAULT_LAYOUT);
+        setLayout(getDefaultLayoutForWorkspace());
       } finally {
         setIsLoading(false);
       }
     }
 
     loadLayout();
-  }, [currentWorkspace?.id]);
+  }, [currentWorkspace?.id, getDefaultLayoutForWorkspace, availableSections, availableWidgets]);
 
   // Save layout to database
   const saveLayout = useCallback(async (newLayout: LayoutConfig) => {
@@ -105,14 +175,16 @@ export function useMyDayLayout() {
     setLayout(newLayout);
   }, []);
 
-  // Reset to default
+  // Reset to default (filtered by installed modules)
   const resetLayout = useCallback(async () => {
-    await saveLayout(DEFAULT_LAYOUT);
-  }, [saveLayout]);
+    const defaultLayout = getDefaultLayoutForWorkspace();
+    await saveLayout(defaultLayout);
+  }, [getDefaultLayoutForWorkspace, saveLayout]);
 
   // Toggle widget visibility
   const toggleWidgetVisibility = useCallback((widgetId: string) => {
     setLayout(prev => {
+      if (!prev) return prev;
       const isHidden = prev.hiddenWidgets.includes(widgetId);
       return {
         ...prev,
@@ -125,25 +197,25 @@ export function useMyDayLayout() {
 
   // Reorder sections
   const reorderSections = useCallback((newOrder: string[]) => {
-    setLayout(prev => ({
+    setLayout(prev => prev ? {
       ...prev,
       sectionOrder: newOrder,
-    }));
+    } : prev);
   }, []);
 
   // Reorder widgets within a section
   const reorderWidgets = useCallback((sectionId: string, newOrder: string[]) => {
-    setLayout(prev => ({
+    setLayout(prev => prev ? {
       ...prev,
       widgetOrder: {
         ...prev.widgetOrder,
         [sectionId]: newOrder,
       },
-    }));
+    } : prev);
   }, []);
 
   return {
-    layout,
+    layout: layout || getDefaultLayoutForWorkspace(),
     isLoading,
     isSaving,
     saveLayout,
@@ -152,5 +224,10 @@ export function useMyDayLayout() {
     toggleWidgetVisibility,
     reorderSections,
     reorderWidgets,
+    // New exports for filtering
+    installedModuleIds,
+    hasNoModules,
+    availableWidgets,
+    availableSections,
   };
 }
