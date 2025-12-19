@@ -150,10 +150,10 @@ export default function AppsRedesigned() {
       // Then install the module
       await addModule(moduleId);
       
-      // Show success confirmation
+      // Show success confirmation with workspace name
       const module = SEEKSY_MODULES.find(m => m.id === moduleId);
       toast.success("App added!", {
-        description: `${module?.name || 'App'} is now in your sidebar and My Day.`,
+        description: `${module?.name || 'App'} added to ${currentWorkspace.name} — now visible in sidebar & My Day.`,
       });
     } catch (error) {
       toast.error("Failed to add app", {
@@ -180,7 +180,7 @@ export default function AppsRedesigned() {
       
       if (newlyInstalled.length > 0) {
         toast.success(`${collection.name} added!`, {
-          description: `${newlyInstalled.length} apps are now in your sidebar and My Day.`,
+          description: `${newlyInstalled.length} apps added to ${currentWorkspace.name} — now visible in sidebar & My Day.`,
         });
       }
     } catch (error) {

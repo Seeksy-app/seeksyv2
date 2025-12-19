@@ -69,7 +69,7 @@ export default function ComingSoon() {
             
             <Button 
               variant="outline" 
-              onClick={() => navigate('/apps')} 
+              onClick={() => navigate('/apps?new_apps=true')} 
               className="w-full"
               size="lg"
             >

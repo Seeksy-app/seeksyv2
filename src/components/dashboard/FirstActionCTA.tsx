@@ -37,7 +37,7 @@ export const FirstActionCTA = ({ hasModules, primaryAction }: FirstActionCTAProp
               </div>
             </div>
             <Button
-              onClick={() => navigate("/apps")}
+              onClick={() => navigate("/apps?new_apps=true")}
               className="gap-2 shrink-0"
             >
               <Plus className="h-4 w-4" />

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, Sparkles, ArrowRight } from "lucide-react";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
@@ -22,6 +23,7 @@ const RECOMMENDED_MODULES: RecommendedModule[] = [
 ];
 
 export const RecommendedSeeksiesBanner = () => {
+  const navigate = useNavigate();
   const [isDismissed, setIsDismissed] = useState(() => {
     return localStorage.getItem("recommended-seeksies-dismissed") === "true";
   });
@@ -79,7 +81,7 @@ export const RecommendedSeeksiesBanner = () => {
 
   const handleOpenModule = () => {
     if (selectedModule?.route) {
-      window.location.href = selectedModule.route;
+      navigate(selectedModule.route);
     }
   };
 

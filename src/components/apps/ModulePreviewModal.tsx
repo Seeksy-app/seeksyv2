@@ -58,10 +58,10 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
     if (!module) return;
     
     if (isAlreadyActivated) {
-      // Already activated, open in new tab
+      // Already activated, navigate in-app
       onOpenChange(false);
       if (module.route) {
-        window.open(module.route, '_blank');
+        navigate(module.route);
       }
       return;
     }
@@ -70,7 +70,8 @@ export function ModulePreviewModal({ open, onOpenChange, module }: ModulePreview
     activateModule(module.id);
     onOpenChange(false);
     if (module.route) {
-      setTimeout(() => window.open(module.route!, '_blank'), 300);
+      // Navigate in-app after a brief delay for the activation toast
+      setTimeout(() => navigate(module.route!), 300);
     }
   };
 

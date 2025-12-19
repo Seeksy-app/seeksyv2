@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useWorkspace, Workspace } from "@/contexts/WorkspaceContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ import { toast } from "sonner";
 import { CreateWorkspaceModal } from "./CreateWorkspaceModal";
 
 export function WorkspaceSelector() {
+  const navigate = useNavigate();
   const { 
     workspaces, 
     currentWorkspace, 
@@ -60,6 +62,7 @@ export function WorkspaceSelector() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [newWorkspaceName, setNewWorkspaceName] = useState("");
   const [workspaceToEdit, setWorkspaceToEdit] = useState<Workspace | null>(null);
+  const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
 
   const filteredWorkspaces = workspaces.filter(w =>
     w.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,20 +81,17 @@ export function WorkspaceSelector() {
   const handleDeleteWorkspace = async () => {
     if (!workspaceToEdit) return;
 
-    // Prevent deleting the last workspace
-    if (workspaces.length <= 1) {
-      toast.error("Cannot delete the last workspace", {
-        description: "You must have at least one workspace.",
-      });
-      setShowDeleteDialog(false);
-      setWorkspaceToEdit(null);
-      return;
-    }
-
-    await deleteWorkspace(workspaceToEdit.id);
-    toast.success("Workspace deleted");
+    const result = await deleteWorkspace(workspaceToEdit.id);
     setShowDeleteDialog(false);
     setWorkspaceToEdit(null);
+    
+    if (result.createdWorkspace) {
+      // Show recovery dialog when workspace was auto-created
+      setShowRecoveryDialog(true);
+    } else if (result.navigateTo) {
+      toast.success("Workspace deleted");
+      navigate(result.navigateTo);
+    }
   };
 
   const handleDuplicateWorkspace = async (workspace: Workspace) => {
@@ -252,7 +252,6 @@ export function WorkspaceSelector() {
                           setWorkspaceToEdit(workspace);
                           setShowDeleteDialog(true);
                         }}
-                        disabled={workspaces.length <= 1}
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Delete
@@ -331,6 +330,28 @@ export function WorkspaceSelector() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Workspace Recovery Dialog */}
+      <Dialog open={showRecoveryDialog} onOpenChange={setShowRecoveryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Workspace created</DialogTitle>
+          </DialogHeader>
+          <p className="text-muted-foreground">
+            I set up "My Workspace" for you — you can rename it anytime.
+          </p>
+          <DialogFooter>
+            <Button 
+              onClick={() => {
+                setShowRecoveryDialog(false);
+                navigate('/apps?new_apps=true');
+              }}
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

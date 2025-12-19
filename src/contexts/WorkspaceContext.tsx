@@ -33,7 +33,7 @@ interface WorkspaceContextType {
   setCurrentWorkspace: (workspace: Workspace | null) => void;
   createWorkspace: (name: string, templateModules?: string[]) => Promise<Workspace | null>;
   updateWorkspace: (id: string, updates: Partial<Workspace>) => Promise<void>;
-  deleteWorkspace: (id: string) => Promise<void>;
+  deleteWorkspace: (id: string) => Promise<{ navigateTo: string | null; createdWorkspace: Workspace | null }>;
   addModule: (moduleId: string) => Promise<void>;
   removeModule: (moduleId: string) => Promise<void>;
   toggleStandalone: (moduleId: string) => Promise<void>;
@@ -250,7 +250,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deleteWorkspace = async (id: string) => {
+  const deleteWorkspace = async (id: string): Promise<{ navigateTo: string | null; createdWorkspace: Workspace | null }> => {
     try {
       const { error } = await supabase
         .from('custom_packages')
@@ -259,14 +259,55 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
       if (error) throw error;
 
-      if (currentWorkspace?.id === id) {
-        const remaining = workspaces.filter(w => w.id !== id);
-        setCurrentWorkspace(remaining[0] || null);
-      }
+      const remaining = workspaces.filter(w => w.id !== id);
       
-      await fetchWorkspaces();
+      // Determine recovery strategy
+      if (remaining.length > 0) {
+        // Select next available workspace
+        const nextWorkspace = remaining.find(w => w.is_default) || remaining[0];
+        setCurrentWorkspace(nextWorkspace);
+        await fetchWorkspaces();
+        return { navigateTo: '/my-day', createdWorkspace: null };
+      } else {
+        // No workspaces left - create "My Workspace"
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated');
+        
+        const slug = `my-workspace-${Date.now().toString(36)}`;
+        const { data: newPkg, error: createError } = await supabase
+          .from('custom_packages')
+          .insert({
+            user_id: session.user.id,
+            name: 'My Workspace',
+            slug,
+            modules: [],
+            is_default: true,
+            icon_color: '#2C6BED',
+          })
+          .select()
+          .single();
+        
+        if (createError) throw createError;
+        
+        const createdWorkspace: Workspace = {
+          id: newPkg.id,
+          name: newPkg.name,
+          slug: newPkg.slug,
+          description: newPkg.description,
+          icon_color: newPkg.icon_color || '#2C6BED',
+          is_default: true,
+          modules: [],
+          created_at: newPkg.created_at,
+          updated_at: newPkg.updated_at,
+        };
+        
+        setCurrentWorkspace(createdWorkspace);
+        await fetchWorkspaces();
+        return { navigateTo: '/apps?new_apps=true', createdWorkspace };
+      }
     } catch (err) {
       console.error('Error deleting workspace:', err);
+      return { navigateTo: null, createdWorkspace: null };
     }
   };
 

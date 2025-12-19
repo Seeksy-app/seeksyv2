@@ -507,7 +507,7 @@ export default function MyDay() {
           </div>
 
           {/* ONLY show empty state - nothing else */}
-          <MyDayEmptyState onAddSeeksy={() => navigate('/apps')} />
+          <MyDayEmptyState onAddSeeksy={() => navigate('/apps?new_apps=true')} />
         </main>
       </div>
     );
