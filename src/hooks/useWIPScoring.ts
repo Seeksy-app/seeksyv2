@@ -11,8 +11,14 @@ interface NeedAppearanceMap {
 }
 
 /**
- * WIP Scoring Engine Hook
- * Implements O*NET-aligned scoring: rank→points, need raw scores, value scores, normalization
+ * O*NET Work Importance Profiler Scoring Engine
+ * 
+ * Scoring flow:
+ * 1. Accumulate raw points from rankings (RANK_TO_POINTS: 1→+4, 2→+2, 3→0, 4→-2, 5→-4)
+ * 2. Normalize relative scores across all 21 needs to [-1, +1] range (min-max normalization)
+ * 3. Scale to raw_score_scaled [-4, +4] range (multiply by 4)
+ * 4. Convert to standardized_0_100 for UI display
+ * 5. Aggregate into 6 Work Values (mean of underlying needs' standardized scores)
  */
 export function useWIPScoring(
   needs: WIPNeed[],
@@ -45,58 +51,67 @@ export function useWIPScoring(
     [needAppearanceMap]
   );
 
-  // Normalize score to 0-100 scale for progress bars
-  const normalizeScore = useCallback(
-    (rawScore: number, min: number, max: number): number => {
-      if (max === min) return 50;
-      return ((rawScore - min) / (max - min)) * 100;
-    },
-    []
-  );
-
-  // Calculate mean score (-4 to +4 range) for display
-  const calculateMeanScore = useCallback(
-    (rawScore: number, appearances: number): number => {
-      if (appearances === 0) return 0;
-      return rawScore / appearances;
-    },
-    []
-  );
-
-  // Calculate all scores from round responses
+  /**
+   * O*NET-style scoring calculation
+   * 
+   * Step 1: Get relative_score_raw from rankings (sum of RANK_TO_POINTS)
+   * Step 2: Normalize to [-1, +1] using min-max across all 21 needs
+   * Step 3: Scale to raw_score_scaled [-4, +4]
+   * Step 4: Convert to standardized_0_100: ((raw + 4) / 8) * 100
+   */
   const calculateScores = useCallback(
     (responses: RoundResponse[]): WIPScoreResult => {
-      // Initialize need raw scores
+      // Step 1: Accumulate raw points from rankings
       const needRawScores: Record<string, number> = {};
+      const needAppearances: Record<string, number> = {};
+      
       needs.forEach((need) => {
         needRawScores[need.id] = 0;
+        needAppearances[need.id] = 0;
       });
 
-      // Process each response
       responses.forEach((response) => {
         response.rankedNeedIds.forEach((needId, index) => {
-          const rank = index + 1; // 0-indexed to 1-indexed
+          const rank = index + 1; // 0-indexed to 1-indexed (1-5)
           const points = RANK_TO_POINTS[rank] || 0;
           needRawScores[needId] = (needRawScores[needId] || 0) + points;
+          needAppearances[needId] = (needAppearances[needId] || 0) + 1;
         });
       });
 
-      // Build need scores with normalization
+      // Step 2: Find min/max across all 21 needs for normalization
+      const rawScoreValues = Object.values(needRawScores);
+      const minRaw = Math.min(...rawScoreValues);
+      const maxRaw = Math.max(...rawScoreValues);
+
+      // Step 3 & 4: Build need scores with proper O*NET normalization
       const needScores = needs.map((need) => {
-        const rawScore = needRawScores[need.id] || 0;
-        const { min, max } = getNeedMinMax(need.id);
-        const stdScore = normalizeScore(rawScore, min, max);
-        const appearances = needAppearanceMap[need.id] || 0;
+        const relativeScoreRaw = needRawScores[need.id] || 0;
+        const appearances = needAppearances[need.id] || needAppearanceMap[need.id] || 0;
+
+        // Normalize to [-1, +1] using min-max across all needs
+        let relativeScoreNorm = 0;
+        if (maxRaw !== minRaw) {
+          relativeScoreNorm = 2 * ((relativeScoreRaw - minRaw) / (maxRaw - minRaw)) - 1;
+        }
+
+        // Scale to [-4, +4] (importance_multiplier = 1 for all since we skip that step)
+        const rawScoreScaled = relativeScoreNorm * 4;
+
+        // Convert to 0-100 standardized score: ((raw + 4) / 8) * 100
+        const stdScore = ((rawScoreScaled + 4) / 8) * 100;
 
         return {
           need,
-          rawScore,
-          stdScore,
+          rawScore: relativeScoreRaw,  // Original accumulated points
+          rawScoreScaled,              // O*NET -4 to +4 scaled score
+          stdScore,                    // 0-100 standardized
           appearances,
+          relativeScoreNorm,           // -1 to +1 normalized
         };
       });
 
-      // Group needs by value
+      // Group needs by value for aggregation
       const needsByValue: Record<string, typeof needScores> = {};
       needScores.forEach((ns) => {
         const valueId = ns.need.value_id;
@@ -106,23 +121,16 @@ export function useWIPScoring(
         needsByValue[valueId].push(ns);
       });
 
-      // Calculate value scores
+      // Step 5: Calculate Work Value scores (mean of underlying needs' standardized scores)
       const valueScores = values.map((value) => {
         const valueNeeds = needsByValue[value.id] || [];
         const rawSum = valueNeeds.reduce((sum, ns) => sum + ns.rawScore, 0);
         const rawMean = valueNeeds.length > 0 ? rawSum / valueNeeds.length : 0;
 
-        // Calculate min/max for value
-        const minPossible = valueNeeds.reduce((sum, ns) => {
-          const { min } = getNeedMinMax(ns.need.id);
-          return sum + min;
-        }, 0);
-        const maxPossible = valueNeeds.reduce((sum, ns) => {
-          const { max } = getNeedMinMax(ns.need.id);
-          return sum + max;
-        }, 0);
-
-        const stdScore = normalizeScore(rawSum, minPossible, maxPossible);
+        // Work Value standardized score = mean of underlying needs' stdScore
+        const stdScore = valueNeeds.length > 0
+          ? valueNeeds.reduce((sum, ns) => sum + ns.stdScore, 0) / valueNeeds.length
+          : 50;
 
         return {
           value,
@@ -135,7 +143,7 @@ export function useWIPScoring(
 
       return { needScores, valueScores };
     },
-    [needs, values, needAppearanceMap, getNeedMinMax, normalizeScore]
+    [needs, values, needAppearanceMap]
   );
 
   // Calculate partial/live scores (for real-time UI updates during assessment)
@@ -169,8 +177,6 @@ export function useWIPScoring(
   return {
     needAppearanceMap,
     getNeedMinMax,
-    normalizeScore,
-    calculateMeanScore,
     calculateScores,
     calculatePartialScores,
     getTopValues,
@@ -179,7 +185,7 @@ export function useWIPScoring(
 }
 
 /**
- * Pearson correlation coefficient calculation
+ * Pearson correlation coefficient calculation for occupation matching
  */
 export function pearsonCorrelation(x: number[], y: number[]): number {
   if (x.length !== y.length || x.length === 0) return 0;

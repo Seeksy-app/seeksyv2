@@ -107,33 +107,40 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
     mutationFn: async () => {
       if (!assessmentId) throw new Error('No assessment started');
       
-      // Calculate final scores
+      // Calculate final scores using O*NET scoring algorithm
       const scores = calculateScores(responses);
 
-      // Save need scores
-      const needScoreInserts = scores.needScores.map((ns) => ({
-        assessment_id: assessmentId,
-        need_id: ns.need.id,
-        raw_score: ns.rawScore,
-        std_score_0_100: ns.stdScore,
-        appearances: ns.appearances,
-        min_possible: ns.appearances * -4, // rank 5 = -4 points per appearance
-        max_possible: ns.appearances * 4,  // rank 1 = +4 points per appearance
-      }));
+      // Save need scores with O*NET scoring values
+      const needScoreInserts = scores.needScores.map((ns) => {
+        // Get the theoretical min/max for this need based on appearances
+        const appearances = ns.appearances;
+        const minPossible = appearances * -4; // If always ranked 5th
+        const maxPossible = appearances * 4;  // If always ranked 1st
+        
+        return {
+          assessment_id: assessmentId,
+          need_id: ns.need.id,
+          raw_score: ns.rawScore,              // Original accumulated points
+          std_score_0_100: ns.stdScore,        // O*NET standardized 0-100
+          appearances: ns.appearances,
+          min_possible: minPossible,
+          max_possible: maxPossible,
+        };
+      });
 
       const { error: needError } = await supabase
         .from('wip_need_score')
         .insert(needScoreInserts);
       if (needError) throw needError;
 
-      // Save value scores
+      // Save value scores (mean of underlying needs' standardized scores)
       const valueScoreInserts = scores.valueScores.map((vs) => ({
         assessment_id: assessmentId,
         value_id: vs.value.id,
         raw_sum: vs.rawSum,
         raw_mean: vs.rawMean,
-        std_score_0_100: vs.stdScore,
-        min_possible: 0, // Will be calculated properly with real rounds
+        std_score_0_100: vs.stdScore,          // Mean of underlying needs' stdScores
+        min_possible: 0,
         max_possible: 100,
       }));
 

@@ -11,12 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { WIPValueBars } from '@/components/wip/WIPValueBars';
-import { WIPScoreResult, WIPNeed, WIPValue, RANK_TO_POINTS } from '@/types/wip';
+import { WIPScoreResult, WIPNeed, WIPValue } from '@/types/wip';
 
-// Calculate mean score from raw_score and appearances (gives -4 to +4 range)
-function calculateMeanScore(rawScore: number, appearances: number): number {
-  if (appearances === 0) return 0;
-  return rawScore / appearances;
+/**
+ * Calculate the O*NET scaled score from database values
+ * Uses the min-max normalization approach: normalize raw to [-1,+1] then scale to [-4,+4]
+ */
+function calculateScaledScore(rawScore: number, minPossible: number, maxPossible: number): number {
+  if (maxPossible === minPossible) return 0;
+  const normalized = 2 * ((rawScore - minPossible) / (maxPossible - minPossible)) - 1;
+  return normalized * 4;
 }
 
 export default function WIPResults() {
@@ -105,12 +109,17 @@ export default function WIPResults() {
 
   // Build score result for WIPValueBars component
   const scoreResult: WIPScoreResult = {
-    needScores: needScores.map((ns: any) => ({
-      need: ns.need as WIPNeed,
-      rawScore: ns.raw_score,
-      stdScore: ns.std_score_0_100,
-      appearances: ns.appearances,
-    })),
+    needScores: needScores.map((ns: any) => {
+      const rawScoreScaled = calculateScaledScore(ns.raw_score, ns.min_possible, ns.max_possible);
+      return {
+        need: ns.need as WIPNeed,
+        rawScore: ns.raw_score,
+        rawScoreScaled,
+        stdScore: ns.std_score_0_100,
+        appearances: ns.appearances,
+        relativeScoreNorm: rawScoreScaled / 4, // Back-calculate from scaled score
+      };
+    }),
     valueScores: valueScores.map((vs: any) => ({
       value: vs.value as WIPValue,
       rawSum: vs.raw_sum,
@@ -276,7 +285,7 @@ export default function WIPResults() {
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium">{ns.need.label}</span>
                           <span className="text-sm font-mono font-semibold">
-                            {calculateMeanScore(ns.raw_score, ns.appearances).toFixed(2)}
+                            {calculateScaledScore(ns.raw_score, ns.min_possible, ns.max_possible).toFixed(2)}
                           </span>
                         </div>
                         <Progress value={ns.std_score_0_100} className="h-2" />
@@ -339,7 +348,7 @@ export default function WIPResults() {
                                       </span>
                                     </div>
                                     <span className="font-mono font-semibold text-sm min-w-[60px] text-right">
-                                      {calculateMeanScore(ns.raw_score, ns.appearances).toFixed(2)}
+                                      {calculateScaledScore(ns.raw_score, ns.min_possible, ns.max_possible).toFixed(2)}
                                     </span>
                                   </div>
                                 ))}
