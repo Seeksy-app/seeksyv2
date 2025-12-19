@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, Phone, Users, Voicemail, Play, Pause, Archive, Upload, UserPlus, Sparkles
+  ChevronDown, ChevronUp, Phone, Users, Voicemail, Play, Pause, Archive, Upload, UserPlus, Sparkles, RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -145,6 +145,7 @@ export default function TruckingDashboardPage() {
   const { takeLoad, releaseLoad, loading: assignmentLoading } = useLoadAssignment();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSyncingCalls, setIsSyncingCalls] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -166,6 +167,30 @@ export default function TruckingDashboardPage() {
     await fetchData(currentUserId);
     setIsRefreshing(false);
     toast({ title: "Dashboard refreshed" });
+  };
+
+  const handleSyncCalls = async () => {
+    setIsSyncingCalls(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('elevenlabs-reconcile-calls', {
+        body: { hours_back: 24 }
+      });
+      
+      if (error) throw error;
+      
+      toast({ 
+        title: "Calls synced", 
+        description: `Synced ${data?.call_logs_created || 0} new calls from ElevenLabs` 
+      });
+      
+      // Refresh dashboard data
+      await fetchData(currentUserId);
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSyncingCalls(false);
+    }
   };
 
   const fetchCurrentUser = async (): Promise<string | null> => {
@@ -520,6 +545,15 @@ export default function TruckingDashboardPage() {
               My Loads
             </Button>
           </div>
+          <Button 
+            variant="outline"
+            className="gap-2"
+            onClick={handleSyncCalls}
+            disabled={isSyncingCalls}
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncingCalls ? 'animate-spin' : ''}`} />
+            {isSyncingCalls ? 'Syncing...' : 'Sync Calls'}
+          </Button>
           <Button 
             variant="outline"
             className="gap-2"

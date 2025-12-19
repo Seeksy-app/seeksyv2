@@ -567,6 +567,9 @@ cron = "*/5 * * * *"
 [functions.backfill-elevenlabs-summaries]
 verify_jwt = false
 
+[functions.elevenlabs-reconcile-calls]
+verify_jwt = false
+
 [[functions.elevenlabs-reconcile-calls.schedules]]
 cron = "0 3 * * *"
 
