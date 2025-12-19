@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Clock, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Play, Clock, Sparkles, FileText } from "lucide-react";
 import { Helmet } from "react-helmet";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 interface DemoVideo {
   id: string;
@@ -123,13 +125,19 @@ export default function PublicVideosPage() {
 
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-900/95 backdrop-blur">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-center">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold text-white">Seeksy</span>
           </div>
+          <Link to="/platform">
+            <Button variant="outline" size="sm" className="gap-2 border-white/20 text-white hover:bg-white/10">
+              <FileText className="h-4 w-4" />
+              Platform Overview
+            </Button>
+          </Link>
         </div>
       </header>
 
