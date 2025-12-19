@@ -18,21 +18,36 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Delete the specific user that's stuck
-    const userId = "ec879788-9cc3-4a6a-99da-9d3fc7f48139";
-    
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    // Reset password for jheeter@dltransport.com
+    const targetEmail = "jheeter@dltransport.com";
+    const newPassword = "Aitrucking!";
+
+    // Get user by email
+    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
+    const targetUser = users.users.find(u => u.email?.toLowerCase() === targetEmail.toLowerCase());
+
+    if (!targetUser) {
+      return new Response(JSON.stringify({ error: "User not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(
+      targetUser.id,
+      { password: newPassword }
+    );
 
     if (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error resetting password:", error);
       return new Response(JSON.stringify({ error: error.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("Successfully deleted user:", userId);
-    return new Response(JSON.stringify({ success: true, deleted: userId }), {
+    console.log("Successfully reset password for:", targetEmail);
+    return new Response(JSON.stringify({ success: true, email: targetEmail }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
