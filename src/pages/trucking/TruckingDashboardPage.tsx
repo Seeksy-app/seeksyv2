@@ -150,12 +150,15 @@ export default function TruckingDashboardPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    fetchCurrentUser();
-    fetchData();
+    const init = async () => {
+      const userId = await fetchCurrentUser();
+      fetchData(userId);
+    };
+    init();
     
     // Auto-refresh every 5 minutes
     const interval = setInterval(() => {
-      fetchData();
+      fetchData(currentUserId);
     }, 5 * 60 * 1000);
     
     return () => clearInterval(interval);
@@ -163,17 +166,18 @@ export default function TruckingDashboardPage() {
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    await fetchData();
+    await fetchData(currentUserId);
     setIsRefreshing(false);
     toast({ title: "Dashboard refreshed" });
   };
 
-  const fetchCurrentUser = async () => {
+  const fetchCurrentUser = async (): Promise<string | null> => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUserId(user?.id || null);
+    return user?.id || null;
   };
 
-  const fetchData = async () => {
+  const fetchData = async (userId?: string | null) => {
     try {
       // Use Central Time (America/Chicago) for accurate "today" calculation
       // New day starts at midnight CST
@@ -186,6 +190,12 @@ export default function TruckingDashboardPage() {
       const todayStartUTC = fromZonedTime(todayStartCentral, TIMEZONE).toISOString();
       const todayEndUTC = fromZonedTime(todayEndCentral, TIMEZONE).toISOString();
       
+      // Build confirmedToday query - filter by current user's owner_id
+      let confirmedTodayQuery = supabase.from("trucking_loads").select("id").eq("status", "booked").gte("updated_at", todayStartUTC).lte("updated_at", todayEndUTC);
+      if (userId) {
+        confirmedTodayQuery = confirmedTodayQuery.eq("owner_id", userId);
+      }
+      
       const [loadsRes, leadsRes, callsRes, voicemailRes, allCallsRes, transcriptsRes, agentsRes, confirmedTodayRes] = await Promise.all([
         supabase.from("trucking_loads").select("*").eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("trucking_carrier_leads").select("*, trucking_loads(id, load_number, origin_city, origin_state, destination_city, destination_state, target_rate, equipment_type, miles, pickup_date), trucking_call_logs!trucking_carrier_leads_call_log_id_fkey(id, summary, call_outcome, call_status, duration_seconds)").order("created_at", { ascending: false }),
@@ -196,8 +206,8 @@ export default function TruckingDashboardPage() {
         supabase.from("trucking_call_transcripts").select("*").order("created_at", { ascending: false }).limit(100),
         // Fetch all profiles for agent lookup
         supabase.from("profiles").select("id, full_name, username"),
-        // Count confirmed loads for today (status changed to booked today in CST)
-        supabase.from("trucking_loads").select("id").eq("status", "booked").gte("updated_at", todayStartUTC).lte("updated_at", todayEndUTC)
+        // Count confirmed loads for today (status changed to booked today in CST) - filtered by user
+        confirmedTodayQuery
       ]);
 
       if (loadsRes.error) throw loadsRes.error;
@@ -571,44 +581,19 @@ export default function TruckingDashboardPage() {
       {/* Daily Brief Modal */}
       <TruckingDailyBriefModal open={dailyBriefOpen} onOpenChange={setDailyBriefOpen} />
 
-      {/* AI Live Banner */}
-      <Card className={`p-4 ${aiCallsEnabled ? 'bg-green-50 border-green-200' : 'bg-slate-100 border-slate-200'}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {aiCallsEnabled ? (
-              <span className="relative flex h-3 w-3">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-green-500" />
-              </span>
-            ) : (
-              <span className="relative flex h-3 w-3">
-                <span className="relative inline-flex h-3 w-3 rounded-full bg-slate-400" />
-              </span>
-            )}
-            <div>
-              <p className={`font-semibold ${aiCallsEnabled ? 'text-green-800' : 'text-slate-600'}`}>
-                {aiCallsEnabled ? 'AI Live — Jess is Ready' : 'AI Calls Paused'}
-              </p>
-              <p className={`text-sm ${aiCallsEnabled ? 'text-green-600' : 'text-slate-500'}`}>
-                {aiCallsEnabled ? `Answering carrier calls • ${callsToday} calls today` : 'Toggle on to resume taking calls'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">{aiCallsEnabled ? 'On' : 'Off'}</span>
+      {/* Earnings Row with AI Toggle */}
+      <div className="flex items-center justify-between text-sm text-slate-500">
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
             <Switch 
               checked={aiCallsEnabled} 
               onCheckedChange={setAiCallsEnabled}
               className="data-[state=checked]:bg-green-500"
             />
+            <span className={`text-xs ${aiCallsEnabled ? 'text-green-600' : 'text-slate-400'}`}>
+              {aiCallsEnabled ? 'AI On' : 'AI Off'}
+            </span>
           </div>
-        </div>
-      </Card>
-
-
-      {/* Earnings Row */}
-      <div className="flex items-center justify-between text-sm text-slate-500">
-        <div className="flex items-center gap-6">
           <span>Est Revenue: <strong className="text-slate-700">${estRevenue.toLocaleString()}</strong></span>
           <span>Booked: <strong className="text-slate-700">{bookedRevenue > 0 ? `$${bookedRevenue.toLocaleString()}` : "—"}</strong></span>
         </div>
