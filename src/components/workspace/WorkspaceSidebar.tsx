@@ -1,22 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useSensors, useSensor, PointerSensor } from "@dnd-kit/core";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { usePortal } from "@/contexts/PortalContext";
 import { trackModuleOpened } from "@/utils/gtm";
 import { WorkspaceSelector } from "./WorkspaceSelector";
-import { MoveToSectionMenu } from "./MoveToSectionMenu";
-import { AddNewDropdown } from "./AddNewDropdown";
 import { CreateWorkspaceModal } from "./CreateWorkspaceModal";
 import { ModuleCenterModal, SEEKSY_MODULES } from "@/components/modules";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
   Sidebar,
   SidebarContent,
@@ -48,15 +40,13 @@ import {
   Settings,
   MoreHorizontal,
   Trash2,
-  ChevronDown,
   ChevronRight,
   ChevronLeft,
-  ExternalLink,
   Star,
-  GripVertical,
-  HelpCircle,
-  Mail,
+  FolderOpen,
+  CheckSquare,
   Sliders,
+  Store,
   // Module icons
   Mic,
   Podcast,
@@ -65,8 +55,6 @@ import {
   Megaphone,
   Zap,
   Users,
-  CheckSquare,
-  FolderOpen,
   Calendar,
   Trophy,
   FormInput,
@@ -77,8 +65,6 @@ import {
   Wand2,
   BrainCircuit,
   MessageCircle,
-  Share2,
-  Target,
   DollarSign,
   Clapperboard,
   PieChart,
@@ -89,12 +75,11 @@ import {
   Newspaper,
   Building2,
   Copy,
-  BookOpen,
+  Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useModuleGroups } from "@/hooks/useModuleGroups";
-import { useQueryClient } from "@tanstack/react-query";
-import { useHelpMenuActions } from "@/hooks/useHelpDrawer";
+import { useWorkspaceInstalledModules } from "@/hooks/useWorkspaceInstalledModules";
+import { useWorkspaceSidebarState } from "@/hooks/useWorkspaceSidebarState";
 
 // Icon mapping for modules - ensure correct icons for each module
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -108,19 +93,19 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'blog': Newspaper,
   'newsletters': Mail,
   'newsletter': Mail,
-  'campaigns': Megaphone, // Marketing campaigns - NOT email
+  'campaigns': Megaphone,
   'email-signatures': Mail,
   'signatures': Mail,
   'automations': Zap,
   'ai-automation': Bot,
   'crm': Building2,
   'contacts': Users,
-  'segments': Target,
+  'segments': FileText,
   'tasks': CheckSquare,
   'projects': FolderOpen,
   'project-management': FolderOpen,
   'meetings': CalendarClock,
-  'events': Calendar, // Events - calendar icon
+  'events': Calendar,
   'awards': Trophy,
   'proposals': FileText,
   'deals': DollarSign,
@@ -128,7 +113,7 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'polls': Vote,
   'media-library': Image,
   'video-editor': Clapperboard,
-  'email': Mail, // Email inbox
+  'email': Mail,
   'sms': MessageCircle,
   'identity': Shield,
   'identity-verification': Shield,
@@ -141,35 +126,6 @@ const MODULE_ICONS: Record<string, React.ElementType> = {
   'podcast-rss': Podcast,
   'podcast-hosting': Podcast,
   'podcast-agent': Bot,
-};
-
-// Fallback module groupings (used when DB config is loading or empty)
-// Each primary module acts as a collapsible group header
-const MODULE_GROUPS: Record<string, { name: string; modules: string[] }> = {
-  'studio': { 
-    name: 'Production',
-    modules: ['ai-clips', 'ai-post-production', 'media-library', 'video-editor', 'cloning'] 
-  },
-  'podcasts': { 
-    name: 'Podcasting',
-    modules: ['podcast-rss', 'podcast-hosting'] 
-  },
-  'campaigns': { 
-    name: 'Marketing', // Marketing hub - NOT email
-    modules: ['newsletters', 'automations', 'blog'] 
-  },
-  'events': { 
-    name: 'Events & Meetings',
-    modules: ['meetings', 'forms', 'polls', 'awards'] 
-  },
-  'crm': { 
-    name: 'CRM & Business',
-    modules: ['contacts', 'projects', 'tasks', 'proposals'] 
-  },
-  'email': {
-    name: 'Email',
-    modules: []
-  },
 };
 
 interface ModuleRegistryItem {
@@ -186,35 +142,56 @@ interface ModuleRegistryItem {
 export function WorkspaceSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpen } = useSidebar();
   const { portal } = usePortal();
-  const { currentWorkspace, workspaceModules, removeModule, toggleStandalone, togglePinned } = useWorkspace();
+  const { currentWorkspace, workspaceModules, removeModule, togglePinned } = useWorkspace();
+  const { installedModuleIds } = useWorkspaceInstalledModules();
   const [moduleRegistry, setModuleRegistry] = useState<ModuleRegistryItem[]>([]);
   const [showModuleCenter, setShowModuleCenter] = useState(false);
   const [showCreateWorkspace, setShowCreateWorkspace] = useState(false);
   const [moduleCenterDefaultToApps, setModuleCenterDefaultToApps] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
-  const [contextMenuModule, setContextMenuModule] = useState<string | null>(null);
-  const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
-  const [draggedModule, setDraggedModule] = useState<string | null>(null);
   const [removingModule, setRemovingModule] = useState<string | null>(null);
   const [, setForceUpdate] = useState(0);
 
-  // Sensors for drag and drop
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
+  // Workspace-scoped sidebar state
+  const workspaceSidebarState = useWorkspaceSidebarState(currentWorkspace?.id || null);
 
   // Effect to re-render when sidebar collapses/expands
   useEffect(() => {
     setForceUpdate(prev => prev + 1);
   }, [state]);
 
-  // Fetch module registry from database and merge with SEEKSY_MODULES for comprehensive coverage
+  // Sync sidebar state with workspace-scoped persistence
+  useEffect(() => {
+    if (currentWorkspace?.id) {
+      // If the persisted state says expanded but sidebar is collapsed, expand it
+      if (workspaceSidebarState.isExpanded && state === 'collapsed') {
+        setOpen(true);
+      }
+    }
+  }, [currentWorkspace?.id, workspaceSidebarState.isExpanded, state, setOpen]);
+
+  // Recovery: if sidebar is stuck collapsed with no visible toggle, auto-reset
+  useEffect(() => {
+    const handleStuckState = () => {
+      // If collapsed and we detect a stuck state (e.g., no toggle visible), reset
+      if (state === 'collapsed') {
+        // The toggle is always visible in our implementation, but add safety
+        const sidebarElement = document.querySelector('[data-sidebar="sidebar"]');
+        if (sidebarElement && sidebarElement.clientWidth < 40) {
+          // Stuck in an unusable state, reset
+          workspaceSidebarState.resetToDefault();
+          setOpen(true);
+        }
+      }
+    };
+
+    // Check on mount and after a short delay
+    const timeout = setTimeout(handleStuckState, 500);
+    return () => clearTimeout(timeout);
+  }, [state, workspaceSidebarState, setOpen]);
+
+  // Fetch module registry from database and merge with SEEKSY_MODULES
   useEffect(() => {
     const fetchModuleRegistry = async () => {
       try {
@@ -287,86 +264,38 @@ export function WorkspaceSidebar() {
 
   const isCollapsed = state === 'collapsed';
 
-  // Fetch module groupings from DB
-  const { data: dbModuleGroups } = useModuleGroups();
-
-  // Get modules for current workspace, organized with correct groups from DB
-  const { groupedModules, standaloneModules, pinnedModules } = useMemo(() => {
+  // Get FLAT list of installed modules for current workspace - NO GROUPING
+  const { installedModules, pinnedModules } = useMemo(() => {
     const modules = workspaceModules
-      .sort((a, b) => a.position - b.position)
+      .sort((a, b) => {
+        // Pinned first, then alphabetical
+        if (a.is_pinned && !b.is_pinned) return -1;
+        if (!a.is_pinned && b.is_pinned) return 1;
+        // Then by position
+        return a.position - b.position;
+      })
       .map(wm => ({
         ...moduleRegistry.find(mr => mr.id === wm.module_id),
-        is_standalone: wm.is_standalone,
         is_pinned: wm.is_pinned,
       }))
-      .filter(m => m.id) as (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[];
+      .filter(m => m.id) as (ModuleRegistryItem & { is_pinned: boolean })[];
 
-    // Map: groupKey -> { groupLabel, allModulesInGroup }
-    const grouped: Map<string, { groupKey: string; groupName: string; allModules: (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[] }> = new Map();
-    const standalone: (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[] = [];
-    const pinned: (ModuleRegistryItem & { is_standalone: boolean; is_pinned: boolean })[] = [];
-    const usedIds = new Set<string>();
+    const pinned: (ModuleRegistryItem & { is_pinned: boolean })[] = [];
+    const regular: (ModuleRegistryItem & { is_pinned: boolean })[] = [];
 
-    // Collect pinned modules first (these show in Pinned section)
     for (const module of modules) {
       if (module.is_pinned) {
         pinned.push(module);
+      } else {
+        regular.push(module);
       }
     }
 
-    // Use DB module groups if available
-    if (dbModuleGroups && dbModuleGroups.length > 0) {
-      for (const group of dbModuleGroups) {
-        const allModuleKeys = [
-          ...group.primaryModules.map(m => m.module_key),
-          ...group.associatedModules.map(m => m.module_key),
-        ];
-        
-        // Filter modules: include if in group AND not standalone
-        const groupModules = modules.filter(m => 
-          allModuleKeys.includes(m.id) && !m.is_standalone
-        );
-        
-        if (groupModules.length > 0) {
-          grouped.set(group.key, {
-            groupKey: group.key,
-            groupName: group.label,
-            allModules: groupModules,
-          });
-          groupModules.forEach(m => usedIds.add(m.id));
-        }
-      }
-    } else {
-      // Fallback to hardcoded MODULE_GROUPS
-      for (const [primaryId, groupConfig] of Object.entries(MODULE_GROUPS)) {
-        const allGroupModuleIds = [primaryId, ...groupConfig.modules];
-        const groupModules = modules.filter(m => 
-          allGroupModuleIds.includes(m.id) && !m.is_standalone
-        );
-        
-        if (groupModules.length > 0) {
-          grouped.set(primaryId, {
-            groupKey: primaryId,
-            groupName: groupConfig.name,
-            allModules: groupModules,
-          });
-          groupModules.forEach(m => usedIds.add(m.id));
-        }
-      }
-    }
+    // Sort regular modules alphabetically
+    regular.sort((a, b) => a.name.localeCompare(b.name));
 
-    // Standalone modules: marked as standalone OR not in any group
-    for (const module of modules) {
-      if (module.is_standalone || !usedIds.has(module.id)) {
-        if (!standalone.find(s => s.id === module.id)) {
-          standalone.push(module);
-          usedIds.add(module.id);
-        }
-      }
-    }
-
-    return { groupedModules: grouped, standaloneModules: standalone, pinnedModules: pinned };
-  }, [workspaceModules, moduleRegistry, dbModuleGroups]);
+    return { installedModules: regular, pinnedModules: pinned };
+  }, [workspaceModules, moduleRegistry]);
 
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
@@ -384,32 +313,14 @@ export function WorkspaceSidebar() {
     }
   };
 
-  const handleRemoveSection = async (groupName: string, modules: Array<{ id: string; name: string }>) => {
-    try {
-      // Remove all modules in the section
-      for (const module of modules) {
-        await removeModule(module.id);
-      }
-      toast.success("Section removed", {
-        description: `${groupName} and all its modules have been removed.`,
-      });
-    } catch (error) {
-      toast.error("Failed to remove section");
-    }
+  const handleToggleSidebar = () => {
+    const newState = !isCollapsed;
+    workspaceSidebarState.setExpanded(newState);
+    toggleSidebar();
   };
 
-  const toggleGroup = (groupId: string) => {
-    setExpandedGroups(prev => ({
-      ...prev,
-      [groupId]: !prev[groupId]
-    }));
-  };
-
-  const queryClient = useQueryClient();
-
-  const renderModuleItem = (module: ModuleRegistryItem & { is_standalone?: boolean; is_pinned?: boolean }, indented = false, currentGroupKey?: string) => {
+  const renderModuleItem = (module: ModuleRegistryItem & { is_pinned?: boolean }) => {
     const Icon = MODULE_ICONS[module.id] || FolderOpen;
-    const isStandalone = module.is_standalone || false;
     const isPinned = module.is_pinned || false;
     
     return (
@@ -423,10 +334,7 @@ export function WorkspaceSidebar() {
           }}
           isActive={module.route ? isActive(module.route) : false}
           tooltip={module.name}
-          className={cn(
-            "text-sidebar-foreground hover:bg-sidebar-accent pr-8",
-            indented && "ml-6 pl-4 text-sm"
-          )}
+          className="text-sidebar-foreground hover:bg-sidebar-accent pr-8"
         >
           <Icon className="h-4 w-4" />
           {!isCollapsed && <span>{module.name}</span>}
@@ -467,35 +375,6 @@ export function WorkspaceSidebar() {
                 <Star className={cn("h-4 w-4 mr-2", isPinned && "fill-amber-500 text-amber-500")} />
                 {isPinned ? "Unpin" : "Pin to top"}
               </DropdownMenuItem>
-              
-              {/* Standalone option */}
-              <DropdownMenuItem
-                onClick={async (e) => {
-                  e.stopPropagation();
-                  try {
-                    await toggleStandalone(module.id);
-                    toast.success(
-                      isStandalone ? "Moved to collection" : "Made standalone",
-                      { description: isStandalone 
-                        ? `${module.name} moved back to collection.`
-                        : `${module.name} is now outside collections.` 
-                      }
-                    );
-                  } catch (err) {
-                    toast.error("Failed to update module");
-                  }
-                }}
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                {isStandalone ? "Move to collection" : "Make standalone"}
-              </DropdownMenuItem>
-              
-              <MoveToSectionMenu
-                moduleId={module.id}
-                moduleName={module.name}
-                currentGroupKey={currentGroupKey}
-                onMoved={() => queryClient.invalidateQueries({ queryKey: ['module-groups'] })}
-              />
               
               <DropdownMenuItem
                 onClick={(e) => {
@@ -561,9 +440,9 @@ export function WorkspaceSidebar() {
                   <Sliders className="h-4 w-4" />
                 </button>
               )}
-              {/* Collapse Sidebar Button */}
+              {/* Collapse Sidebar Button - ALWAYS VISIBLE */}
               <button
-                onClick={toggleSidebar}
+                onClick={handleToggleSidebar}
                 className="p-2 rounded-lg hover:bg-sidebar-accent text-sidebar-foreground/70 hover:text-sidebar-foreground transition-all duration-200"
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
@@ -695,108 +574,42 @@ export function WorkspaceSidebar() {
           <Separator className="my-2 bg-sidebar-border" />
 
           <ScrollArea className="flex-1">
-            {/* Modules Section Header */}
+            {/* Installed Seekies Section Header */}
             <div className="px-3 py-2">
               {!isCollapsed && (
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-medium text-sidebar-foreground/70">
-                    Modules
+                    Installed Seekies
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Workspace Modules */}
+            {/* Workspace Modules - FLAT LIST, NO GROUPING */}
             {currentWorkspace && (
               <div className="px-3 py-1">
                 <SidebarMenu>
-                  {/* Grouped modules */}
-                  {Array.from(groupedModules.entries()).map(([groupKey, { groupName, allModules }]) => {
-                    const isExpanded = expandedGroups[groupKey] ?? false;
-                    // Use first module's icon for group header, or a default
-                    const firstModule = allModules[0];
-                    const GroupIcon = firstModule ? (MODULE_ICONS[firstModule.id] || FolderOpen) : FolderOpen;
-                    
-                      return (
-                        <Collapsible
-                          key={groupKey}
-                          open={isExpanded}
-                          onOpenChange={() => toggleGroup(groupKey)}
-                          className="mb-3 group/group"
-                        >
-                          <SidebarMenuItem className="group/item relative">
-                            <div className="flex items-center w-full">
-                              <CollapsibleTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 p-0 mr-1 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-transparent"
-                                >
-                                  {isExpanded ? (
-                                    <ChevronDown className="h-3.5 w-3.5" />
-                                  ) : (
-                                    <ChevronRight className="h-3.5 w-3.5" />
-                                  )}
-                                </Button>
-                              </CollapsibleTrigger>
-                              <SidebarMenuButton
-                                tooltip={groupName}
-                                className="flex-1 text-sidebar-foreground hover:bg-sidebar-accent pr-8"
-                                onClick={() => toggleGroup(groupKey)}
-                              >
-                                <GroupIcon className="h-5 w-5" />
-                                {!isCollapsed && <span className="font-medium text-[15px]">{groupName}</span>}
-                              </SidebarMenuButton>
-                              
-                              {/* Section overflow menu */}
-                              {!isCollapsed && (
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="absolute right-0 top-1/2 -translate-y-1/2 h-6 w-6 opacity-0 group-hover/item:opacity-100 transition-opacity"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <MoreHorizontal className="h-3.5 w-3.5" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end" className="w-48 bg-popover border shadow-lg z-50">
-                                    <DropdownMenuItem
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveSection(groupName, allModules);
-                                      }}
-                                      className="text-destructive focus:text-destructive"
-                                    >
-                                      <Trash2 className="h-4 w-4 mr-2" />
-                                      Remove Section
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              )}
-                            </div>
-                          </SidebarMenuItem>
-                          
-                          <CollapsibleContent className="mt-0.5">
-                            {allModules.map(module => renderModuleItem(module, true, groupKey))}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      );
-                  })}
-
-                  {/* Standalone modules */}
-                  {standaloneModules.map(module => renderModuleItem(module))}
+                  {/* Flat list of installed modules (non-pinned) */}
+                  {installedModules.map(module => renderModuleItem(module))}
                   
-                  {/* Add Module Button */}
+                  {/* Empty state when no modules installed */}
+                  {installedModules.length === 0 && pinnedModules.length === 0 && !isCollapsed && (
+                    <div className="px-2 py-4 text-center">
+                      <p className="text-sm text-sidebar-foreground/60 mb-2">
+                        No Seekies installed yet
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Add Seeksy Button - ALWAYS VISIBLE, PROMINENT */}
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => setShowModuleCenter(true)}
-                      tooltip="Add module"
-                      className="text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                      onClick={() => navigate('/apps')}
+                      tooltip="Add Seeksy"
+                      className="text-primary hover:text-primary hover:bg-primary/10 font-medium"
                     >
-                      <Plus className="h-4 w-4" />
-                      {!isCollapsed && <span>Add module</span>}
+                      <Store className="h-4 w-4" />
+                      {!isCollapsed && <span>Add Seeksy</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
@@ -805,8 +618,35 @@ export function WorkspaceSidebar() {
           </ScrollArea>
         </SidebarContent>
 
-        {/* Sticky Footer - Creator Help Menu (SPA actions, no redirects) */}
-        <CreatorHelpFooter isCollapsed={isCollapsed} navigate={navigate} isActive={isActive} />
+        {/* Sticky Footer - Ask Spark + Settings */}
+        <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
+          <SidebarMenu>
+            {/* Ask Spark - Above Settings */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigate('/my-day')}
+                tooltip="Ask Spark"
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <SparkIcon size={16} pose="idle" />
+                {!isCollapsed && <span>Ask Spark</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            
+            {/* Settings */}
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                onClick={() => navigate('/settings')}
+                isActive={isActive('/settings')}
+                tooltip="Settings"
+                className="text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <Settings className="h-4 w-4" />
+                {!isCollapsed && <span>Settings</span>}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
       </Sidebar>
       
       {/* Module Center Modal */}
@@ -829,37 +669,5 @@ export function WorkspaceSidebar() {
         }}
       />
     </>
-  );
-}
-
-/**
- * Creator Help Footer - Settings only (Help items moved to header Help menu)
- */
-function CreatorHelpFooter({ 
-  isCollapsed, 
-  navigate, 
-  isActive 
-}: { 
-  isCollapsed: boolean; 
-  navigate: (path: string) => void;
-  isActive: (path: string) => boolean;
-}) {
-  return (
-    <SidebarFooter className="p-3 pt-2 border-t border-sidebar-border bg-sidebar mt-auto">
-      <SidebarMenu>
-        {/* Settings - Still navigates to settings page */}
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            onClick={() => navigate('/settings')}
-            isActive={isActive('/settings')}
-            tooltip="Settings"
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
-          >
-            <Settings className="h-4 w-4" />
-            {!isCollapsed && <span>Settings</span>}
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    </SidebarFooter>
   );
 }
