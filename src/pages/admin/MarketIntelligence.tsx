@@ -167,7 +167,7 @@ export default function MarketIntelligence() {
           <p className="text-muted-foreground">Industry insights, competitive analysis, and market trends</p>
         </div>
         <Badge variant="outline" className="text-xs">
-          Last updated: Dec 2024
+          Last updated: Dec 2025
         </Badge>
       </div>
 

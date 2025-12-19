@@ -130,11 +130,11 @@ export default function VideoCollectionPage() {
           {/* Header */}
           <div className="mb-8">
             <Link
-              to="/videos"
+              to={slug === 'platform' ? '/platform' : '/videos'}
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Videos
+              {slug === 'platform' ? 'Back to Platform' : 'Back to Videos'}
             </Link>
             <h1 className="text-3xl font-bold text-foreground mb-2">{page.title}</h1>
             {page.description && (
