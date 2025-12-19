@@ -55,13 +55,16 @@ serve(async (req) => {
       );
     }
 
-    const { targetUserId, newRole } = await req.json();
+    const { targetUserId, newRole, newRoles } = await req.json();
 
-    if (!targetUserId || !newRole) {
-      throw new Error("targetUserId and newRole are required");
+    // Support both single role (newRole) and multiple roles (newRoles) for backwards compatibility
+    const rolesToAssign: string[] = newRoles || (newRole ? [newRole] : []);
+
+    if (!targetUserId || rolesToAssign.length === 0) {
+      throw new Error("targetUserId and at least one role (newRole or newRoles) are required");
     }
 
-    console.log(`Super Admin ${user.id} is changing role for user ${targetUserId} to ${newRole}`);
+    console.log(`Super Admin ${user.id} is changing roles for user ${targetUserId} to [${rolesToAssign.join(', ')}]`);
 
     // Delete existing roles for the target user
     const { error: deleteError } = await supabaseAdmin
@@ -73,23 +76,24 @@ serve(async (req) => {
       throw new Error(`Failed to delete existing roles: ${deleteError.message}`);
     }
 
-    // Insert the new role
+    // Insert all new roles
+    const roleInserts = rolesToAssign.map(role => ({ user_id: targetUserId, role }));
     const { error: insertError } = await supabaseAdmin
       .from("user_roles")
-      .insert([{ user_id: targetUserId, role: newRole }]);
+      .insert(roleInserts);
 
     if (insertError) {
-      throw new Error(`Failed to assign new role: ${insertError.message}`);
+      throw new Error(`Failed to assign new roles: ${insertError.message}`);
     }
 
-    console.log(`Successfully updated role for user ${targetUserId} to ${newRole}`);
+    console.log(`Successfully updated roles for user ${targetUserId} to [${rolesToAssign.join(', ')}]`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `Role updated to ${newRole}`,
+        message: `Roles updated to ${rolesToAssign.join(', ')}`,
         userId: targetUserId,
-        newRole: newRole
+        newRoles: rolesToAssign
       }),
       {
         status: 200,
