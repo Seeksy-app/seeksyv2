@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -120,6 +121,12 @@ const PlatformOnePager = () => {
               </Button>
             ))}
             <Separator orientation="vertical" className="h-5 mx-2" />
+            <Link to="/videos/platform">
+              <Button variant="ghost" size="sm" className="gap-1.5 text-xs">
+                <Video className="h-3.5 w-3.5" />
+                Videos
+              </Button>
+            </Link>
             <Button onClick={handlePrint} variant="outline" size="sm" className="gap-1.5 text-xs">
               <Download className="h-3.5 w-3.5" />
               PDF
@@ -151,6 +158,12 @@ const PlatformOnePager = () => {
                 {item.label}
               </Button>
             ))}
+            <Link to="/videos/platform" className="w-full">
+              <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-sm">
+                <Video className="h-4 w-4" />
+                Videos
+              </Button>
+            </Link>
           </div>
         )}
       </nav>
