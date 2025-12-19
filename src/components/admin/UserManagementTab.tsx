@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +17,17 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Search, Trash2 } from "lucide-react";
+import { Search, Trash2, Edit, Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface UserProfile {
   id: string;
@@ -34,7 +44,7 @@ interface UserManagementTabProps {
   roleFilter: string;
   setSearchQuery: (query: string) => void;
   setRoleFilter: (filter: string) => void;
-  onToggleRole: (userId: string, role: string) => void;
+  onToggleRole: (userId: string, roles: string | string[]) => void;
   onDeleteUser: (userId: string, username: string) => void;
 }
 
@@ -42,6 +52,7 @@ const ROLE_OPTIONS = [
   { value: "super_admin", label: "Super Admin", color: "bg-purple-600" },
   { value: "admin", label: "Admin", color: "bg-red-500" },
   { value: "manager", label: "Manager", color: "bg-orange-500" },
+  { value: "agent", label: "Agent", color: "bg-teal-500" },
   { value: "scheduler", label: "Scheduler", color: "bg-blue-500" },
   { value: "sales", label: "Sales", color: "bg-green-500" },
   { value: "advertiser", label: "Advertiser", color: "bg-yellow-500" },
@@ -58,6 +69,57 @@ export default function UserManagementTab({
   onToggleRole,
   onDeleteUser,
 }: UserManagementTabProps) {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleOpenEditDialog = (user: UserProfile) => {
+    setSelectedUser(user);
+    setSelectedRoles(user.roles.length > 0 ? [...user.roles] : ["member"]);
+    setEditDialogOpen(true);
+  };
+
+  const handleRoleToggle = (role: string) => {
+    setSelectedRoles((prev) => {
+      if (prev.includes(role)) {
+        // Don't allow removing the last role
+        if (prev.length === 1) return prev;
+        return prev.filter((r) => r !== role);
+      } else {
+        return [...prev, role];
+      }
+    });
+  };
+
+  const handleSaveRoles = async () => {
+    if (!selectedUser) return;
+    
+    setIsSaving(true);
+    try {
+      // Call the edge function with multiple roles
+      const { data, error } = await supabase.functions.invoke('manage-user-role', {
+        body: { 
+          targetUserId: selectedUser.id, 
+          newRoles: selectedRoles 
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success(`Roles updated for ${selectedUser.full_name || selectedUser.username}`);
+      setEditDialogOpen(false);
+      
+      // Trigger a refresh by calling onToggleRole with the new roles
+      onToggleRole(selectedUser.id, selectedRoles);
+    } catch (error: any) {
+      console.error("Error updating roles:", error);
+      toast.error(error.message || "Failed to update roles");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -123,21 +185,15 @@ export default function UserManagementTab({
                   </div>
                 </div>
                 <div className="flex gap-2 items-start">
-                  <Select
-                    value={user.roles?.[0] || "member"}
-                    onValueChange={(newRole) => onToggleRole(user.id, newRole)}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="gap-2"
+                    onClick={() => handleOpenEditDialog(user)}
                   >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ROLE_OPTIONS.map((role) => (
-                        <SelectItem key={role.value} value={role.value}>
-                          {role.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Edit className="h-3 w-3" />
+                    Edit Roles
+                  </Button>
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -179,6 +235,53 @@ export default function UserManagementTab({
           </Card>
         )}
       </div>
+
+      {/* Edit Roles Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit User Roles</DialogTitle>
+            <DialogDescription>
+              Assign multiple roles to {selectedUser?.full_name || selectedUser?.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              {ROLE_OPTIONS.map((role) => (
+                <div key={role.value} className="flex items-center space-x-3">
+                  <Checkbox
+                    id={`role-${role.value}`}
+                    checked={selectedRoles.includes(role.value)}
+                    onCheckedChange={() => handleRoleToggle(role.value)}
+                  />
+                  <Label 
+                    htmlFor={`role-${role.value}`} 
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <Badge className={`${role.color} text-white`}>
+                      {role.label}
+                    </Badge>
+                  </Label>
+                </div>
+              ))}
+            </div>
+            <div className="pt-2">
+              <p className="text-sm text-muted-foreground">
+                Selected: {selectedRoles.map(r => ROLE_OPTIONS.find(o => o.value === r)?.label || r).join(", ")}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveRoles} disabled={isSaving}>
+              {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Roles
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
