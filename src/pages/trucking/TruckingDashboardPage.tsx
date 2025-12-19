@@ -581,18 +581,6 @@ export default function TruckingDashboardPage() {
       {/* Daily Brief Modal */}
       <TruckingDailyBriefModal open={dailyBriefOpen} onOpenChange={setDailyBriefOpen} />
 
-      {/* Earnings Row */}
-      <div className="flex items-center justify-between text-sm text-slate-500">
-        <div className="flex items-center gap-6">
-          <span>My Earnings: <strong className="text-green-600">${(confirmedToday * 5).toLocaleString()}</strong> <span className="text-xs text-slate-400">({confirmedToday} × $5)</span></span>
-          <span>Est Revenue: <strong className="text-slate-700">${estRevenue.toLocaleString()}</strong></span>
-          <span>Booked: <strong className="text-slate-700">{bookedRevenue > 0 ? `$${bookedRevenue.toLocaleString()}` : "—"}</strong></span>
-        </div>
-        <div className="flex items-center gap-6">
-          <span>Est Earnings: <strong className="text-slate-700">{estEarnings > 0 ? `$${estEarnings.toLocaleString()}` : "—"}</strong></span>
-          <span>Booked: <strong className="text-slate-700">{bookedEarnings > 0 ? `$${bookedEarnings.toLocaleString()}` : "—"}</strong></span>
-        </div>
-      </div>
 
       {/* High Intent Keywords */}
       <HighIntentKeywordsCard 
