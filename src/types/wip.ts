@@ -112,15 +112,17 @@ export interface WIPRoundWithNeeds extends WIPRound {
 export interface WIPScoreResult {
   needScores: Array<{
     need: WIPNeed;
-    rawScore: number;
-    stdScore: number;
+    rawScore: number;          // Original accumulated points from rankings
+    rawScoreScaled: number;    // O*NET -4 to +4 scaled score
+    stdScore: number;          // 0-100 standardized for UI
     appearances: number;
+    relativeScoreNorm: number; // -1 to +1 normalized (intermediate step)
   }>;
   valueScores: Array<{
     value: WIPValue;
     rawSum: number;
     rawMean: number;
-    stdScore: number;
+    stdScore: number;          // 0-100 (mean of underlying needs' stdScores)
     needCount: number;
   }>;
 }
