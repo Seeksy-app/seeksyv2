@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter, UserPlus, UserMinus, CalendarIcon, X } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter, UserPlus, UserMinus, CalendarIcon, X, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
@@ -138,6 +138,8 @@ export default function LoadsPage() {
   const [deletedLoads, setDeletedLoads] = useState<Load[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [agentMap, setAgentMap] = useState<Map<string, { id: string; full_name: string | null; username: string | null }>>(new Map());
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const { toast } = useToast();
   const { getRecentValues, addRecentValue } = useTruckingRecentValues();
   const { labels } = useTruckingFieldLabels();
@@ -907,18 +909,97 @@ export default function LoadsPage() {
       return true;
     });
   };
+
+  // Sort loads based on current sort column and direction
+  const sortLoads = (loadsToSort: Load[]) => {
+    if (!sortColumn) return loadsToSort;
+    
+    return [...loadsToSort].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+      
+      switch (sortColumn) {
+        case 'load_number':
+          // Extract numeric part for proper sorting
+          aVal = parseInt(a.load_number?.replace(/\D/g, '') || '0');
+          bVal = parseInt(b.load_number?.replace(/\D/g, '') || '0');
+          break;
+        case 'lane_origin':
+          aVal = `${a.origin_city || ''} ${a.origin_state || ''}`.toLowerCase();
+          bVal = `${b.origin_city || ''} ${b.origin_state || ''}`.toLowerCase();
+          break;
+        case 'lane_destination':
+          aVal = `${a.destination_city || ''} ${a.destination_state || ''}`.toLowerCase();
+          bVal = `${b.destination_city || ''} ${b.destination_state || ''}`.toLowerCase();
+          break;
+        case 'miles':
+          aVal = a.miles || 0;
+          bVal = b.miles || 0;
+          break;
+        case 'pickup_date':
+          aVal = a.pickup_date || '';
+          bVal = b.pickup_date || '';
+          break;
+        case 'equipment_type':
+          aVal = (a.equipment_type || '').toLowerCase();
+          bVal = (b.equipment_type || '').toLowerCase();
+          break;
+        case 'rate':
+          aVal = a.target_rate || a.floor_rate || 0;
+          bVal = b.target_rate || b.floor_rate || 0;
+          break;
+        default:
+          return 0;
+      }
+      
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      // Toggle direction or clear sort
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        setSortColumn(null);
+        setSortDirection('asc');
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortableHeader = ({ column, children, className }: { column: string; children: React.ReactNode; className?: string }) => (
+    <TableHead 
+      className={cn("cursor-pointer hover:bg-muted/50 select-none", className)}
+      onClick={() => handleSort(column)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortColumn === column ? (
+          sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-30" />
+        )}
+      </div>
+    </TableHead>
+  );
   
   // All active loads (not deleted) - for All tab
-  const allLoads = filterLoads(
+  const allLoads = sortLoads(filterLoads(
     statusFilter === "all" 
       ? loads 
       : loads.filter(l => l.status === statusFilter)
-  );
+  ));
   
-  const openLoads = filterLoads(loads.filter(l => l.status === "open"));
-  const pendingLoads = filterLoads(loads.filter(l => l.status === "pending"));
-  const confirmedLoads = filterLoads(loads.filter(l => l.status === "booked" || l.status === "confirmed"));
-  const archivedLoads = filterLoads(loads.filter(l => l.status === "archived"));
+  const openLoads = sortLoads(filterLoads(loads.filter(l => l.status === "open")));
+  const pendingLoads = sortLoads(filterLoads(loads.filter(l => l.status === "pending")));
+  const confirmedLoads = sortLoads(filterLoads(loads.filter(l => l.status === "booked" || l.status === "confirmed")));
+  const archivedLoads = sortLoads(filterLoads(loads.filter(l => l.status === "archived")));
 
   if (loading) {
     return (
@@ -974,12 +1055,53 @@ export default function LoadsPage() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Load #</TableHead>
-          <TableHead>Lane</TableHead>
-          <TableHead>Distance</TableHead>
-          <TableHead>Pickup</TableHead>
-          <TableHead>Equipment</TableHead>
-          <TableHead>Rate</TableHead>
+          <SortableHeader column="load_number">Load #</SortableHeader>
+          <TableHead className="cursor-pointer hover:bg-muted/50 select-none">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center gap-1">
+                  Lane
+                  {sortColumn === 'lane_origin' || sortColumn === 'lane_destination' ? (
+                    sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                  ) : (
+                    <ArrowUpDown className="h-3 w-3 opacity-30" />
+                  )}
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => { setSortColumn('lane_origin'); setSortDirection('asc'); }}>
+                  <ArrowUp className="h-3 w-3 mr-2" />
+                  Origin A→Z
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setSortColumn('lane_origin'); setSortDirection('desc'); }}>
+                  <ArrowDown className="h-3 w-3 mr-2" />
+                  Origin Z→A
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => { setSortColumn('lane_destination'); setSortDirection('asc'); }}>
+                  <ArrowUp className="h-3 w-3 mr-2" />
+                  Destination A→Z
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => { setSortColumn('lane_destination'); setSortDirection('desc'); }}>
+                  <ArrowDown className="h-3 w-3 mr-2" />
+                  Destination Z→A
+                </DropdownMenuItem>
+                {(sortColumn === 'lane_origin' || sortColumn === 'lane_destination') && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => { setSortColumn(null); setSortDirection('asc'); }}>
+                      <X className="h-3 w-3 mr-2" />
+                      Clear Sort
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </TableHead>
+          <SortableHeader column="miles">Distance</SortableHeader>
+          <SortableHeader column="pickup_date">Pickup</SortableHeader>
+          <SortableHeader column="equipment_type">Equipment</SortableHeader>
+          <SortableHeader column="rate">Rate</SortableHeader>
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
