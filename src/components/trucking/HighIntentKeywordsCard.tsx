@@ -186,7 +186,15 @@ export function HighIntentKeywordsCard({ loads = [], onRefresh }: HighIntentKeyw
     );
   };
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    const stored = localStorage.getItem('trucking-high-intent-keywords-open');
+    return stored !== null ? stored === 'true' : true;
+  });
+
+  // Persist collapsed state
+  useEffect(() => {
+    localStorage.setItem('trucking-high-intent-keywords-open', String(isOpen));
+  }, [isOpen]);
 
   return (
     <Card className="p-4 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
