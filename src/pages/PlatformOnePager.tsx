@@ -3,6 +3,7 @@
  * A comprehensive overview for investors, lawyers, and potential licensees
  */
 
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -47,12 +48,47 @@ import {
   Key,
   Share2,
   Cpu,
-  Scale
+  Scale,
+  ArrowUp,
+  Menu,
+  X
 } from "lucide-react";
 
+const navItems = [
+  { id: "hero", label: "Overview" },
+  { id: "architecture", label: "Architecture" },
+  { id: "apps", label: "Apps" },
+  { id: "business", label: "Business" },
+  { id: "appendix-a", label: "Appendix A" },
+  { id: "exhibit-a", label: "Exhibit A" },
+];
+
 const PlatformOnePager = () => {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      setMobileNavOpen(false);
+    }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -62,19 +98,80 @@ const PlatformOnePager = () => {
         <meta name="description" content="Seeksy is a modular, app-driven platform that allows individuals, creators, and businesses to activate digital capabilities through a single identity layer." />
       </Helmet>
 
-      {/* Print Button - Hidden in print */}
-      <div className="fixed top-4 right-4 z-50 print:hidden">
-        <Button onClick={handlePrint} variant="outline" className="gap-2 bg-background/80 backdrop-blur-sm">
-          <Download className="h-4 w-4" />
-          Export PDF
-        </Button>
-      </div>
+      {/* Sticky Nav Bar - Hidden in print */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border/50 print:hidden">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <SparkAvatar size={28} pose="idle" />
+            <span className="font-semibold text-primary">Seeksy</span>
+          </div>
+          
+          {/* Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1">
+            {navItems.map((item) => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => scrollToSection(item.id)}
+                className="text-xs font-medium"
+              >
+                {item.label}
+              </Button>
+            ))}
+            <Separator orientation="vertical" className="h-5 mx-2" />
+            <Button onClick={handlePrint} variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Download className="h-3.5 w-3.5" />
+              PDF
+            </Button>
+          </div>
 
-      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 print:bg-white">
+          {/* Mobile Nav Toggle */}
+          <div className="flex md:hidden items-center gap-2">
+            <Button onClick={handlePrint} variant="outline" size="sm" className="gap-1.5 text-xs">
+              <Download className="h-3.5 w-3.5" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setMobileNavOpen(!mobileNavOpen)}>
+              {mobileNavOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Mobile Nav Dropdown */}
+        {mobileNavOpen && (
+          <div className="md:hidden border-t border-border/50 bg-background py-2 px-4">
+            {navItems.map((item) => (
+              <Button
+                key={item.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => scrollToSection(item.id)}
+                className="w-full justify-start text-sm"
+              >
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        )}
+      </nav>
+
+      {/* Scroll to Top Button */}
+      {showScrollTop && (
+        <Button
+          onClick={scrollToTop}
+          variant="outline"
+          size="icon"
+          className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg bg-background/90 backdrop-blur-sm print:hidden"
+        >
+          <ArrowUp className="h-5 w-5" />
+        </Button>
+      )}
+
+      <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 print:bg-white pt-16 print:pt-0">
         <div className="max-w-5xl mx-auto px-6 py-12 print:py-6 print:px-8">
           
           {/* Hero */}
-          <header className="text-center mb-16 print:mb-10">
+          <header id="hero" className="text-center mb-16 print:mb-10 scroll-mt-20">
             <div className="flex items-center justify-center gap-4 mb-8">
               <SparkAvatar size={56} pose="idle" />
               <h1 className="text-5xl font-bold tracking-tight print:text-4xl">
@@ -104,7 +201,7 @@ const PlatformOnePager = () => {
           </section>
 
           {/* Platform Architecture */}
-          <section className="mb-10 print:mb-6">
+          <section id="architecture" className="mb-10 print:mb-6 scroll-mt-20">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2 print:text-xl">
               <Layers className="h-5 w-5 text-primary" />
               Platform Architecture
@@ -182,7 +279,7 @@ const PlatformOnePager = () => {
           </section>
 
           {/* App Categories */}
-          <section className="mb-10 print:mb-6 print:break-before-page">
+          <section id="apps" className="mb-10 print:mb-6 print:break-before-page scroll-mt-20">
             <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2 print:text-xl">
               <Puzzle className="h-5 w-5 text-primary" />
               Example App Categories
@@ -291,7 +388,7 @@ const PlatformOnePager = () => {
           </section>
 
           {/* Business Model & Value */}
-          <section className="mb-10 print:mb-6">
+          <section id="business" className="mb-10 print:mb-6 scroll-mt-20">
             <div className="grid md:grid-cols-2 gap-6 print:gap-4">
               {/* Business Model */}
               <div>
@@ -401,7 +498,7 @@ const PlatformOnePager = () => {
           </section>
 
           {/* Appendix A - Technology & IP Summary */}
-          <section className="mt-16 print:break-before-page">
+          <section id="appendix-a" className="mt-16 print:break-before-page scroll-mt-20">
             <div className="border-t-2 border-primary/20 pt-8">
               <h2 className="text-3xl font-bold text-center mb-2 print:text-2xl">Appendix A</h2>
               <p className="text-xl text-muted-foreground text-center mb-8 print:text-lg">
@@ -777,7 +874,7 @@ const PlatformOnePager = () => {
           </section>
 
           {/* Exhibit A - Technology and IP Description */}
-          <section className="mt-16 print:break-before-page">
+          <section id="exhibit-a" className="mt-16 print:break-before-page scroll-mt-20">
             <div className="border-t-2 border-amber-500/30 pt-8">
               <h2 className="text-3xl font-bold text-center mb-2 print:text-2xl">Exhibit A</h2>
               <p className="text-xl text-muted-foreground text-center mb-2 print:text-lg">
