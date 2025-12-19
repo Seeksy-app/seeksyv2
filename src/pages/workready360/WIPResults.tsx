@@ -11,11 +11,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { WIPValueBars } from '@/components/wip/WIPValueBars';
-import { WIPScoreResult, WIPNeed, WIPValue } from '@/types/wip';
+import { WIPScoreResult, WIPNeed, WIPValue, RANK_TO_POINTS } from '@/types/wip';
 
-// Convert 0-100 score to -4 to +4 display rank
-function scoreToRank(stdScore: number): number {
-  return ((stdScore / 100) * 8) - 4;
+// Calculate mean score from raw_score and appearances (gives -4 to +4 range)
+function calculateMeanScore(rawScore: number, appearances: number): number {
+  if (appearances === 0) return 0;
+  return rawScore / appearances;
 }
 
 export default function WIPResults() {
@@ -275,7 +276,7 @@ export default function WIPResults() {
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-medium">{ns.need.label}</span>
                           <span className="text-sm font-mono font-semibold">
-                            {scoreToRank(ns.std_score_0_100).toFixed(2)}
+                            {calculateMeanScore(ns.raw_score, ns.appearances).toFixed(2)}
                           </span>
                         </div>
                         <Progress value={ns.std_score_0_100} className="h-2" />
@@ -338,7 +339,7 @@ export default function WIPResults() {
                                       </span>
                                     </div>
                                     <span className="font-mono font-semibold text-sm min-w-[60px] text-right">
-                                      {scoreToRank(ns.std_score_0_100).toFixed(2)}
+                                      {calculateMeanScore(ns.raw_score, ns.appearances).toFixed(2)}
                                     </span>
                                   </div>
                                 ))}

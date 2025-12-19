@@ -117,8 +117,8 @@ export function useWIPAssessment(audiencePath: 'civilian' | 'military' | 'reentr
         raw_score: ns.rawScore,
         std_score_0_100: ns.stdScore,
         appearances: ns.appearances,
-        min_possible: ns.appearances * 1, // rank 5 = 1 point
-        max_possible: ns.appearances * 5, // rank 1 = 5 points
+        min_possible: ns.appearances * -4, // rank 5 = -4 points per appearance
+        max_possible: ns.appearances * 4,  // rank 1 = +4 points per appearance
       }));
 
       const { error: needError } = await supabase

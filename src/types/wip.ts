@@ -84,13 +84,14 @@ export interface WIPMatchResult {
   rank_within_job_zone: number | null;
 }
 
-// Scoring constants
+// Scoring constants - O*NET WIP uses -4 to +4 scale
+// Rank 1 (most important) = +4, Rank 5 (least important) = -4
 export const RANK_TO_POINTS: Record<number, number> = {
-  1: 5,
-  2: 4,
-  3: 3,
-  4: 2,
-  5: 1,
+  1: 4,
+  2: 2,
+  3: 0,
+  4: -2,
+  5: -4,
 };
 
 // Match cutoffs from LinkingProfiles.pdf

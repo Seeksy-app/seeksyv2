@@ -33,33 +33,32 @@ export function useWIPScoring(
   }, [rounds]);
 
   // Compute min/max possible raw scores per need based on appearances
+  // With -4 to +4 scale: min = -4 * appearances, max = +4 * appearances
   const getNeedMinMax = useCallback(
     (needId: string): { min: number; max: number } => {
       const appearances = needAppearanceMap[needId] || 0;
-      // Min: always ranked 5 (1 point per appearance)
-      // Max: always ranked 1 (5 points per appearance)
       return {
-        min: appearances * RANK_TO_POINTS[5],
-        max: appearances * RANK_TO_POINTS[1],
+        min: appearances * RANK_TO_POINTS[5], // -4 per appearance
+        max: appearances * RANK_TO_POINTS[1], // +4 per appearance
       };
     },
     [needAppearanceMap]
   );
 
-  // Normalize score to 0-100 scale: S = ((O - L) / (H - L)) * 100
+  // Normalize score to 0-100 scale for progress bars
   const normalizeScore = useCallback(
     (rawScore: number, min: number, max: number): number => {
-      if (max === min) return 50; // Avoid division by zero
+      if (max === min) return 50;
       return ((rawScore - min) / (max - min)) * 100;
     },
     []
   );
 
-  // Convert 0-100 score to -4 to +4 rank scale for display
-  const scoreToRank = useCallback(
-    (stdScore: number): number => {
-      // Map 0-100 to -4 to +4 (linear: 0→-4, 50→0, 100→+4)
-      return ((stdScore / 100) * 8) - 4;
+  // Calculate mean score (-4 to +4 range) for display
+  const calculateMeanScore = useCallback(
+    (rawScore: number, appearances: number): number => {
+      if (appearances === 0) return 0;
+      return rawScore / appearances;
     },
     []
   );
@@ -171,7 +170,7 @@ export function useWIPScoring(
     needAppearanceMap,
     getNeedMinMax,
     normalizeScore,
-    scoreToRank,
+    calculateMeanScore,
     calculateScores,
     calculatePartialScores,
     getTopValues,
