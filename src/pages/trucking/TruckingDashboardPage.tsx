@@ -13,7 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Package, Plus, MoreHorizontal, Settings, Edit, Trash2, Copy, CheckCircle2, 
-  ChevronDown, ChevronUp, ChevronRight, Phone, Users, Voicemail, Play, Pause, Archive, Upload, UserPlus, Sparkles, RefreshCw
+  ChevronDown, ChevronUp, ChevronRight, Phone, Users, Voicemail, Play, Pause, Archive, Upload, UserPlus, Sparkles, RefreshCw,
+  ArrowUpDown, ArrowUp, ArrowDown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -147,6 +148,8 @@ export default function TruckingDashboardPage() {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSyncingCalls, setIsSyncingCalls] = useState(false);
+  const [sortColumn, setSortColumn] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const init = async () => {
@@ -273,10 +276,76 @@ export default function TruckingDashboardPage() {
   const pendingLeads = leads.filter((l) => (l.status === "pending" || l.status === "interested" || l.status === "new") && !(l as any).is_archived);
   const archivedLeads = leads.filter((l) => (l as any).is_archived);
   const confirmedLoads = filteredLoads.filter((l) => l.status === "booked");
+  // Sort loads function
+  const sortLoads = (loadsToSort: Load[]) => {
+    if (!sortColumn) return loadsToSort;
+    
+    return [...loadsToSort].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortColumn) {
+        case 'load_number':
+          const numA = parseInt(a.load_number.replace(/\D/g, '')) || 0;
+          const numB = parseInt(b.load_number.replace(/\D/g, '')) || 0;
+          comparison = numA - numB;
+          break;
+        case 'lane_origin':
+          comparison = `${a.origin_city}, ${a.origin_state}`.localeCompare(`${b.origin_city}, ${b.origin_state}`);
+          break;
+        case 'lane_destination':
+          comparison = `${a.destination_city}, ${a.destination_state}`.localeCompare(`${b.destination_city}, ${b.destination_state}`);
+          break;
+        case 'miles':
+          comparison = (a.miles || 0) - (b.miles || 0);
+          break;
+        case 'pickup_date':
+          comparison = new Date(a.pickup_date || 0).getTime() - new Date(b.pickup_date || 0).getTime();
+          break;
+        case 'equipment_type':
+          comparison = (a.equipment_type || '').localeCompare(b.equipment_type || '');
+          break;
+        case 'rate':
+          comparison = (a.target_rate || 0) - (b.target_rate || 0);
+          break;
+        default:
+          comparison = 0;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  };
+
+  // Sortable header component
+  const SortableHeader = ({ column, children }: { column: string; children: React.ReactNode }) => {
+    const isActive = sortColumn === column;
+    return (
+      <TableHead 
+        className="font-medium text-slate-600 whitespace-nowrap cursor-pointer hover:bg-slate-100 select-none"
+        onClick={() => {
+          if (sortColumn === column) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+          } else {
+            setSortColumn(column);
+            setSortDirection('asc');
+          }
+        }}
+      >
+        <div className="flex items-center gap-1">
+          {children}
+          {isActive ? (
+            sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+          ) : (
+            <ArrowUpDown className="h-3 w-3 text-slate-300" />
+          )}
+        </div>
+      </TableHead>
+    );
+  };
+
   const getDisplayedLoads = () => {
-    if (activeTab === "open") return openLoads;
+    if (activeTab === "open") return sortLoads(openLoads);
     if (activeTab === "pending") return []; // pending leads shown separately
-    return confirmedLoads;
+    return sortLoads(confirmedLoads);
   };
 
   const displayedLoads = getDisplayedLoads();
@@ -1147,12 +1216,40 @@ export default function TruckingDashboardPage() {
             <TableHeader>
               <TableRow className="bg-slate-50 border-b border-slate-200">
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap w-8"></TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Load #</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Lane</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Distance</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Pickup</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Equipment</TableHead>
-                <TableHead className="font-medium text-slate-600 whitespace-nowrap">Rate</TableHead>
+                <SortableHeader column="load_number">Load #</SortableHeader>
+                <TableHead className="font-medium text-slate-600 whitespace-nowrap">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="flex items-center gap-1 cursor-pointer hover:text-slate-900">
+                        Lane
+                        {sortColumn === 'lane_origin' || sortColumn === 'lane_destination' ? (
+                          sortDirection === 'asc' ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 text-slate-300" />
+                        )}
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="bg-white">
+                      <DropdownMenuItem onClick={() => { setSortColumn('lane_origin'); setSortDirection('asc'); }}>
+                        Origin A→Z
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setSortColumn('lane_origin'); setSortDirection('desc'); }}>
+                        Origin Z→A
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => { setSortColumn('lane_destination'); setSortDirection('asc'); }}>
+                        Destination A→Z
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setSortColumn('lane_destination'); setSortDirection('desc'); }}>
+                        Destination Z→A
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableHead>
+                <SortableHeader column="miles">Distance</SortableHeader>
+                <SortableHeader column="pickup_date">Pickup</SortableHeader>
+                <SortableHeader column="equipment_type">Equipment</SortableHeader>
+                <SortableHeader column="rate">Rate</SortableHeader>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Assigned</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Status</TableHead>
                 <TableHead className="font-medium text-slate-600 whitespace-nowrap">Actions</TableHead>
