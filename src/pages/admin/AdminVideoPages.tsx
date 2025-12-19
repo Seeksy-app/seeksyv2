@@ -6,11 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Plus, Settings, Lock, Globe, Video, Users } from "lucide-react";
+import { Plus, Settings, Lock, Globe, Video, Users, ExternalLink, Eye, EyeOff, Trash2, GripVertical } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface VideoPage {
   id: string;
@@ -27,12 +29,127 @@ interface DemoVideo {
   thumbnail_url: string | null;
 }
 
+interface VideoPageSettings {
+  id: string;
+  page_key: string;
+  page_title: string;
+  page_subtitle: string | null;
+  header_button_text: string | null;
+  header_button_link: string | null;
+  show_featured_section: boolean;
+  show_categories: boolean;
+  is_published: boolean;
+}
+
+interface VideoCategory {
+  id: string;
+  name: string;
+  display_order: number;
+  is_visible: boolean;
+  description: string | null;
+}
+
+interface VideoCategory {
+  id: string;
+  name: string;
+  display_order: number;
+  is_visible: boolean;
+  description: string | null;
+}
+
 export default function AdminVideoPages() {
   const queryClient = useQueryClient();
   const [editingPage, setEditingPage] = useState<VideoPage | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newPage, setNewPage] = useState({ slug: "", title: "", description: "", is_private: false });
+  const [newCategoryName, setNewCategoryName] = useState("");
 
+  // Main page settings
+  const { data: settings } = useQuery({
+    queryKey: ["video-page-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("video_page_settings")
+        .select("*")
+        .eq("page_key", "main")
+        .maybeSingle();
+      if (error) throw error;
+      return data as VideoPageSettings | null;
+    },
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["video-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("video_categories")
+        .select("*")
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data as VideoCategory[];
+    },
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (updates: Partial<VideoPageSettings>) => {
+      const { error } = await supabase
+        .from("video_page_settings")
+        .update(updates)
+        .eq("page_key", "main");
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-page-settings"] });
+      toast.success("Settings saved");
+    },
+    onError: () => toast.error("Failed to save settings"),
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<VideoCategory> }) => {
+      const { error } = await supabase
+        .from("video_categories")
+        .update(updates)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-categories"] });
+    },
+  });
+
+  const addCategoryMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const maxOrder = Math.max(...categories.map((c) => c.display_order), 0);
+      const { error } = await supabase
+        .from("video_categories")
+        .insert({ name, display_order: maxOrder + 1 });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-categories"] });
+      setNewCategoryName("");
+      toast.success("Category added");
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("video_categories")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["video-categories"] });
+      toast.success("Category deleted");
+    },
+  });
+
+  const handleSaveSettings = (field: keyof VideoPageSettings, value: any) => {
+    updateSettingsMutation.mutate({ [field]: value });
+  };
   const { data: pages = [], isLoading } = useQuery({
     queryKey: ["admin-video-pages"],
     queryFn: async () => {
@@ -69,81 +186,196 @@ export default function AdminVideoPages() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Video Pages</h1>
-          <p className="text-muted-foreground">Manage gated video collections</p>
+          <p className="text-muted-foreground">Manage the main /videos page and gated collections</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Page
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Video Page</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Slug</Label>
-                <Input
-                  value={newPage.slug}
-                  onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
-                  placeholder="alchify-demos"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  URL: seeksy.io/videos/{newPage.slug || "slug"}
-                </p>
-              </div>
-              <div>
-                <Label>Title</Label>
-                <Input
-                  value={newPage.title}
-                  onChange={(e) => setNewPage({ ...newPage, title: e.target.value })}
-                  placeholder="Alchify Demo Videos"
-                />
-              </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea
-                  value={newPage.description}
-                  onChange={(e) => setNewPage({ ...newPage, description: e.target.value })}
-                  placeholder="Private demos for partners..."
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={newPage.is_private}
-                  onCheckedChange={(checked) => setNewPage({ ...newPage, is_private: checked })}
-                />
-                <Label>Private (requires email access)</Label>
-              </div>
-              <Button onClick={() => createMutation.mutate(newPage)} disabled={!newPage.slug || !newPage.title}>
-                Create Page
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Link to="/videos" target="_blank">
+          <Button variant="outline" size="sm" className="gap-2">
+            <ExternalLink className="h-4 w-4" />
+            Preview /videos
+          </Button>
+        </Link>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : pages.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          No video pages yet. Create one to get started.
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {pages.map((page) => (
-            <VideoPageCard
-              key={page.id}
-              page={page}
-              onEdit={() => setEditingPage(page)}
-            />
-          ))}
-        </div>
-      )}
+      <Tabs defaultValue="main-page" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="main-page">Main Page Settings</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="collections">Gated Collections</TabsTrigger>
+        </TabsList>
+
+        {/* Main Page Settings Tab */}
+        <TabsContent value="main-page" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Page Content</CardTitle>
+              <CardDescription>Edit the main content displayed on /videos</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Page Title</Label>
+                  <Input
+                    defaultValue={settings?.page_title || ""}
+                    onBlur={(e) => handleSaveSettings("page_title", e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Header Button Text</Label>
+                  <Input
+                    defaultValue={settings?.header_button_text || ""}
+                    onBlur={(e) => handleSaveSettings("header_button_text", e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Page Subtitle</Label>
+                <Textarea
+                  defaultValue={settings?.page_subtitle || ""}
+                  onBlur={(e) => handleSaveSettings("page_subtitle", e.target.value)}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Header Button Link</Label>
+                <Input
+                  defaultValue={settings?.header_button_link || ""}
+                  onBlur={(e) => handleSaveSettings("header_button_link", e.target.value)}
+                  placeholder="/platform"
+                />
+              </div>
+              <div className="pt-4 space-y-4 border-t">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Show Featured Section</Label>
+                    <p className="text-sm text-muted-foreground">Display featured videos at the top</p>
+                  </div>
+                  <Switch
+                    checked={settings?.show_featured_section ?? true}
+                    onCheckedChange={(checked) => handleSaveSettings("show_featured_section", checked)}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Show Category Sections</Label>
+                    <p className="text-sm text-muted-foreground">Group videos by category</p>
+                  </div>
+                  <Switch
+                    checked={settings?.show_categories ?? true}
+                    onCheckedChange={(checked) => handleSaveSettings("show_categories", checked)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Categories Tab */}
+        <TabsContent value="categories" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Video Categories</CardTitle>
+              <CardDescription>Manage and reorder video categories</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {categories.map((category) => (
+                <div key={category.id} className="flex items-center gap-3 p-3 border rounded-lg bg-muted/30">
+                  <GripVertical className="h-5 w-5 text-muted-foreground" />
+                  <Input
+                    defaultValue={category.name}
+                    onBlur={(e) => updateCategoryMutation.mutate({ id: category.id, updates: { name: e.target.value } })}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => updateCategoryMutation.mutate({ id: category.id, updates: { is_visible: !category.is_visible } })}
+                  >
+                    {category.is_visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4 text-muted-foreground" />}
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => deleteCategoryMutation.mutate(category.id)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <Input
+                  placeholder="New category name..."
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && newCategoryName.trim() && addCategoryMutation.mutate(newCategoryName.trim())}
+                />
+                <Button onClick={() => newCategoryName.trim() && addCategoryMutation.mutate(newCategoryName.trim())} disabled={!newCategoryName.trim()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Gated Collections Tab */}
+        <TabsContent value="collections" className="space-y-6">
+          <div className="flex justify-end">
+            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Collection
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create Video Collection</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <Label>Slug</Label>
+                    <Input
+                      value={newPage.slug}
+                      onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
+                      placeholder="alchify-demos"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">URL: /videos/{newPage.slug || "slug"}</p>
+                  </div>
+                  <div>
+                    <Label>Title</Label>
+                    <Input value={newPage.title} onChange={(e) => setNewPage({ ...newPage, title: e.target.value })} placeholder="Alchify Demo Videos" />
+                  </div>
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea value={newPage.description} onChange={(e) => setNewPage({ ...newPage, description: e.target.value })} placeholder="Private demos for partners..." />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch checked={newPage.is_private} onCheckedChange={(checked) => setNewPage({ ...newPage, is_private: checked })} />
+                    <Label>Private (requires email access)</Label>
+                  </div>
+                  <Button onClick={() => createMutation.mutate(newPage)} disabled={!newPage.slug || !newPage.title}>Create</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : pages.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              No video collections yet. Create one to get started.
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {pages.map((page) => (
+                <VideoPageCard
+                  key={page.id}
+                  page={page}
+                  onEdit={() => setEditingPage(page)}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {editingPage && (
         <VideoPageEditor

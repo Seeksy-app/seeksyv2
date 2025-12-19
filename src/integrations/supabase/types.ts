@@ -30477,6 +30477,39 @@ export type Database = {
         }
         Relationships: []
       }
+      video_categories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_visible: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_visible?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_visible?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       video_markers: {
         Row: {
           created_at: string | null
@@ -30546,6 +30579,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      video_page_settings: {
+        Row: {
+          created_at: string | null
+          custom_css: string | null
+          header_button_link: string | null
+          header_button_text: string | null
+          id: string
+          is_published: boolean | null
+          metadata: Json | null
+          page_key: string
+          page_subtitle: string | null
+          page_title: string
+          show_categories: boolean | null
+          show_featured_section: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custom_css?: string | null
+          header_button_link?: string | null
+          header_button_text?: string | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          page_key?: string
+          page_subtitle?: string | null
+          page_title?: string
+          show_categories?: boolean | null
+          show_featured_section?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custom_css?: string | null
+          header_button_link?: string | null
+          header_button_text?: string | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          page_key?: string
+          page_subtitle?: string | null
+          page_title?: string
+          show_categories?: boolean | null
+          show_featured_section?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       video_page_videos: {
         Row: {

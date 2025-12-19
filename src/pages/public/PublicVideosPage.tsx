@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +18,22 @@ interface DemoVideo {
   duration_seconds: number | null;
   order_index: number | null;
   is_featured: boolean | null;
+}
+
+interface VideoPageSettings {
+  page_title: string;
+  page_subtitle: string | null;
+  header_button_text: string | null;
+  header_button_link: string | null;
+  show_featured_section: boolean;
+  show_categories: boolean;
+  is_published: boolean;
+}
+
+interface VideoCategory {
+  name: string;
+  display_order: number;
+  is_visible: boolean;
 }
 
 const formatDuration = (seconds: number | null) => {
@@ -42,6 +58,34 @@ export default function PublicVideosPage() {
   const [watchLogId, setWatchLogId] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const watchStartRef = useRef<number>(0);
+
+  // Fetch page settings
+  const { data: settings } = useQuery({
+    queryKey: ["video-page-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("video_page_settings")
+        .select("*")
+        .eq("page_key", "main")
+        .maybeSingle();
+      if (error) throw error;
+      return data as VideoPageSettings | null;
+    },
+  });
+
+  // Fetch visible categories for ordering
+  const { data: categories = [] } = useQuery({
+    queryKey: ["video-categories"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("video_categories")
+        .select("*")
+        .eq("is_visible", true)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data as VideoCategory[];
+    },
+  });
 
   const { data: videos = [], isLoading } = useQuery({
     queryKey: ["public-demo-videos"],
@@ -106,21 +150,40 @@ export default function PublicVideosPage() {
     setSelectedVideo(null);
   };
 
-  // Group videos by category
+  // Get visible category names
+  const visibleCategoryNames = categories.map(c => c.name);
+
+  // Group videos by category, respecting visibility
   const groupedVideos = videos.reduce((acc, video) => {
     const category = video.category || "Other";
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(video);
+    // Only include if category is visible (or if no categories configured yet)
+    if (visibleCategoryNames.length === 0 || visibleCategoryNames.includes(category)) {
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(video);
+    }
     return acc;
   }, {} as Record<string, DemoVideo[]>);
 
+  // Sort categories by display order
+  const sortedCategories = categories.length > 0
+    ? categories.map(c => c.name).filter(name => groupedVideos[name])
+    : Object.keys(groupedVideos);
+
   const featuredVideos = videos.filter((v) => v.is_featured);
+
+  // Use settings with fallbacks
+  const pageTitle = settings?.page_title || "Platform Videos";
+  const pageSubtitle = settings?.page_subtitle || "Explore our collection of demo videos showcasing the Seeksy creator platform.";
+  const buttonText = settings?.header_button_text || "Platform Overview";
+  const buttonLink = settings?.header_button_link || "/platform";
+  const showFeatured = settings?.show_featured_section ?? true;
+  const showCategories = settings?.show_categories ?? true;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       <Helmet>
-        <title>Seeksy Platform Videos</title>
-        <meta name="description" content="Watch demo videos and learn about Seeksy's creator platform features." />
+        <title>{pageTitle} | Seeksy</title>
+        <meta name="description" content={pageSubtitle} />
       </Helmet>
 
       {/* Header */}
@@ -132,12 +195,14 @@ export default function PublicVideosPage() {
             </div>
             <span className="text-xl font-bold text-white">Seeksy</span>
           </div>
-          <Link to="/platform">
-            <Button variant="outline" size="sm" className="gap-2 border-white/20 text-white hover:bg-white/10">
-              <FileText className="h-4 w-4" />
-              Platform Overview
-            </Button>
-          </Link>
+          {buttonText && buttonLink && (
+            <Link to={buttonLink}>
+              <Button variant="outline" size="sm" className="gap-2 border-white/20 text-white hover:bg-white/10">
+                <FileText className="h-4 w-4" />
+                {buttonText}
+              </Button>
+            </Link>
+          )}
         </div>
       </header>
 
@@ -145,16 +210,16 @@ export default function PublicVideosPage() {
       <section className="py-16 text-center">
         <div className="container mx-auto px-4">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Platform Videos
+            {pageTitle}
           </h1>
           <p className="text-lg text-white/70 max-w-2xl mx-auto">
-            Explore our collection of demo videos showcasing the Seeksy creator platform.
+            {pageSubtitle}
           </p>
         </div>
       </section>
 
       {/* Featured Videos */}
-      {featuredVideos.length > 0 && (
+      {showFeatured && featuredVideos.length > 0 && (
         <section className="pb-12">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-semibold text-white mb-6">Featured</h2>
@@ -168,18 +233,31 @@ export default function PublicVideosPage() {
       )}
 
       {/* Videos by Category */}
-      {Object.entries(groupedVideos).map(([category, categoryVideos]) => (
+      {showCategories && sortedCategories.map((category) => (
         <section key={category} className="pb-12">
           <div className="container mx-auto px-4">
             <h2 className="text-xl font-semibold text-white mb-6">{category}</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-              {categoryVideos.map((video) => (
+              {groupedVideos[category].map((video) => (
                 <VideoCard key={video.id} video={video} onClick={handleVideoSelect} />
               ))}
             </div>
           </div>
         </section>
       ))}
+
+      {/* All Videos (when categories disabled) */}
+      {!showCategories && videos.length > 0 && (
+        <section className="pb-12">
+          <div className="container mx-auto px-4">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {videos.map((video) => (
+                <VideoCard key={video.id} video={video} onClick={handleVideoSelect} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Empty State */}
       {!isLoading && videos.length === 0 && (
