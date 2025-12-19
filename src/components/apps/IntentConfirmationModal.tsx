@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 import { UserIntent, getRequiredModules, getEnhancingModules } from "@/config/moduleRelationships";
 import { SEEKSY_MODULES } from "@/components/modules/moduleData";
-import { useModuleActivation } from "@/hooks/useModuleActivation";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface IntentConfirmationModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ interface IntentConfirmationModalProps {
   installedModuleIds: string[];
   workspaceName: string | null;
   workspaceId: string | null;
+  onInstallComplete?: () => void;
 }
 
 export function IntentConfirmationModal({
@@ -36,14 +38,16 @@ export function IntentConfirmationModal({
   installedModuleIds,
   workspaceName,
   workspaceId,
+  onInstallComplete,
 }: IntentConfirmationModalProps) {
   const navigate = useNavigate();
-  const { activateModule, isActivating } = useModuleActivation();
+  const { addModule, currentWorkspace } = useWorkspace();
   
   const [selectedModules, setSelectedModules] = useState<Set<string>>(new Set());
   const [showDetails, setShowDetails] = useState(false);
-  const [installState, setInstallState] = useState<"idle" | "installing" | "complete">("idle");
+  const [installState, setInstallState] = useState<"idle" | "installing" | "complete" | "error">("idle");
   const [installedCount, setInstalledCount] = useState(0);
+  const [installError, setInstallError] = useState<string | null>(null);
 
   // Reset state when modal opens with new intent
   useEffect(() => {
@@ -69,13 +73,15 @@ export function IntentConfirmationModal({
       setSelectedModules(initial);
       setInstallState("idle");
       setInstalledCount(0);
+      setInstallError(null);
     }
   }, [isOpen, intent, installedModuleIds]);
 
   // Guard: no workspace = can't install
   if (!intent) return null;
   
-  const canInstall = !!workspaceId;
+  // Only allow install if workspace is ready AND we have a valid ID
+  const canInstall = !!workspaceId && !!currentWorkspace;
 
   const Icon = intent.icon;
 
@@ -109,43 +115,62 @@ export function IntentConfirmationModal({
 
   const handleConfirm = async () => {
     // Guardrail: Prevent install without workspace
-    if (!canInstall) {
+    if (!canInstall || !currentWorkspace) {
+      setInstallError("Workspace not ready. Please wait a moment and try again.");
       return;
     }
     
     const toInstall = Array.from(selectedModules).filter(id => !isModuleInstalled(id));
     
     if (toInstall.length === 0) {
+      markOnboardingComplete();
       setInstallState("complete");
       return;
     }
     
     setInstallState("installing");
+    setInstallError(null);
     
-    // Install modules one by one with progress
+    let successCount = 0;
+    let lastError: string | null = null;
+    
+    // Install modules one by one with progress using workspace's addModule
     for (let i = 0; i < toInstall.length; i++) {
-      await new Promise<void>((resolve) => {
-        activateModule(toInstall[i], {
-          onSuccess: () => {
-            setInstalledCount(i + 1);
-            resolve();
-          },
-          onError: () => {
-            resolve(); // Continue even on error
-          }
-        });
-      });
+      try {
+        await addModule(toInstall[i]);
+        successCount++;
+        setInstalledCount(i + 1);
+      } catch (error: any) {
+        console.error(`Failed to install module ${toInstall[i]}:`, error);
+        lastError = error?.message || "Failed to install module";
+      }
       
       // Small delay between installs for visual feedback
       await new Promise(r => setTimeout(r, 200));
     }
     
-    setInstallState("complete");
+    // Only show success if ALL modules installed successfully
+    if (successCount === toInstall.length) {
+      markOnboardingComplete();
+      setInstallState("complete");
+      onInstallComplete?.();
+    } else {
+      setInstallError(lastError || "Some modules failed to install");
+      setInstallState("error");
+      toast.error("Some modules failed to install. Please try again.");
+    }
+  };
+
+  // Mark onboarding as complete to prevent re-showing AI Guide
+  const markOnboardingComplete = () => {
+    if (workspaceId) {
+      localStorage.setItem(`seeksy_onboarding_complete_${workspaceId}`, "true");
+    }
   };
 
   const handleGoToMyDay = () => {
     onClose();
-    navigate("/");
+    navigate("/my-day");
   };
 
   const newModulesCount = Array.from(selectedModules).filter(id => !isModuleInstalled(id)).length;

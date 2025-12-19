@@ -13,9 +13,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { usePortal } from "@/contexts/PortalContext";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
-import { useModuleActivation } from "@/hooks/useModuleActivation";
 import { toast } from "sonner";
 
 // New components
@@ -40,14 +38,19 @@ export default function AppsRedesigned() {
     workspaceModules, 
     createWorkspace, 
     setCurrentWorkspace, 
+    addModule,
     isLoading: workspaceLoading 
   } = useWorkspace();
-  const { activateModule } = useModuleActivation();
-  
   // Derive installed module IDs from workspace modules
   const installedModuleIds = workspaceModules.map(m => m.module_id);
   
-  const [viewMode, setViewMode] = useState<ViewMode>("spark");
+  // Check if onboarding was already completed for this workspace
+  const isOnboardingComplete = currentWorkspace 
+    ? localStorage.getItem(`seeksy_onboarding_complete_${currentWorkspace.id}`) === "true"
+    : false;
+  
+  // Start with collections view if onboarding is complete, otherwise spark
+  const [viewMode, setViewMode] = useState<ViewMode>(isOnboardingComplete ? "collections" : "spark");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
@@ -58,6 +61,16 @@ export default function AppsRedesigned() {
   const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
   const [intentModalOpen, setIntentModalOpen] = useState(false);
   const [previewCollection, setPreviewCollection] = useState<SeeksyCollection | null>(null);
+  
+  // Update viewMode when workspace changes and onboarding status is known
+  useEffect(() => {
+    if (currentWorkspace) {
+      const completed = localStorage.getItem(`seeksy_onboarding_complete_${currentWorkspace.id}`) === "true";
+      if (completed && viewMode === "spark") {
+        setViewMode("collections");
+      }
+    }
+  }, [currentWorkspace?.id]);
 
   // Auto-create workspace if user has none
   useEffect(() => {
@@ -130,11 +143,11 @@ export default function AppsRedesigned() {
     
     // Install required first
     for (const req of missingRequired) {
-      await activateModule(req.moduleId);
+      await addModule(req.moduleId);
     }
     
     // Then install the module
-    await activateModule(moduleId);
+    await addModule(moduleId);
   };
 
   const handleInstallCollection = async (collection: SeeksyCollection) => {
@@ -146,7 +159,7 @@ export default function AppsRedesigned() {
     
     for (const moduleId of collection.includedApps) {
       if (!installedModuleIds.includes(moduleId)) {
-        await activateModule(moduleId);
+        await addModule(moduleId);
       }
     }
   };
@@ -451,11 +464,18 @@ export default function AppsRedesigned() {
       {/* Modals */}
       <IntentConfirmationModal
         isOpen={intentModalOpen}
-        onClose={() => setIntentModalOpen(false)}
+        onClose={() => {
+          setIntentModalOpen(false);
+          setSelectedIntent(null);
+        }}
         intent={selectedIntent}
         installedModuleIds={installedModuleIds}
         workspaceName={currentWorkspace?.name || null}
         workspaceId={currentWorkspace?.id || null}
+        onInstallComplete={() => {
+          setSelectedIntent(null);
+          setViewMode("collections");
+        }}
       />
 
       {previewCollection && (
