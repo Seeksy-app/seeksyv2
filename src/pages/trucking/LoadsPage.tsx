@@ -11,7 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter, UserPlus, UserMinus } from "lucide-react";
+import { Plus, Edit, Trash2, MapPin, Check, Copy, CheckCircle2, Truck, Flag, Phone, MoreHorizontal, Calculator, Loader2, Archive, ArchiveRestore, Clock, Upload, Search, Filter, UserPlus, UserMinus, CalendarIcon, X } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -127,6 +131,7 @@ export default function LoadsPage() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [equipmentFilter, setEquipmentFilter] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [loadToDelete, setLoadToDelete] = useState<string | null>(null);
   const [estimatingMiles, setEstimatingMiles] = useState(false);
@@ -884,6 +889,21 @@ export default function LoadsPage() {
         return false;
       }
       
+      // Date range filter (pickup_date)
+      if (dateRange.from || dateRange.to) {
+        if (!load.pickup_date) return false;
+        const pickupDate = parseISO(load.pickup_date);
+        if (dateRange.from && dateRange.to) {
+          if (!isWithinInterval(pickupDate, { start: startOfDay(dateRange.from), end: endOfDay(dateRange.to) })) {
+            return false;
+          }
+        } else if (dateRange.from) {
+          if (pickupDate < startOfDay(dateRange.from)) return false;
+        } else if (dateRange.to) {
+          if (pickupDate > endOfDay(dateRange.to)) return false;
+        }
+      }
+      
       return true;
     });
   };
@@ -1168,6 +1188,52 @@ export default function LoadsPage() {
             ))}
           </SelectContent>
         </Select>
+        
+        {/* Date Range Filter */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                'w-[220px] justify-start text-left font-normal',
+                !dateRange.from && 'text-muted-foreground'
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {dateRange.from ? (
+                dateRange.to ? (
+                  `${format(dateRange.from, 'MMM d')} - ${format(dateRange.to, 'MMM d')}`
+                ) : (
+                  format(dateRange.from, 'MMM d, yyyy')
+                )
+              ) : (
+                'Pickup Date'
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={dateRange.from}
+              selected={{ from: dateRange.from, to: dateRange.to }}
+              onSelect={(range) => setDateRange({ from: range?.from, to: range?.to })}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
+        
+        {/* Clear date filter */}
+        {(dateRange.from || dateRange.to) && (
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setDateRange({ from: undefined, to: undefined })}
+            className="h-10 w-10"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
