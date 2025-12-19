@@ -575,3 +575,6 @@ cron = "*/1 * * * *"
 
 [functions.aar-generate-content]
 verify_jwt = true
+
+[functions.firecrawl-batch-import]
+verify_jwt = false

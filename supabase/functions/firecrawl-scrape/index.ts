@@ -23,11 +23,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('FIRECRAWL_API_KEY');
+    // Support both connector-managed and manually added API keys
+    const apiKey = Deno.env.get('FIRECRAWL_API_KEY_1') || Deno.env.get('FIRECRAWL_API_KEY');
     if (!apiKey) {
       console.error('FIRECRAWL_API_KEY not configured');
       return new Response(
-        JSON.stringify({ success: false, error: 'Firecrawl connector not configured' }),
+        JSON.stringify({ success: false, error: 'Firecrawl connector not configured. Please connect Firecrawl in Settings → Connectors.' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
