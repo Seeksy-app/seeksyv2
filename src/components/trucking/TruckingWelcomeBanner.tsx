@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Cloud, Sun, CloudRain, CloudSnow, CloudLightning, Wind, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WeatherData {
   temp: number;
@@ -43,6 +44,32 @@ export function TruckingWelcomeBanner() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [greeting] = useState(getDayGreeting());
+  const [userName, setUserName] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch user's name from profile
+    const fetchUserName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('account_full_name, full_name')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            const name = profile.account_full_name || profile.full_name;
+            setUserName(name?.split(' ')[0] || null);
+          }
+        }
+      } catch (error) {
+        console.log('Could not fetch user name');
+      }
+    };
+
+    fetchUserName();
+  }, []);
 
   useEffect(() => {
     // Try to get weather based on geolocation
@@ -103,7 +130,7 @@ export function TruckingWelcomeBanner() {
         <span className="text-2xl">👋</span>
         <div>
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            {greeting}
+            {userName ? `${greeting.replace('!', `, ${userName}!`)}` : greeting}
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             Let's move some freight today!
