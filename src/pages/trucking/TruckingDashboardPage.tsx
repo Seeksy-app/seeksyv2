@@ -581,19 +581,9 @@ export default function TruckingDashboardPage() {
       {/* Daily Brief Modal */}
       <TruckingDailyBriefModal open={dailyBriefOpen} onOpenChange={setDailyBriefOpen} />
 
-      {/* Earnings Row with AI Toggle */}
+      {/* Earnings Row */}
       <div className="flex items-center justify-between text-sm text-slate-500">
         <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <Switch 
-              checked={aiCallsEnabled} 
-              onCheckedChange={setAiCallsEnabled}
-              className="data-[state=checked]:bg-green-500"
-            />
-            <span className={`text-xs ${aiCallsEnabled ? 'text-green-600' : 'text-slate-400'}`}>
-              {aiCallsEnabled ? 'AI On' : 'AI Off'}
-            </span>
-          </div>
           <span>My Earnings: <strong className="text-green-600">${(confirmedToday * 5).toLocaleString()}</strong> <span className="text-xs text-slate-400">({confirmedToday} × $5)</span></span>
           <span>Est Revenue: <strong className="text-slate-700">${estRevenue.toLocaleString()}</strong></span>
           <span>Booked: <strong className="text-slate-700">{bookedRevenue > 0 ? `$${bookedRevenue.toLocaleString()}` : "—"}</strong></span>
@@ -1483,6 +1473,34 @@ export default function TruckingDashboardPage() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Fixed AI Status - Lower Left */}
+      <div className="fixed bottom-6 left-6 z-50">
+        <Card className="bg-slate-800 border-slate-700 p-4 shadow-lg min-w-[200px]">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {aiCallsEnabled && (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
+                  <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-500" />
+                </span>
+              )}
+              <span className="text-white text-sm font-medium">
+                {aiCallsEnabled ? 'AI Calls Live' : 'AI Calls Off'}
+              </span>
+            </div>
+            <Switch 
+              checked={aiCallsEnabled} 
+              onCheckedChange={setAiCallsEnabled}
+              className="data-[state=checked]:bg-green-500 scale-90"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 text-xs">Est. Cost/Mo</span>
+            <span className="text-amber-400 font-semibold">${(callsToday * 0.05).toFixed(2)}</span>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }
