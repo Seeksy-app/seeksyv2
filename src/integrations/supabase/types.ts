@@ -26908,6 +26908,9 @@ export type Database = {
           call_status: string | null
           call_successful: boolean | null
           carrier_phone: string | null
+          cei_band: string | null
+          cei_score: number | null
+          confidence_score: number | null
           connection_duration_seconds: number | null
           created_at: string | null
           data_collection_results: Json | null
@@ -26918,6 +26921,7 @@ export type Database = {
           elevenlabs_conversation_id: string | null
           elevenlabs_metadata: Json | null
           elevenlabs_user_id: string | null
+          emotion_flags: string[] | null
           ended_reason: string | null
           estimated_cost_usd: number | null
           failure_reason: string | null
@@ -26939,6 +26943,8 @@ export type Database = {
           receiver_number: string | null
           recording_url: string | null
           routed_to_voicemail: boolean | null
+          sentiment_label: string | null
+          sentiment_score: number | null
           source: string | null
           summary: string | null
           total_characters: number | null
@@ -26947,6 +26953,8 @@ export type Database = {
           twilio_call_sid: string | null
           twilio_stream_sid: string | null
           voicemail_transcript: string | null
+          was_high_intent: boolean | null
+          was_premium: boolean | null
           webhook_event_id: string | null
         }
         Insert: {
@@ -26961,6 +26969,9 @@ export type Database = {
           call_status?: string | null
           call_successful?: boolean | null
           carrier_phone?: string | null
+          cei_band?: string | null
+          cei_score?: number | null
+          confidence_score?: number | null
           connection_duration_seconds?: number | null
           created_at?: string | null
           data_collection_results?: Json | null
@@ -26971,6 +26982,7 @@ export type Database = {
           elevenlabs_conversation_id?: string | null
           elevenlabs_metadata?: Json | null
           elevenlabs_user_id?: string | null
+          emotion_flags?: string[] | null
           ended_reason?: string | null
           estimated_cost_usd?: number | null
           failure_reason?: string | null
@@ -26992,6 +27004,8 @@ export type Database = {
           receiver_number?: string | null
           recording_url?: string | null
           routed_to_voicemail?: boolean | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
           source?: string | null
           summary?: string | null
           total_characters?: number | null
@@ -27000,6 +27014,8 @@ export type Database = {
           twilio_call_sid?: string | null
           twilio_stream_sid?: string | null
           voicemail_transcript?: string | null
+          was_high_intent?: boolean | null
+          was_premium?: boolean | null
           webhook_event_id?: string | null
         }
         Update: {
@@ -27014,6 +27030,9 @@ export type Database = {
           call_status?: string | null
           call_successful?: boolean | null
           carrier_phone?: string | null
+          cei_band?: string | null
+          cei_score?: number | null
+          confidence_score?: number | null
           connection_duration_seconds?: number | null
           created_at?: string | null
           data_collection_results?: Json | null
@@ -27024,6 +27043,7 @@ export type Database = {
           elevenlabs_conversation_id?: string | null
           elevenlabs_metadata?: Json | null
           elevenlabs_user_id?: string | null
+          emotion_flags?: string[] | null
           ended_reason?: string | null
           estimated_cost_usd?: number | null
           failure_reason?: string | null
@@ -27045,6 +27065,8 @@ export type Database = {
           receiver_number?: string | null
           recording_url?: string | null
           routed_to_voicemail?: boolean | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
           source?: string | null
           summary?: string | null
           total_characters?: number | null
@@ -27053,6 +27075,8 @@ export type Database = {
           twilio_call_sid?: string | null
           twilio_stream_sid?: string | null
           voicemail_transcript?: string | null
+          was_high_intent?: boolean | null
+          was_premium?: boolean | null
           webhook_event_id?: string | null
         }
         Relationships: [
@@ -27131,6 +27155,13 @@ export type Database = {
             columns: ["call_log_id"]
             isOneToOne: false
             referencedRelation: "trucking_call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_call_transcripts_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "v_trucking_calls_daily_cst"
             referencedColumns: ["id"]
           },
           {
@@ -27353,6 +27384,13 @@ export type Database = {
             columns: ["call_log_id"]
             isOneToOne: false
             referencedRelation: "trucking_call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_carrier_leads_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "v_trucking_calls_daily_cst"
             referencedColumns: ["id"]
           },
           {
@@ -28166,6 +28204,13 @@ export type Database = {
             columns: ["call_log_id"]
             isOneToOne: false
             referencedRelation: "trucking_call_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_webhook_events_call_log_id_fkey"
+            columns: ["call_log_id"]
+            isOneToOne: false
+            referencedRelation: "v_trucking_calls_daily_cst"
             referencedColumns: ["id"]
           },
           {
@@ -32134,6 +32179,251 @@ export type Database = {
         }
         Relationships: []
       }
+      v_trucking_call_kpis_by_day_cst: {
+        Row: {
+          avg_cei: number | null
+          booked: number | null
+          call_date_cst: string | null
+          callback_requested: number | null
+          connected_calls: number | null
+          high_intent_calls: number | null
+          leads_created: number | null
+          negative_calls: number | null
+          neutral_calls: number | null
+          positive_calls: number | null
+          quick_hangups: number | null
+          successful_outcomes: number | null
+          total_calls: number | null
+        }
+        Relationships: []
+      }
+      v_trucking_calls_daily_cst: {
+        Row: {
+          analysis_summary: string | null
+          branch_id: string | null
+          call_cost_credits: number | null
+          call_cost_usd: number | null
+          call_date_cst: string | null
+          call_direction: string | null
+          call_ended_at: string | null
+          call_outcome: string | null
+          call_started_at: string | null
+          call_status: string | null
+          call_successful: boolean | null
+          carrier_phone: string | null
+          cei_band: string | null
+          cei_score: number | null
+          confidence_score: number | null
+          connection_duration_seconds: number | null
+          created_at: string | null
+          data_collection_results: Json | null
+          deleted_at: string | null
+          deleted_by: string | null
+          duration_seconds: number | null
+          elevenlabs_agent_id: string | null
+          elevenlabs_conversation_id: string | null
+          elevenlabs_metadata: Json | null
+          elevenlabs_user_id: string | null
+          emotion_flags: string[] | null
+          ended_reason: string | null
+          estimated_cost_usd: number | null
+          failure_reason: string | null
+          has_audio: boolean | null
+          has_response_audio: boolean | null
+          has_user_audio: boolean | null
+          id: string | null
+          initiation_client_data: Json | null
+          is_demo: boolean | null
+          language: string | null
+          lead_id: string | null
+          llm_cost_usd_per_min: number | null
+          llm_cost_usd_total: number | null
+          load_id: string | null
+          outcome: string | null
+          owner_id: string | null
+          post_call_webhook_error: string | null
+          post_call_webhook_status: string | null
+          receiver_number: string | null
+          recording_url: string | null
+          routed_to_voicemail: boolean | null
+          sentiment_label: string | null
+          sentiment_score: number | null
+          source: string | null
+          summary: string | null
+          total_characters: number | null
+          transcript: string | null
+          transcript_url: string | null
+          twilio_call_sid: string | null
+          twilio_stream_sid: string | null
+          voicemail_transcript: string | null
+          was_high_intent: boolean | null
+          was_premium: boolean | null
+          webhook_event_id: string | null
+        }
+        Insert: {
+          analysis_summary?: string | null
+          branch_id?: string | null
+          call_cost_credits?: number | null
+          call_cost_usd?: number | null
+          call_date_cst?: never
+          call_direction?: string | null
+          call_ended_at?: string | null
+          call_outcome?: string | null
+          call_started_at?: string | null
+          call_status?: string | null
+          call_successful?: boolean | null
+          carrier_phone?: string | null
+          cei_band?: string | null
+          cei_score?: number | null
+          confidence_score?: number | null
+          connection_duration_seconds?: number | null
+          created_at?: string | null
+          data_collection_results?: Json | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          duration_seconds?: number | null
+          elevenlabs_agent_id?: string | null
+          elevenlabs_conversation_id?: string | null
+          elevenlabs_metadata?: Json | null
+          elevenlabs_user_id?: string | null
+          emotion_flags?: string[] | null
+          ended_reason?: string | null
+          estimated_cost_usd?: number | null
+          failure_reason?: string | null
+          has_audio?: boolean | null
+          has_response_audio?: boolean | null
+          has_user_audio?: boolean | null
+          id?: string | null
+          initiation_client_data?: Json | null
+          is_demo?: boolean | null
+          language?: string | null
+          lead_id?: string | null
+          llm_cost_usd_per_min?: number | null
+          llm_cost_usd_total?: number | null
+          load_id?: string | null
+          outcome?: string | null
+          owner_id?: string | null
+          post_call_webhook_error?: string | null
+          post_call_webhook_status?: string | null
+          receiver_number?: string | null
+          recording_url?: string | null
+          routed_to_voicemail?: boolean | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          source?: string | null
+          summary?: string | null
+          total_characters?: number | null
+          transcript?: string | null
+          transcript_url?: string | null
+          twilio_call_sid?: string | null
+          twilio_stream_sid?: string | null
+          voicemail_transcript?: string | null
+          was_high_intent?: boolean | null
+          was_premium?: boolean | null
+          webhook_event_id?: string | null
+        }
+        Update: {
+          analysis_summary?: string | null
+          branch_id?: string | null
+          call_cost_credits?: number | null
+          call_cost_usd?: number | null
+          call_date_cst?: never
+          call_direction?: string | null
+          call_ended_at?: string | null
+          call_outcome?: string | null
+          call_started_at?: string | null
+          call_status?: string | null
+          call_successful?: boolean | null
+          carrier_phone?: string | null
+          cei_band?: string | null
+          cei_score?: number | null
+          confidence_score?: number | null
+          connection_duration_seconds?: number | null
+          created_at?: string | null
+          data_collection_results?: Json | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          duration_seconds?: number | null
+          elevenlabs_agent_id?: string | null
+          elevenlabs_conversation_id?: string | null
+          elevenlabs_metadata?: Json | null
+          elevenlabs_user_id?: string | null
+          emotion_flags?: string[] | null
+          ended_reason?: string | null
+          estimated_cost_usd?: number | null
+          failure_reason?: string | null
+          has_audio?: boolean | null
+          has_response_audio?: boolean | null
+          has_user_audio?: boolean | null
+          id?: string | null
+          initiation_client_data?: Json | null
+          is_demo?: boolean | null
+          language?: string | null
+          lead_id?: string | null
+          llm_cost_usd_per_min?: number | null
+          llm_cost_usd_total?: number | null
+          load_id?: string | null
+          outcome?: string | null
+          owner_id?: string | null
+          post_call_webhook_error?: string | null
+          post_call_webhook_status?: string | null
+          receiver_number?: string | null
+          recording_url?: string | null
+          routed_to_voicemail?: boolean | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          source?: string | null
+          summary?: string | null
+          total_characters?: number | null
+          transcript?: string | null
+          transcript_url?: string | null
+          twilio_call_sid?: string | null
+          twilio_stream_sid?: string | null
+          voicemail_transcript?: string | null
+          was_high_intent?: boolean | null
+          was_premium?: boolean | null
+          webhook_event_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_call_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_carrier_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_call_logs_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_call_logs_webhook_event_id_fkey"
+            columns: ["webhook_event_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_webhook_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_trucking_cei_band_by_day_cst: {
+        Row: {
+          call_date_cst: string | null
+          calls: number | null
+          cei_band: string | null
+        }
+        Relationships: []
+      }
+      v_trucking_emotions_by_day_cst: {
+        Row: {
+          call_date_cst: string | null
+          calls: number | null
+          emotion: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       add_to_system_list: {
@@ -32160,9 +32450,19 @@ export type Database = {
         Args: { _load_id: string; _user_id: string }
         Returns: boolean
       }
+      cei_band: { Args: { score: number }; Returns: string }
       cleanup_expired_autosaves: { Args: never; Returns: number }
       cleanup_expired_high_intent_keywords: { Args: never; Returns: undefined }
       cleanup_old_rate_limit_logs: { Args: never; Returns: undefined }
+      compute_cei: {
+        Args: {
+          _duration_seconds: number
+          _outcome: string
+          _sentiment_score: number
+          _was_high_intent: boolean
+        }
+        Returns: number
+      }
       create_meeting_public: {
         Args: {
           p_attendee_email: string
