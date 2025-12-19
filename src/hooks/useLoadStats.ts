@@ -56,6 +56,16 @@ export const useLoadStats = () => {
         return;
       }
 
+      // Check if user is an agent (not owner)
+      const { data: agentRecord } = await supabase
+        .from('trucking_agents')
+        .select('owner_id')
+        .eq('user_id', userIdToUse)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      const isAgent = !!agentRecord;
+
       const now = new Date();
       const zonedNow = toZonedTime(now, TIMEZONE);
       
@@ -67,32 +77,40 @@ export const useLoadStats = () => {
       const monthStart = fromZonedTime(startOfMonth(zonedNow), TIMEZONE).toISOString();
       const monthEnd = fromZonedTime(endOfMonth(zonedNow), TIMEZONE).toISOString();
 
-      // Fetch today's confirmed loads - FILTER BY CURRENT USER
-      const { data: todayLoads } = await supabase
+      // Build query base - agents filter by assigned_agent_id, owners by owner_id
+      const buildQuery = (query: any) => {
+        if (isAgent) {
+          return query.eq('assigned_agent_id', userIdToUse);
+        }
+        return query.eq('owner_id', userIdToUse);
+      };
+
+      // Fetch today's confirmed loads - FILTER BY USER TYPE
+      let todayQuery = supabase
         .from('trucking_loads')
         .select('id, target_rate, updated_at')
         .eq('status', 'booked')
-        .eq('owner_id', userIdToUse)
         .gte('updated_at', todayStart)
         .lte('updated_at', todayEnd);
+      const { data: todayLoads } = await buildQuery(todayQuery);
 
-      // Fetch this month's confirmed loads - FILTER BY CURRENT USER
-      const { data: monthLoads } = await supabase
+      // Fetch this month's confirmed loads - FILTER BY USER TYPE
+      let monthQuery = supabase
         .from('trucking_loads')
         .select('id, target_rate, updated_at')
         .eq('status', 'booked')
-        .eq('owner_id', userIdToUse)
         .gte('updated_at', monthStart)
         .lte('updated_at', monthEnd);
+      const { data: monthLoads } = await buildQuery(monthQuery);
 
-      // Fetch all booked loads for records (last 12 months) - FILTER BY CURRENT USER
+      // Fetch all booked loads for records (last 12 months) - FILTER BY USER TYPE
       const yearAgo = fromZonedTime(subMonths(zonedNow, 12), TIMEZONE).toISOString();
-      const { data: allLoads } = await supabase
+      let allLoadsQuery = supabase
         .from('trucking_loads')
         .select('id, target_rate, updated_at')
         .eq('status', 'booked')
-        .eq('owner_id', userIdToUse)
         .gte('updated_at', yearAgo);
+      const { data: allLoads } = await buildQuery(allLoadsQuery);
 
       // Calculate daily record
       const loadsByDay: Record<string, number> = {};

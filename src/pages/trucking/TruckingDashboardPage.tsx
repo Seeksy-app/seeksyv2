@@ -274,18 +274,21 @@ export default function TruckingDashboardPage() {
   };
 
   // Filter loads based on owner filter and agent role
-  const filteredLoads = ownerFilter === "mine" && currentUserId 
-    ? loads.filter(l => l.owner_id === currentUserId || l.assigned_agent_id === currentUserId)
-    : loads;
+  // Agents ONLY see their assigned loads, owners can see all or filter by owner_id
+  const filteredLoads = isAgent && currentUserId
+    ? loads.filter(l => l.assigned_agent_id === currentUserId)
+    : ownerFilter === "mine" && currentUserId 
+      ? loads.filter(l => l.owner_id === currentUserId || l.assigned_agent_id === currentUserId)
+      : loads;
 
-  // Filter leads - agents only see leads assigned to them or unassigned
+  // Filter leads - agents only see leads assigned to them
   const filteredLeads = isAgent && currentUserId
-    ? leads.filter(l => l.assigned_agent_id === currentUserId || !l.assigned_agent_id)
+    ? leads.filter(l => l.assigned_agent_id === currentUserId)
     : leads;
 
-  // Filter call logs - agents only see their calls (when agent_id tracking is enabled)
+  // Filter call logs - agents only see their calls
   const filteredCallLogs = isAgent && currentUserId
-    ? callLogs // For now, show all - agent_id filtering will apply once calls are tracked per agent
+    ? callLogs // Future: filter by agent_id once tracked
     : callLogs;
 
   const openLoads = filteredLoads.filter((l) => l.status === "open");

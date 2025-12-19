@@ -96,9 +96,19 @@ serve(async (req) => {
 
         if (detailResponse.ok) {
           const detail = await detailResponse.json();
+          console.log('Fetched detail for summary update. Analysis keys:', Object.keys(detail.analysis || {}));
+          
+          // Try multiple possible summary field names
           const summary = detail.analysis?.summary || 
                          detail.analysis?.call_summary ||
-                         detail.metadata?.summary;
+                         detail.analysis?.transcript_summary ||
+                         detail.analysis?.evaluation_criteria_results?.call_summary ||
+                         detail.metadata?.summary ||
+                         detail.conversation_summary ||
+                         detail.summary ||
+                         (detail.analysis?.data_collection_results ? 
+                           `Call with ${detail.analysis.data_collection_results.company_name || 'carrier'}. Outcome: ${detail.analysis.call_successful ? 'Successful' : 'Unknown'}` : 
+                           null);
           
           if (summary) {
             await supabase

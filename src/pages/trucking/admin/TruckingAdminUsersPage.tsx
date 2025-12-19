@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Shield, Users, UserPlus, Mail, Copy, Check } from "lucide-react";
+import { Shield, Users, UserPlus, Mail, Copy, Check, Clock, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -30,14 +30,25 @@ interface Agency {
   name: string;
 }
 
+interface PendingInvite {
+  id: string;
+  email: string;
+  role: string;
+  created_at: string;
+  expires_at: string;
+  agency_name?: string;
+}
+
 export default function TruckingAdminUsersPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [agencies, setAgencies] = useState<Agency[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [sending, setSending] = useState(false);
   const [copied, setCopied] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<AdminUser | null>(null);
   const { toast } = useToast();
 
   const [inviteForm, setInviteForm] = useState({
@@ -49,6 +60,7 @@ export default function TruckingAdminUsersPage() {
   useEffect(() => {
     fetchUsers();
     fetchAgencies();
+    fetchPendingInvites();
   }, []);
 
   const fetchUsers = async () => {
@@ -91,6 +103,30 @@ export default function TruckingAdminUsersPage() {
     }
   };
 
+  const fetchPendingInvites = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("trucking_user_invites")
+        .select(`
+          *,
+          trucking_agencies(name)
+        `)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedInvites = (data || []).map((i: any) => ({
+        ...i,
+        agency_name: i.trucking_agencies?.name
+      }));
+      
+      setPendingInvites(formattedInvites);
+    } catch (error: any) {
+      console.error("Error fetching pending invites:", error);
+    }
+  };
+
   const handleSendInvite = async () => {
     if (!inviteForm.email) {
       toast({ title: "Error", description: "Please enter an email address", variant: "destructive" });
@@ -128,10 +164,41 @@ export default function TruckingAdminUsersPage() {
 
       // Reset form but keep dialog open to show link
       setInviteForm({ email: "", agency_id: "", role: "admin" });
+      fetchPendingInvites();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleRevokeInvite = async (inviteId: string) => {
+    try {
+      const { error } = await supabase
+        .from("trucking_user_invites")
+        .update({ status: "revoked" })
+        .eq("id", inviteId);
+
+      if (error) throw error;
+      toast({ title: "Invite revoked" });
+      fetchPendingInvites();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const handleChangeRole = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from("trucking_admin_users")
+        .update({ role: newRole })
+        .eq("id", userId);
+
+      if (error) throw error;
+      toast({ title: "Role updated" });
+      fetchUsers();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
 
@@ -156,6 +223,8 @@ export default function TruckingAdminUsersPage() {
         return <Badge className="bg-purple-500/10 text-purple-600">Super Admin</Badge>;
       case 'admin':
         return <Badge className="bg-blue-500/10 text-blue-600">Admin</Badge>;
+      case 'agent':
+        return <Badge className="bg-green-500/10 text-green-600">Agent</Badge>;
       default:
         return <Badge variant="secondary">{role}</Badge>;
     }
@@ -253,6 +322,7 @@ export default function TruckingAdminUsersPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="agent">Agent</SelectItem>
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="super_admin">Super Admin</SelectItem>
                     </SelectContent>
@@ -273,6 +343,58 @@ export default function TruckingAdminUsersPage() {
         </Dialog>
       }
     >
+      {/* Pending Invites */}
+      {pendingInvites.length > 0 && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-amber-500" />
+              Pending Invites ({pendingInvites.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Agency</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Sent</TableHead>
+                  <TableHead>Expires</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pendingInvites.map((invite) => (
+                  <TableRow key={invite.id}>
+                    <TableCell className="font-medium">{invite.email}</TableCell>
+                    <TableCell>{invite.agency_name || '—'}</TableCell>
+                    <TableCell>{getRoleBadge(invite.role)}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {format(new Date(invite.created_at), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {format(new Date(invite.expires_at), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRevokeInvite(invite.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Revoke
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -313,7 +435,21 @@ export default function TruckingAdminUsersPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
                     <TableCell>{user.agency_name || '—'}</TableCell>
-                    <TableCell>{getRoleBadge(user.role)}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={user.role}
+                        onValueChange={(value) => handleChangeRole(user.id, value)}
+                      >
+                        <SelectTrigger className="w-32 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="agent">Agent</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="super_admin">Super Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell>
                       <Badge variant={user.is_active ? "default" : "secondary"}>
                         {user.is_active ? "Active" : "Inactive"}
