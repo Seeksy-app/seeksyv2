@@ -337,9 +337,14 @@ export function WorkspaceSelector() {
           <DialogHeader>
             <DialogTitle>Workspace created</DialogTitle>
           </DialogHeader>
-          <p className="text-muted-foreground">
-            I set up "My Workspace" for you — you can rename it anytime.
-          </p>
+          <div className="space-y-3">
+            <p className="text-muted-foreground">
+              We created a new workspace so you can keep working.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Your data stays safe. Your studios, files, and settings remain saved — you can reinstall Seekies anytime to restore your workspace layout.
+            </p>
+          </div>
           <DialogFooter>
             <Button 
               onClick={() => {
@@ -347,7 +352,7 @@ export function WorkspaceSelector() {
                 navigate('/apps?new_apps=true');
               }}
             >
-              Continue
+              Add Seekies
             </Button>
           </DialogFooter>
         </DialogContent>

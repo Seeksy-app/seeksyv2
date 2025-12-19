@@ -35,6 +35,7 @@ export function useOnboarding(): UseOnboardingReturn {
   const [isOnboardingActive, setIsOnboardingActive] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [globalOnboardingCompleted, setGlobalOnboardingCompleted] = useState(false);
 
   const currentPageKey = getPageKeyFromRoute(location.pathname);
 
@@ -52,7 +53,7 @@ export function useOnboarding(): UseOnboardingReturn {
 
         const { data, error } = await supabase
           .from('user_preferences')
-          .select('onboarding_progress')
+          .select('onboarding_progress, onboarding_completed')
           .eq('user_id', user.id)
           .single();
 
@@ -63,6 +64,9 @@ export function useOnboarding(): UseOnboardingReturn {
         if (data?.onboarding_progress) {
           setOnboardingProgress(data.onboarding_progress as unknown as OnboardingProgress);
         }
+        
+        // Check global onboarding_completed flag
+        setGlobalOnboardingCompleted(data?.onboarding_completed ?? false);
       } catch (error) {
         console.error('Error in fetchProgress:', error);
       } finally {
@@ -77,10 +81,12 @@ export function useOnboarding(): UseOnboardingReturn {
   const pageProgress = currentPageKey ? onboardingProgress[currentPageKey] || null : null;
 
   // Check if we should auto-trigger onboarding for this page
+  // IMPORTANT: Never auto-trigger if global onboarding is completed
   const shouldAutoTrigger = !isLoading && 
     currentPageKey !== null && 
     !pageProgress?.completed && 
-    !isOnboardingActive;
+    !isOnboardingActive &&
+    !globalOnboardingCompleted;
 
   // Start onboarding for a page
   const startOnboarding = useCallback((pageKey?: PageKey) => {

@@ -11,10 +11,11 @@ import {
   Mic, Scissors, Calendar, Megaphone, Users, Shield, 
   BrainCircuit, Check, Plus, X, Loader2
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 // New components
 import { SparkOnboardingGuide } from "@/components/apps/SparkOnboardingGuide";
@@ -32,6 +33,7 @@ type ViewMode = "spark" | "collections" | "modules";
 
 export default function AppsRedesigned() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { 
     workspaces, 
     currentWorkspace, 
@@ -41,16 +43,52 @@ export default function AppsRedesigned() {
     addModule,
     isLoading: workspaceLoading 
   } = useWorkspace();
+  
   // Derive installed module IDs from workspace modules
   const installedModuleIds = workspaceModules.map(m => m.module_id);
   
-  // Check if onboarding was already completed for this workspace
-  const isOnboardingComplete = currentWorkspace 
-    ? localStorage.getItem(`seeksy_onboarding_complete_${currentWorkspace.id}`) === "true"
-    : false;
+  // Check URL params for mode hints
+  const isExplicitOnboarding = searchParams.get('onboarding') === 'true';
+  const isNewAppsFlow = searchParams.get('new_apps') === 'true';
   
-  // Start with collections view if onboarding is complete, otherwise spark
-  const [viewMode, setViewMode] = useState<ViewMode>(isOnboardingComplete ? "collections" : "spark");
+  // Global onboarding state - persisted in user_preferences
+  const [globalOnboardingCompleted, setGlobalOnboardingCompleted] = useState<boolean | null>(null);
+  
+  // Fetch global onboarding status
+  useEffect(() => {
+    const fetchOnboardingStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setGlobalOnboardingCompleted(false);
+        return;
+      }
+      
+      const { data } = await supabase
+        .from('user_preferences')
+        .select('onboarding_completed')
+        .eq('user_id', user.id)
+        .single();
+      
+      setGlobalOnboardingCompleted(data?.onboarding_completed ?? false);
+    };
+    
+    fetchOnboardingStatus();
+  }, []);
+  
+  // Determine if Spark onboarding should be blocked
+  // Block if: has workspace AND has at least one installed Seeksy
+  const hasWorkspaceWithSeeksy = workspaces.length > 0 && installedModuleIds.length > 0;
+  const canShowOnboarding = !hasWorkspaceWithSeeksy && !globalOnboardingCompleted;
+  
+  // Determine initial view mode:
+  // - If explicit onboarding AND allowed → spark
+  // - Otherwise → modules (Individual Seekies as default)
+  const getInitialViewMode = (): ViewMode => {
+    if (isExplicitOnboarding && canShowOnboarding) return "spark";
+    return "modules"; // Default to individual seekies catalog
+  };
+  
+  const [viewMode, setViewMode] = useState<ViewMode>(getInitialViewMode);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
@@ -62,15 +100,12 @@ export default function AppsRedesigned() {
   const [intentModalOpen, setIntentModalOpen] = useState(false);
   const [previewCollection, setPreviewCollection] = useState<SeeksyCollection | null>(null);
   
-  // Update viewMode when workspace changes and onboarding status is known
+  // If spark is blocked but URL requested it, redirect to modules view
   useEffect(() => {
-    if (currentWorkspace) {
-      const completed = localStorage.getItem(`seeksy_onboarding_complete_${currentWorkspace.id}`) === "true";
-      if (completed && viewMode === "spark") {
-        setViewMode("collections");
-      }
+    if (isExplicitOnboarding && !canShowOnboarding && viewMode === "spark") {
+      setViewMode("modules");
     }
-  }, [currentWorkspace?.id]);
+  }, [isExplicitOnboarding, canShowOnboarding, viewMode]);
 
   // Auto-create workspace if user has none
   useEffect(() => {
@@ -119,6 +154,21 @@ export default function AppsRedesigned() {
     });
   }, [searchQuery]);
 
+  // Mark global onboarding as complete
+  const markOnboardingComplete = async () => {
+    if (globalOnboardingCompleted) return; // Already done
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    await supabase
+      .from('user_preferences')
+      .update({ onboarding_completed: true, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id);
+    
+    setGlobalOnboardingCompleted(true);
+  };
+
   const handleIntentSelect = (intent: UserIntent) => {
     // Guardrail: Block if no workspace
     if (!currentWorkspace) {
@@ -149,6 +199,9 @@ export default function AppsRedesigned() {
       
       // Then install the module
       await addModule(moduleId);
+      
+      // Mark onboarding as complete after first install
+      await markOnboardingComplete();
       
       // Show success confirmation with workspace name
       const module = SEEKSY_MODULES.find(m => m.id === moduleId);
@@ -237,15 +290,13 @@ export default function AppsRedesigned() {
             className="mb-8"
           >
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Add Seekies to your workspace
+              {currentWorkspace 
+                ? `Add Seekies to: ${currentWorkspace.name}`
+                : "Add Seekies to your workspace"
+              }
             </h1>
             <p className="text-muted-foreground">
               Build your perfect creator toolkit with AI-powered modules
-              {currentWorkspace && (
-                <span className="ml-2 text-foreground font-medium">
-                  → {currentWorkspace.name}
-                </span>
-              )}
             </p>
           </motion.div>
 
@@ -253,17 +304,20 @@ export default function AppsRedesigned() {
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)} className="mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <TabsList className="bg-muted/50">
-                <TabsTrigger value="spark" className="gap-2">
-                  <Sparkles className="w-4 h-4" />
-                  AI Guide
+                {/* Only show AI Guide tab if onboarding is allowed */}
+                {canShowOnboarding && (
+                  <TabsTrigger value="spark" className="gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    AI Guide
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="modules" className="gap-2">
+                  <Grid3X3 className="w-4 h-4" />
+                  Individual Seekies
                 </TabsTrigger>
                 <TabsTrigger value="collections" className="gap-2">
                   <Layers className="w-4 h-4" />
                   Collections
-                </TabsTrigger>
-                <TabsTrigger value="modules" className="gap-2">
-                  <Grid3X3 className="w-4 h-4" />
-                  All Modules
                 </TabsTrigger>
               </TabsList>
 
