@@ -219,8 +219,8 @@ export default function WIPResults() {
                     <Badge variant={index === 0 ? 'default' : 'secondary'}>
                       #{index + 1}
                     </Badge>
-                    <span className="text-2xl font-bold text-primary">
-                      {Math.round(vs.std_score_0_100)}
+                    <span className="text-2xl font-bold text-primary font-mono">
+                      {Number(vs.std_score_0_100).toFixed(2)}
                     </span>
                   </div>
                   <CardTitle className="text-lg">{vs.value.label}</CardTitle>

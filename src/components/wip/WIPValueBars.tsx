@@ -49,8 +49,8 @@ export function WIPValueBars({ scores, compact = false }: WIPValueBarsProps) {
               <span className={compact ? 'text-muted-foreground truncate' : 'text-foreground font-medium'}>
                 {vs.value.label}
               </span>
-              <span className="text-muted-foreground ml-2">
-                {Math.round(vs.stdScore)}
+              <span className="text-muted-foreground font-mono ml-2">
+                {vs.stdScore.toFixed(2)}
               </span>
             </div>
             <div className={`${compact ? 'h-1.5' : 'h-2.5'} bg-muted rounded-full overflow-hidden`}>
