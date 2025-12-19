@@ -80,6 +80,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useWorkspaceInstalledModules } from "@/hooks/useWorkspaceInstalledModules";
 import { useWorkspaceSidebarState } from "@/hooks/useWorkspaceSidebarState";
+import { logSidebarModules } from "@/utils/onboardingDebug";
 
 // Icon mapping for modules - ensure correct icons for each module
 const MODULE_ICONS: Record<string, React.ElementType> = {
@@ -293,6 +294,13 @@ export function WorkspaceSidebar() {
 
     // Sort regular modules alphabetically
     regular.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Log sidebar state for debugging
+    logSidebarModules({
+      flatList: [...pinned, ...regular].map(m => m.name),
+      hasGroupedParents: false, // We removed grouping
+      collapsedState: state === 'collapsed',
+    });
 
     return { installedModules: regular, pinnedModules: pinned };
   }, [workspaceModules, moduleRegistry]);

@@ -11,8 +11,9 @@
  * user-level activations, NOT workspace-scoped installations.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
+import { logWorkspaceState } from '@/utils/onboardingDebug';
 
 export interface InstalledModule {
   moduleId: string;
@@ -30,6 +31,30 @@ export function useWorkspaceInstalledModules() {
     if (!currentWorkspace || !workspaceModules) return [];
     return workspaceModules.map(wm => wm.module_id);
   }, [currentWorkspace, workspaceModules]);
+
+  // Get installed collections (from modules added_via_collection)
+  const installedCollections = useMemo(() => {
+    if (!workspaceModules) return [];
+    const collections = new Set<string>();
+    workspaceModules.forEach(wm => {
+      if (wm.added_via_collection) {
+        collections.add(wm.added_via_collection);
+      }
+    });
+    return Array.from(collections);
+  }, [workspaceModules]);
+
+  // Log workspace state for debugging
+  useEffect(() => {
+    if (currentWorkspace && !isLoading) {
+      logWorkspaceState({
+        workspaceId: currentWorkspace.id,
+        workspaceName: currentWorkspace.name,
+        installedModuleIds,
+        installedCollections,
+      });
+    }
+  }, [currentWorkspace, installedModuleIds, installedCollections, isLoading]);
 
   // Get full installed module data
   const installedModules: InstalledModule[] = useMemo(() => {
@@ -62,6 +87,7 @@ export function useWorkspaceInstalledModules() {
     workspaceId: currentWorkspace?.id || null,
     installedModuleIds,
     installedModules,
+    installedCollections,
     isModuleInstalled,
     hasAnyModuleInstalled,
     hasAllModulesInstalled,

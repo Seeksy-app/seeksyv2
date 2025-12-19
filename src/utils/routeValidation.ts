@@ -3,9 +3,13 @@
  * 
  * This utility validates that module routes exist in the application
  * and provides fallback handling for missing routes.
+ * 
+ * IMPORTANT: This prevents "Profile Not Found" errors by redirecting
+ * to a friendly Coming Soon page for unimplemented routes.
  */
 
 import { SEEKSY_MODULES, type SeeksyModule } from '@/components/modules/moduleData';
+import { logRouteValidation } from './onboardingDebug';
 
 // Known valid routes in the application
 // This list is derived from App.tsx route definitions
@@ -18,6 +22,7 @@ const VALID_ROUTES: Set<string> = new Set([
   '/apps',
   '/modules',
   '/module-center',
+  '/coming-soon',
   
   // Creator Studio
   '/studio',
@@ -32,6 +37,8 @@ const VALID_ROUTES: Set<string> = new Set([
   
   // Campaigns & Marketing
   '/marketing/campaigns',
+  '/marketing/templates',
+  '/marketing/segments',
   '/email/inbox',
   '/newsletter',
   '/sms',
@@ -109,22 +116,40 @@ export function validateModuleRoute(moduleId: string, route?: string): RouteVali
 
 /**
  * Get a safe route for a module - returns the route if valid,
- * or a fallback if the route is missing.
+ * or redirects to coming-soon if the route is missing.
+ * 
+ * This function NEVER crashes and ALWAYS returns a valid route.
  */
 export function getSafeModuleRoute(moduleId: string, route?: string): string {
-  const validation = validateModuleRoute(moduleId, route);
-  
-  if (validation.isValid) {
-    return route!;
-  }
-  
-  if (validation.isComingSoon) {
+  try {
+    const validation = validateModuleRoute(moduleId, route);
+    
+    if (validation.isValid) {
+      logRouteValidation({
+        moduleId,
+        requestedRoute: route || 'undefined',
+        isValid: true,
+      });
+      return route!;
+    }
+    
+    // For coming soon or invalid routes, redirect to coming-soon page
+    const fallbackRoute = `/coming-soon?module=${moduleId}`;
+    
+    logRouteValidation({
+      moduleId,
+      requestedRoute: route || 'undefined',
+      isValid: false,
+      redirectTo: fallbackRoute,
+    });
+    
+    console.warn(`[Seeksy Debug] Route validation failed for "${moduleId}": "${route}" → redirecting to coming-soon`);
+    return fallbackRoute;
+  } catch (err) {
+    // Failsafe: never crash, always return a valid route
+    console.error('[Seeksy Debug] Route validation error:', err);
     return `/coming-soon?module=${moduleId}`;
   }
-  
-  // For missing routes, log and return my-day as fallback
-  console.warn(`[RouteValidation] Module "${moduleId}" route "${route}" not found, using fallback`);
-  return '/my-day';
 }
 
 /**

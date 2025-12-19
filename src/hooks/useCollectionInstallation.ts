@@ -5,6 +5,7 @@
  * - Install a collection (adds all its modules with added_via_collection set)
  * - Track installed collections at workspace level
  * - Get list of installed collections
+ * - Preview which modules will be installed before confirmation
  */
 
 import { useCallback } from 'react';
@@ -12,6 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { SEEKSY_COLLECTIONS, type SeeksyCollection } from '@/components/modules/collectionData';
 import { toast } from 'sonner';
+import { logCollectionInstall } from '@/utils/onboardingDebug';
 
 export interface InstalledCollection {
   collectionId: string;
@@ -126,6 +128,13 @@ export function useCollectionInstallation() {
       // Refresh workspace data
       await refreshWorkspaces();
 
+      // Log for debugging
+      logCollectionInstall({
+        collectionId,
+        collectionName: collection.name,
+        modulesAdded: newModuleIds,
+      });
+
       toast.success('Collection installed', {
         description: `${collection.name} has been added to your workspace.`,
       });
@@ -197,12 +206,34 @@ export function useCollectionInstallation() {
     return SEEKSY_COLLECTIONS.find(c => c.id === collectionId);
   }, []);
 
+  /**
+   * Preview which modules would be installed for a collection.
+   * Returns both new modules and already-installed modules.
+   */
+  const previewCollectionInstall = useCallback((collectionId: string): {
+    newModules: string[];
+    alreadyInstalled: string[];
+    collection: SeeksyCollection | undefined;
+  } => {
+    const collection = SEEKSY_COLLECTIONS.find(c => c.id === collectionId);
+    if (!collection) {
+      return { newModules: [], alreadyInstalled: [], collection: undefined };
+    }
+
+    const existingModuleIds = new Set(workspaceModules.map(wm => wm.module_id));
+    const newModules = collection.includedApps.filter(id => !existingModuleIds.has(id));
+    const alreadyInstalled = collection.includedApps.filter(id => existingModuleIds.has(id));
+
+    return { newModules, alreadyInstalled, collection };
+  }, [workspaceModules]);
+
   return {
     installCollection,
     uninstallCollection,
     getInstalledCollections,
     isCollectionInstalled,
     getCollectionById,
+    previewCollectionInstall,
     allCollections: SEEKSY_COLLECTIONS,
   };
 }

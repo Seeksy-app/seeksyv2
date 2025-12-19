@@ -10,6 +10,7 @@ import {
   MY_DAY_SECTIONS,
 } from "@/components/myday/myDayWidgets";
 import { toast } from "sonner";
+import { logMyDayFiltering } from "@/utils/onboardingDebug";
 
 /**
  * My Day Layout Hook
@@ -37,6 +38,18 @@ export function useMyDayLayout() {
   // Get widgets available for customization (filtered by installed modules)
   const availableWidgets = getAvailableWidgetsForCustomize(installedModuleIds);
   const availableSections = getAvailableSections(installedModuleIds);
+
+  // Log filtering state for debugging
+  useEffect(() => {
+    if (layout) {
+      logMyDayFiltering({
+        totalWidgets: MY_DAY_WIDGETS.length,
+        availableWidgets: availableWidgets.length,
+        hiddenWidgets: layout.hiddenWidgets,
+        sections: layout.sectionOrder,
+      });
+    }
+  }, [layout, availableWidgets.length]);
 
   // Load layout from database
   useEffect(() => {
