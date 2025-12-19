@@ -359,6 +359,7 @@ import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
 import Apps from "./pages/Apps";
+import AppsRouter from "./pages/AppsRouter";
 import ModuleCenter from "./pages/ModuleCenter";
 import Spark from "./pages/Spark";
 import ComingSoon from "./pages/ComingSoon";
@@ -1150,7 +1151,8 @@ const AppContent = () => {
           <Route path="/integrations" element={<Integrations />} />
           <Route path="/module-selector" element={<ModuleSelector />} />
           <Route path="/modules" element={<Modules />} />
-          <Route path="/apps" element={<Apps />} />
+          <Route path="/apps" element={<AppsRouter />} />
+          <Route path="/apps-legacy" element={<Apps />} />
           <Route path="/module-center" element={<ModuleCenter />} />
           <Route path="/workspace" element={<WorkspaceDashboard />} />
           <Route path="/influencehub" element={<InfluenceHub />} />

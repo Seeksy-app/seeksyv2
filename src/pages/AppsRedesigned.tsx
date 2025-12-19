@@ -74,13 +74,6 @@ export default function AppsRedesigned() {
     setIntentModalOpen(true);
   };
 
-  const handleIntentConfirm = async (moduleIds: string[]) => {
-    for (const moduleId of moduleIds) {
-      await activateModule(moduleId);
-    }
-    setIntentModalOpen(false);
-    navigate("/");
-  };
 
   const handleInstallModule = async (moduleId: string) => {
     // Check for required dependencies
@@ -371,7 +364,6 @@ export default function AppsRedesigned() {
         onClose={() => setIntentModalOpen(false)}
         intent={selectedIntent}
         installedModuleIds={installedModuleIds}
-        onConfirm={handleIntentConfirm}
       />
 
       {previewCollection && (
