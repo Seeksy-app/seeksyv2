@@ -39,7 +39,7 @@ export function useWorkspaceInstalledModules() {
       position: wm.position,
       isPinned: wm.is_pinned,
       isStandalone: wm.is_standalone,
-      addedViaCollection: (wm.settings as any)?.added_via_collection || null,
+      addedViaCollection: wm.added_via_collection || null,
     }));
   }, [currentWorkspace, workspaceModules]);
 

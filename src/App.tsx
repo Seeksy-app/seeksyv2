@@ -360,6 +360,8 @@ import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
 import Apps from "./pages/Apps";
 import ModuleCenter from "./pages/ModuleCenter";
+import Spark from "./pages/Spark";
+import ComingSoon from "./pages/ComingSoon";
 import WorkspaceDashboard from "./pages/WorkspaceDashboard";
 import RoleSettings from "./pages/RoleSettings";
 import InfluenceHub from "./pages/InfluenceHub";
@@ -1505,7 +1507,9 @@ const AppContent = () => {
               <Route path="/settings" element={<Settings />} />
               <Route path="/settings/billing" element={<SettingsBilling />} />
               <Route path="/background-remover" element={<BackgroundRemover />} />
-              <Route path="/ask-spark" element={<Navigate to="/my-day" replace />} />
+              <Route path="/spark" element={<Spark />} />
+              <Route path="/ask-spark" element={<Navigate to="/spark" replace />} />
+              <Route path="/coming-soon" element={<ComingSoon />} />
               <Route path="/notification-preferences" element={<NotificationPreferences />} />
               <Route path="/sms-notification-settings" element={<SMSNotificationSettings />} />
               <Route path="/subscription" element={<SubscriptionSettings />} />
