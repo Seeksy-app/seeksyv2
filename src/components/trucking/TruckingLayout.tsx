@@ -27,7 +27,8 @@ import {
   Sun,
   Moon,
   Shield,
-  Calculator
+  Calculator,
+  RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +37,7 @@ import { useTruckingCostStats } from "@/hooks/useTruckingCostStats";
 import { useTruckingRole } from "@/hooks/trucking/useTruckingRole";
 import { useTheme } from "next-themes";
 import seeksyLogo from "@/assets/seeksy-logo-orange.png";
+import { TruckingGlobalSearch } from "@/components/trucking/TruckingGlobalSearch";
 
 // Theme colors for dark sidebar
 const theme = {
@@ -477,9 +479,24 @@ export default function TruckingLayout({ children }: TruckingLayoutProps) {
       >
         {/* Top Header Bar - Desktop */}
         <div 
-          className="hidden lg:flex items-center justify-end px-6 py-3 border-b bg-white/80 backdrop-blur sticky top-0 z-30"
+          className="hidden lg:flex items-center justify-between px-6 py-3 border-b bg-white/80 backdrop-blur sticky top-0 z-30 gap-4"
           style={{ borderColor: '#E2E8F0' }}
         >
+          {/* Search and Refresh */}
+          <div className="flex items-center gap-3 flex-1">
+            <TruckingGlobalSearch className="flex-1 max-w-md" />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => window.location.reload()}
+              className="shrink-0"
+              title="Refresh"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 px-3 py-2 rounded-xl transition-colors hover:bg-slate-100">
