@@ -35,13 +35,17 @@ serve(async (req) => {
       return await handleLogCall(supabase, body);
     } else if (action === "confirm_booking") {
       return await handleConfirmBooking(supabase, body);
+    } else if (action === "check_high_intent") {
+      return await handleCheckHighIntent(supabase, body);
+    } else if (action === "get_high_intent_keywords") {
+      return await handleGetHighIntentKeywords(supabase);
     } else {
       // Legacy format or unknown action
       console.log("[ai-trucking-call-router] Unknown action:", action);
       return new Response(
         JSON.stringify({ 
           error: "Unknown action", 
-          available_actions: ["lookup_load", "create_lead", "negotiate_rate", "save_transcript", "log_call", "confirm_booking"] 
+          available_actions: ["lookup_load", "create_lead", "negotiate_rate", "save_transcript", "log_call", "confirm_booking", "check_high_intent", "get_high_intent_keywords"] 
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -884,4 +888,133 @@ function buildLoadMessage(load: any, distanceMiles: number | null, targetRate: n
   msg += `Does this sound like the load you're looking for?`;
   
   return msg;
+}
+
+// HIGH INTENT KEYWORD HANDLERS
+
+async function handleCheckHighIntent(supabase: any, body: any) {
+  const { text, load_number, origin_city, destination_city } = body;
+  
+  console.log("[check_high_intent] Checking:", { text, load_number, origin_city, destination_city });
+
+  // Get all active (non-expired) high intent keywords
+  const { data: keywords, error } = await supabase
+    .from('trucking_high_intent_keywords')
+    .select('*')
+    .gte('expires_at', new Date().toISOString());
+
+  if (error || !keywords || keywords.length === 0) {
+    return new Response(
+      JSON.stringify({ 
+        is_high_intent: false, 
+        message: null 
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Check if any keyword matches
+  const textLower = (text || '').toLowerCase();
+  const loadNumberLower = (load_number || '').toLowerCase();
+  const originLower = (origin_city || '').toLowerCase();
+  const destLower = (destination_city || '').toLowerCase();
+
+  let matchedKeyword = null;
+  let matchedLoadId = null;
+
+  for (const kw of keywords) {
+    const kwLower = kw.keyword.toLowerCase();
+    
+    // Check against text (full transcript)
+    if (textLower.includes(kwLower)) {
+      matchedKeyword = kw;
+      matchedLoadId = kw.load_id;
+      break;
+    }
+    
+    // Check against specific fields
+    if (kw.keyword_type === 'load_number' && loadNumberLower.includes(kwLower)) {
+      matchedKeyword = kw;
+      matchedLoadId = kw.load_id;
+      break;
+    }
+    if (kw.keyword_type === 'origin_city' && originLower.includes(kwLower)) {
+      matchedKeyword = kw;
+      matchedLoadId = kw.load_id;
+      break;
+    }
+    if (kw.keyword_type === 'destination_city' && destLower.includes(kwLower)) {
+      matchedKeyword = kw;
+      matchedLoadId = kw.load_id;
+      break;
+    }
+  }
+
+  if (matchedKeyword) {
+    console.log("[check_high_intent] MATCH FOUND:", matchedKeyword.keyword);
+    
+    const premiumResponse = "Congratulations! This is a premium load. Please provide your company name and phone number, and one of our dispatchers will call you right back.";
+    
+    return new Response(
+      JSON.stringify({ 
+        is_high_intent: true, 
+        matched_keyword: matchedKeyword.keyword,
+        keyword_type: matchedKeyword.keyword_type,
+        load_id: matchedLoadId,
+        message: premiumResponse,
+        response_override: premiumResponse
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  return new Response(
+    JSON.stringify({ 
+      is_high_intent: false, 
+      message: null 
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
+}
+
+async function handleGetHighIntentKeywords(supabase: any) {
+  console.log("[get_high_intent_keywords] Fetching active keywords");
+
+  const { data: keywords, error } = await supabase
+    .from('trucking_high_intent_keywords')
+    .select('keyword, keyword_type, load_id')
+    .gte('expires_at', new Date().toISOString());
+
+  if (error) {
+    console.error("[get_high_intent_keywords] Error:", error);
+    return new Response(
+      JSON.stringify({ keywords: [], error: error.message }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Return keywords grouped by type for easy ElevenLabs integration
+  const keywordList = (keywords || []).map((k: any) => k.keyword);
+  const byType: Record<string, string[]> = {
+    origin_city: [],
+    destination_city: [],
+    load_number: [],
+    custom: []
+  };
+
+  for (const kw of keywords || []) {
+    if (byType[kw.keyword_type]) {
+      byType[kw.keyword_type].push(kw.keyword);
+    }
+  }
+
+  return new Response(
+    JSON.stringify({ 
+      keywords: keywordList,
+      by_type: byType,
+      count: keywordList.length,
+      premium_response: "Congratulations! This is a premium load. Please provide your company name and phone number, and one of our dispatchers will call you right back."
+    }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 }

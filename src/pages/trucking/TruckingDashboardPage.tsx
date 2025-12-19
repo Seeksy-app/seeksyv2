@@ -26,6 +26,7 @@ import { useLoadAssignment } from "@/hooks/trucking/useLoadAssignment";
 import { TruckingDailyBriefModal } from "@/components/trucking/TruckingDailyBriefModal";
 import { TruckingGlobalSearch } from "@/components/trucking/TruckingGlobalSearch";
 import { TruckingWelcomeBanner } from "@/components/trucking/TruckingWelcomeBanner";
+import { HighIntentKeywordsCard } from "@/components/trucking/HighIntentKeywordsCard";
 
 interface Load {
   id: string;
@@ -612,6 +613,12 @@ export default function TruckingDashboardPage() {
           <span>Booked: <strong className="text-slate-700">{bookedEarnings > 0 ? `$${bookedEarnings.toLocaleString()}` : "—"}</strong></span>
         </div>
       </div>
+
+      {/* High Intent Keywords */}
+      <HighIntentKeywordsCard 
+        loads={openLoads.map(l => ({ id: l.id, load_number: l.load_number, origin_city: l.origin_city, destination_city: l.destination_city }))} 
+        onRefresh={fetchData}
+      />
 
       {/* Stats Cards - Clickable */}
       <div className="grid grid-cols-5 gap-4">

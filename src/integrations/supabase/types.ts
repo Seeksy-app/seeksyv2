@@ -27572,6 +27572,44 @@ export type Database = {
         }
         Relationships: []
       }
+      trucking_high_intent_keywords: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_at: string
+          id: string
+          keyword: string
+          keyword_type: string
+          load_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          keyword: string
+          keyword_type: string
+          load_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string
+          id?: string
+          keyword?: string
+          keyword_type?: string
+          load_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_high_intent_keywords_load_id_fkey"
+            columns: ["load_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_loads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trucking_load_shares: {
         Row: {
           can_edit: boolean
@@ -32123,6 +32161,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_autosaves: { Args: never; Returns: number }
+      cleanup_expired_high_intent_keywords: { Args: never; Returns: undefined }
       cleanup_old_rate_limit_logs: { Args: never; Returns: undefined }
       create_meeting_public: {
         Args: {
