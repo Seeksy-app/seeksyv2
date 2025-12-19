@@ -15550,6 +15550,152 @@ export type Database = {
           },
         ]
       }
+      ip_assessments: {
+        Row: {
+          completed_at: string | null
+          id: string
+          metadata: Json | null
+          mode: string
+          scores_json: Json | null
+          scoring_version: string
+          started_at: string
+          status: string
+          top_code_3: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          mode?: string
+          scores_json?: Json | null
+          scoring_version?: string
+          started_at?: string
+          status?: string
+          top_code_3?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          mode?: string
+          scores_json?: Json | null
+          scoring_version?: string
+          started_at?: string
+          status?: string
+          top_code_3?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ip_items: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          prompt: string
+          riasec_code: string
+          version: string
+        }
+        Insert: {
+          created_at?: string
+          display_order: number
+          id?: string
+          is_active?: boolean
+          prompt: string
+          riasec_code: string
+          version?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          prompt?: string
+          riasec_code?: string
+          version?: string
+        }
+        Relationships: []
+      }
+      ip_responses: {
+        Row: {
+          answered_at: string
+          assessment_id: string
+          id: string
+          item_id: string
+          riasec_code: string
+          value: number
+        }
+        Insert: {
+          answered_at?: string
+          assessment_id: string
+          id?: string
+          item_id: string
+          riasec_code: string
+          value: number
+        }
+        Update: {
+          answered_at?: string
+          assessment_id?: string
+          id?: string
+          item_id?: string
+          riasec_code?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_responses_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "ip_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ip_responses_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "ip_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ip_scores: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          normalized_score: number | null
+          raw_score: number
+          riasec_code: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          normalized_score?: number | null
+          raw_score?: number
+          riasec_code: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          normalized_score?: number | null
+          raw_score?: number
+          riasec_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ip_scores_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "ip_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kb_articles: {
         Row: {
           author_id: string | null
