@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useCelebration } from "@/hooks/useCelebration";
 import { format, startOfDay, endOfDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { useTheme } from "next-themes";
@@ -141,6 +142,7 @@ export default function TruckingDashboardPage() {
   const [dailyBriefOpen, setDailyBriefOpen] = useState(false);
   const [selectedLeadIds, setSelectedLeadIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { celebrate } = useCelebration();
   const navigate = useNavigate();
   const { theme: appTheme, setTheme } = useTheme();
   const { takeLoad, releaseLoad, loading: assignmentLoading } = useLoadAssignment();
@@ -273,7 +275,8 @@ export default function TruckingDashboardPage() {
         if (loadError) throw loadError;
       }
 
-      toast({ title: "Lead confirmed", description: `${lead.company_name} has been confirmed and load booked.` });
+      const quote = celebrate();
+      toast({ title: quote, description: `${lead.company_name} has been confirmed and load booked.` });
       fetchData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -403,7 +406,8 @@ export default function TruckingDashboardPage() {
         .update({ status: "booked" })
         .eq("id", id);
       if (error) throw error;
-      toast({ title: "Load confirmed" });
+      const quote = celebrate();
+      toast({ title: quote, description: "Load has been booked!" });
       fetchData();
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
