@@ -11023,6 +11023,7 @@ export type Database = {
           estimated_monthly_credits: number | null
           icon_color: string | null
           id: string
+          installed_collections: string[] | null
           is_default: boolean | null
           modules: Json | null
           name: string
@@ -11038,6 +11039,7 @@ export type Database = {
           estimated_monthly_credits?: number | null
           icon_color?: string | null
           id?: string
+          installed_collections?: string[] | null
           is_default?: boolean | null
           modules?: Json | null
           name: string
@@ -11053,6 +11055,7 @@ export type Database = {
           estimated_monthly_credits?: number | null
           icon_color?: string | null
           id?: string
+          installed_collections?: string[] | null
           is_default?: boolean | null
           modules?: Json | null
           name?: string
@@ -31896,6 +31899,7 @@ export type Database = {
       }
       workspace_modules: {
         Row: {
+          added_via_collection: string | null
           created_at: string | null
           id: string
           is_pinned: boolean | null
@@ -31907,6 +31911,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          added_via_collection?: string | null
           created_at?: string | null
           id?: string
           is_pinned?: boolean | null
@@ -31918,6 +31923,7 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          added_via_collection?: string | null
           created_at?: string | null
           id?: string
           is_pinned?: boolean | null

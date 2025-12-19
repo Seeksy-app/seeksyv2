@@ -22,6 +22,7 @@ export interface WorkspaceModule {
   settings: Record<string, unknown>;
   is_pinned: boolean;
   is_standalone: boolean;
+  added_via_collection: string | null;
 }
 
 interface WorkspaceContextType {
@@ -146,6 +147,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         settings: (m.settings as Record<string, unknown>) || {},
         is_pinned: m.is_pinned || false,
         is_standalone: m.is_standalone || false,
+        added_via_collection: (m as any).added_via_collection || null,
       })));
     } catch (err) {
       console.error('Error fetching workspace modules:', err);
@@ -346,6 +348,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
             settings: (insertedModule.settings as Record<string, unknown>) || {},
             is_pinned: insertedModule.is_pinned || false,
             is_standalone: insertedModule.is_standalone || false,
+            added_via_collection: (insertedModule as any).added_via_collection || null,
           });
         }
       }
