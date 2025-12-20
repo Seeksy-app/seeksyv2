@@ -1057,10 +1057,11 @@ const AppContent = () => {
               <Route path="/event-growth-kit" element={<LeadMagnetLanding />} />
               <Route path="/thank-you/:slug" element={<LeadMagnetThankYou />} />
           <Route path="/daily-brief" element={<DailyBriefPage />} />
-          <Route path="/dashboard" element={<UniversalDashboard />} />
-          <Route path="/dashboard-legacy" element={<Dashboard />} />
-          <Route path="/dashboard-v2" element={<DashboardV2 />} />
-          <Route path="/dashboard/onboarding" element={<DashboardOnboarding />} />
+          {/* All dashboard routes redirect to /my-day - single dashboard experience */}
+          <Route path="/dashboard" element={<Navigate to="/my-day" replace />} />
+          <Route path="/dashboard-legacy" element={<Navigate to="/my-day" replace />} />
+          <Route path="/dashboard-v2" element={<Navigate to="/my-day" replace />} />
+          <Route path="/dashboard/onboarding" element={<Navigate to="/onboarding" replace />} />
               <Route path="/email-history" element={<CommunicationHistory />} />
           <Route path="/communication-history" element={<CommunicationHistory />} />
           <Route path="/newsletter" element={<Newsletter />} />
@@ -1156,7 +1157,7 @@ const AppContent = () => {
           {/* Legacy routes redirect to single source of truth */}
           <Route path="/apps-legacy" element={<Navigate to="/apps?view=modules" replace />} />
           <Route path="/module-center" element={<Navigate to="/apps?view=modules" replace />} />
-          <Route path="/workspace" element={<WorkspaceDashboard />} />
+          <Route path="/workspace" element={<Navigate to="/my-day" replace />} />
           <Route path="/influencehub" element={<InfluenceHub />} />
           <Route path="/influencehub/connect" element={<InfluenceHubConnect />} />
           <Route path="/influencehub/creators" element={<InfluenceHubCreators />} />

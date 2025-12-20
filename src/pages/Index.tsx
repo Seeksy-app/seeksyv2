@@ -38,10 +38,10 @@ const Index = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session) {
-        // Check user role and redirect appropriately
+        // Check user role and onboarding status
         const { data: profile } = await supabase
           .from('profiles')
-          .select('preferred_role, is_creator, is_advertiser')
+          .select('preferred_role, is_creator, is_advertiser, onboarding_completed')
           .eq('id', session.user.id)
           .single();
 
@@ -63,7 +63,13 @@ const Index = () => {
           return;
         }
         
-        // Creator users - check for custom default landing route
+        // CRITICAL: If onboarding is not completed, redirect to onboarding
+        if (profile?.onboarding_completed === false) {
+          navigate('/onboarding');
+          return;
+        }
+        
+        // Creator users with completed onboarding - check for custom default landing route
         const { data: prefs } = await supabase
           .from('user_preferences')
           .select('default_landing_route')
