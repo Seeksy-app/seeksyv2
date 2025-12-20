@@ -351,7 +351,7 @@ export default function AppsRedesigned() {
               <Card className="p-8 bg-gradient-to-br from-amber-50/50 via-orange-50/30 to-rose-50/50 dark:from-amber-950/20 dark:via-orange-950/10 dark:to-rose-950/20 border-amber-200/50 dark:border-amber-800/30">
                 <SparkOnboardingGuide
                   onSelectIntent={handleIntentSelect}
-                  onSkip={() => setViewMode("collections")}
+                  onSkip={() => setViewMode("modules")}
                   installedModuleIds={installedModuleIds}
                 />
               </Card>
@@ -563,8 +563,10 @@ export default function AppsRedesigned() {
         workspaceName={currentWorkspace?.name || null}
         workspaceId={currentWorkspace?.id || null}
         onInstallComplete={() => {
+          // After onboarding install, redirect straight to My Day
           setSelectedIntent(null);
-          setViewMode("collections");
+          setIntentModalOpen(false);
+          navigate("/my-day");
         }}
       />
 

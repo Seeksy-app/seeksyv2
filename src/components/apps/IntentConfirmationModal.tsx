@@ -20,6 +20,7 @@ import { useWorkspace } from "@/contexts/WorkspaceContext";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface IntentConfirmationModalProps {
   isOpen: boolean;
@@ -161,10 +162,17 @@ export function IntentConfirmationModal({
     }
   };
 
-  // Mark onboarding as complete to prevent re-showing AI Guide
-  const markOnboardingComplete = () => {
+  // Mark onboarding as complete in database to prevent re-showing AI Guide
+  const markOnboardingComplete = async () => {
     if (workspaceId) {
-      localStorage.setItem(`seeksy_onboarding_complete_${workspaceId}`, "true");
+      // Also update database for persistence
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('user_preferences')
+          .update({ onboarding_completed: true, updated_at: new Date().toISOString() })
+          .eq('user_id', user.id);
+      }
     }
   };
 
