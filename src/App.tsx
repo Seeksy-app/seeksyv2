@@ -66,6 +66,8 @@ import WorkReady360Home from "./pages/workready360/WorkReady360Home";
 import WIPAssessment from "./pages/workready360/WIPAssessment";
 import WIPResults from "./pages/workready360/WIPResults";
 import IPAssessment from "./pages/workready360/IPAssessment";
+// Local Visibility & Growth
+import LocalVisibilityApp from "./pages/local-visibility/LocalVisibilityApp";
 // AITrucking
 import TruckingLandingPage from "./pages/trucking/TruckingLandingPage";
 import TruckingDashboardPage from "./pages/trucking/TruckingDashboardPage";
@@ -955,6 +957,9 @@ const AppContent = () => {
               
               {/* VenueOS Investor Page */}
               <Route path="/invest/venueos" element={<VenueOSInvestPage />} />
+              
+              {/* Local Visibility & Growth */}
+              <Route path="/local-visibility" element={<LocalVisibilityApp />} />
               
               {/* Investor Application */}
               <Route path="/invest/apply" element={<InvestorApplication />} />
