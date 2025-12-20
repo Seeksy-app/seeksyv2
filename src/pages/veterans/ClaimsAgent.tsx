@@ -8,15 +8,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   MessageSquare, Send, Loader2, ExternalLink, AlertCircle, ChevronRight, 
-  ClipboardList, Shield, Calculator, Sparkles, DollarSign, FileText, TrendingUp,
-  Clock
+  ClipboardList, Shield, Calculator, Sparkles, FileText,
+  Clock, Users
 } from "lucide-react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ClaimsRightSidebar, ClaimsNote } from "@/components/veterans/ClaimsRightSidebar";
 import { ClaimsChatMessage } from "@/components/veterans/ClaimsChatMessage";
-import { QUICK_REPLY_TEMPLATES } from "@/components/veterans/ClaimsQuickReplies";
+import { VA_CLAIMS_QUICK_REPLIES, getQuickReplies, isCalculatorRequest, ChatMode } from "@/components/veterans/ClaimsQuickReplies";
+import { FindRepForm } from "@/components/veterans/FindRepForm";
 import { Helmet } from "react-helmet";
 
 interface Message {
@@ -51,8 +52,8 @@ const WELCOME_MESSAGE: Message = {
 
 const SUGGESTION_PROMPTS = [
   { title: "Intent to File", description: "Protect your effective date", icon: Clock },
-  { title: "Find a Rep", description: "Connect with accredited help", icon: Shield },
-  { title: "Calculate Benefits", description: "Estimate your compensation", icon: DollarSign },
+  { title: "Find a Rep", description: "Connect with accredited help", icon: Users },
+  { title: "Evidence Help", description: "What you need to prove your claim", icon: ClipboardList },
   { title: "Help Me Choose", description: "Guide me through options", icon: FileText },
 ];
 
@@ -133,6 +134,8 @@ export default function ClaimsAgent() {
   const [isLoadingConversation, setIsLoadingConversation] = useState(true);
   const [showHandoffModal, setShowHandoffModal] = useState(false);
   const [showCalculators, setShowCalculators] = useState(false);
+  const [showFindRepModal, setShowFindRepModal] = useState(false);
+  const [chatMode] = useState<ChatMode>("va_claims"); // This hub is always va_claims mode
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
   const [leadForm, setLeadForm] = useState({ name: "", email: "", phone: "" });
   const [error, setError] = useState<string | null>(null);
@@ -369,6 +372,49 @@ export default function ClaimsAgent() {
     const userMessage = (messageText || input).trim();
     if (!userMessage || isLoading) return;
 
+    // Handle "Open Calculators" quick action
+    if (userMessage.toLowerCase() === "open calculators") {
+      setShowCalculators(true);
+      return;
+    }
+
+    // Check if user wants to find a rep - open the Find Rep modal
+    const isFindRepRequest = /find.*(rep|representative|vso|attorney|agent)/i.test(userMessage) ||
+      /accredited.*(rep|representative|help)/i.test(userMessage) ||
+      userMessage.toLowerCase().includes("find me an accredited");
+    
+    if (isFindRepRequest) {
+      setInput("");
+      const userMsg: Message = { role: "user", content: userMessage };
+      setMessages(prev => [...prev, userMsg]);
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: "I'll help you find an accredited representative. Please fill out the form below with your ZIP code and preferences.",
+          quickReplies: []
+        }]);
+        setShowFindRepModal(true);
+      }, 300);
+      return;
+    }
+
+    // Check if user is asking about calculators - graceful redirect
+    if (isCalculatorRequest(userMessage)) {
+      setInput("");
+      const userMsg: Message = { role: "user", content: userMessage };
+      setMessages(prev => [...prev, userMsg]);
+      
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          role: "assistant",
+          content: "I focus on VA claims preparation. For financial calculations like TSP growth, pension estimates, or compensation calculations, use our dedicated calculators.",
+          quickReplies: ["Open Calculators", "Start an Intent to File", "Find me an accredited representative", "What evidence do I need?"]
+        }]);
+      }, 300);
+      return;
+    }
+
     // Check if user wants to file Intent to File - hand off to structured form
     const isIntentToFileRequest = INTENT_TO_FILE_PATTERNS.some(pattern => pattern.test(userMessage));
     if (isIntentToFileRequest) {
@@ -380,7 +426,7 @@ export default function ClaimsAgent() {
       setTimeout(() => {
         setMessages(prev => [...prev, {
           role: "assistant",
-          content: "Great choice! I'll take you to our **Intent to File form** where we'll collect your information step by step. This ensures everything is captured accurately.\n\nYou'll be able to:\n• Enter your veteran info\n• Select your claim type and conditions\n• Choose a representative (optional)\n• Download your completed forms",
+          content: "Great choice! I'll take you to our **Intent to File form** where we'll collect your information step by step.\n\nYou'll be able to:\n• Enter your veteran info\n• Select your claim type and conditions\n• Choose a representative (optional)\n• Download your completed forms",
           quickReplies: []
         }]);
         
@@ -447,8 +493,9 @@ export default function ClaimsAgent() {
         }
       }
       
-      const defaultPrompts = QUICK_REPLY_TEMPLATES.navigation;
-      const quickReplies = prompts.length > 0 ? prompts : defaultPrompts;
+      // Filter quick replies by mode (va_claims - never show calculator prompts)
+      const filteredPrompts = getQuickReplies("va_claims", prompts.length > 0 ? prompts : undefined);
+      const quickReplies = filteredPrompts.length > 0 ? filteredPrompts : VA_CLAIMS_QUICK_REPLIES;
       const assistantMessage: Message = { role: "assistant", content: contentAfterPrompts, quickReplies };
       setMessages(prev => [...prev, assistantMessage]);
       
@@ -804,7 +851,31 @@ export default function ClaimsAgent() {
         </DialogContent>
       </Dialog>
 
-      {/* Main Chat Area */}
+      {/* Find a Rep Modal */}
+      <Dialog open={showFindRepModal} onOpenChange={setShowFindRepModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Find an Accredited Representative
+            </DialogTitle>
+            <DialogDescription>
+              Search for VSO representatives, attorneys, or claims agents in your area
+            </DialogDescription>
+          </DialogHeader>
+          <FindRepForm 
+            onClose={() => {
+              setShowFindRepModal(false);
+              setMessages(prev => [...prev, {
+                role: "assistant",
+                content: "Great! Your contact request has been submitted. Is there anything else I can help you with?",
+                quickReplies: VA_CLAIMS_QUICK_REPLIES.filter(r => !r.includes("representative"))
+              }]);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
       <div className="flex-1 flex overflow-hidden">
         {/* Chat Column */}
         <div className="flex-1 flex flex-col min-w-0">
