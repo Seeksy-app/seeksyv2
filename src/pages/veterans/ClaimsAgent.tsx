@@ -422,12 +422,12 @@ export default function ClaimsAgent() {
       const { error } = await supabase
         .from("veteran_leads")
         .insert({
-          name: leadForm.name,
+          full_name: leadForm.name,
           email: leadForm.email,
           phone: leadForm.phone || null,
           source: "claims-agent",
-          notes: allNotes,
-          status: "new"
+          intent_type: "new_claim",
+          status: "prepared"
         });
 
       if (error) throw error;

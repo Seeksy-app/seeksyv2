@@ -7822,6 +7822,115 @@ export type Database = {
           },
         ]
       }
+      claim_documents: {
+        Row: {
+          created_at: string
+          document_type: string
+          file_name: string
+          file_size_bytes: number | null
+          file_url: string
+          form_type: string | null
+          generated_at: string | null
+          id: string
+          is_generated: boolean | null
+          is_submitted: boolean | null
+          is_uploaded: boolean | null
+          mime_type: string | null
+          storage_path: string | null
+          submitted_at: string | null
+          veteran_lead_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_type: string
+          file_name: string
+          file_size_bytes?: number | null
+          file_url: string
+          form_type?: string | null
+          generated_at?: string | null
+          id?: string
+          is_generated?: boolean | null
+          is_submitted?: boolean | null
+          is_uploaded?: boolean | null
+          mime_type?: string | null
+          storage_path?: string | null
+          submitted_at?: string | null
+          veteran_lead_id: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string
+          file_name?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          form_type?: string | null
+          generated_at?: string | null
+          id?: string
+          is_generated?: boolean | null
+          is_submitted?: boolean | null
+          is_uploaded?: boolean | null
+          mime_type?: string | null
+          storage_path?: string | null
+          submitted_at?: string | null
+          veteran_lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_documents_veteran_lead_id_fkey"
+            columns: ["veteran_lead_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_intents: {
+        Row: {
+          body_systems: string[] | null
+          claim_category: string
+          conditions: string[]
+          created_at: string
+          effective_date: string | null
+          id: string
+          is_secondary: boolean | null
+          notes: string | null
+          primary_condition_id: string | null
+          veteran_lead_id: string
+        }
+        Insert: {
+          body_systems?: string[] | null
+          claim_category: string
+          conditions?: string[]
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          is_secondary?: boolean | null
+          notes?: string | null
+          primary_condition_id?: string | null
+          veteran_lead_id: string
+        }
+        Update: {
+          body_systems?: string[] | null
+          claim_category?: string
+          conditions?: string[]
+          created_at?: string
+          effective_date?: string | null
+          id?: string
+          is_secondary?: boolean | null
+          notes?: string | null
+          primary_condition_id?: string | null
+          veteran_lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_intents_veteran_lead_id_fkey"
+            columns: ["veteran_lead_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claim_partner_assignments: {
         Row: {
           assignment_reason: string | null
@@ -21813,6 +21922,71 @@ export type Database = {
           },
         ]
       }
+      rep_assignments: {
+        Row: {
+          assigned_at: string
+          assignment_method: string | null
+          assignment_reason: string | null
+          created_at: string
+          first_contact_at: string | null
+          id: string
+          intro_email_sent_at: string | null
+          is_monetized: boolean | null
+          lead_value_cents: number | null
+          rep_email: string | null
+          rep_id: string | null
+          rep_name: string | null
+          rep_organization: string | null
+          rep_phone: string | null
+          rep_type: string
+          veteran_lead_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assignment_method?: string | null
+          assignment_reason?: string | null
+          created_at?: string
+          first_contact_at?: string | null
+          id?: string
+          intro_email_sent_at?: string | null
+          is_monetized?: boolean | null
+          lead_value_cents?: number | null
+          rep_email?: string | null
+          rep_id?: string | null
+          rep_name?: string | null
+          rep_organization?: string | null
+          rep_phone?: string | null
+          rep_type: string
+          veteran_lead_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assignment_method?: string | null
+          assignment_reason?: string | null
+          created_at?: string
+          first_contact_at?: string | null
+          id?: string
+          intro_email_sent_at?: string | null
+          is_monetized?: boolean | null
+          lead_value_cents?: number | null
+          rep_email?: string | null
+          rep_id?: string | null
+          rep_name?: string | null
+          rep_organization?: string | null
+          rep_phone?: string | null
+          rep_type?: string
+          veteran_lead_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rep_assignments_veteran_lead_id_fkey"
+            columns: ["veteran_lead_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_events: {
         Row: {
           created_at: string | null
@@ -30374,52 +30548,82 @@ export type Database = {
       }
       veteran_leads: {
         Row: {
-          branch_of_service: string | null
-          conditions: string[] | null
+          branch: string | null
+          confirmation_number: string | null
           created_at: string
+          discharge_type: string | null
+          dob: string | null
           email: string
-          existing_rating: number | null
+          full_name: string
           id: string
-          name: string
-          notes: string | null
-          pdf_url: string | null
+          intent_type: string
+          is_first_time_filer: boolean | null
           phone: string | null
-          service_dates: string | null
-          source: string
-          status: string | null
+          service_end_date: string | null
+          service_start_date: string | null
+          source: string | null
+          ssn_last_four: string | null
+          state: string | null
+          status: string
+          submission_confirmed_at: string | null
+          submitted_to_va: boolean | null
           updated_at: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
         }
         Insert: {
-          branch_of_service?: string | null
-          conditions?: string[] | null
+          branch?: string | null
+          confirmation_number?: string | null
           created_at?: string
+          discharge_type?: string | null
+          dob?: string | null
           email: string
-          existing_rating?: number | null
+          full_name: string
           id?: string
-          name: string
-          notes?: string | null
-          pdf_url?: string | null
+          intent_type: string
+          is_first_time_filer?: boolean | null
           phone?: string | null
-          service_dates?: string | null
-          source?: string
-          status?: string | null
+          service_end_date?: string | null
+          service_start_date?: string | null
+          source?: string | null
+          ssn_last_four?: string | null
+          state?: string | null
+          status?: string
+          submission_confirmed_at?: string | null
+          submitted_to_va?: boolean | null
           updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Update: {
-          branch_of_service?: string | null
-          conditions?: string[] | null
+          branch?: string | null
+          confirmation_number?: string | null
           created_at?: string
+          discharge_type?: string | null
+          dob?: string | null
           email?: string
-          existing_rating?: number | null
+          full_name?: string
           id?: string
-          name?: string
-          notes?: string | null
-          pdf_url?: string | null
+          intent_type?: string
+          is_first_time_filer?: boolean | null
           phone?: string | null
-          service_dates?: string | null
-          source?: string
-          status?: string | null
+          service_end_date?: string | null
+          service_start_date?: string | null
+          source?: string | null
+          ssn_last_four?: string | null
+          state?: string | null
+          status?: string
+          submission_confirmed_at?: string | null
+          submitted_to_va?: boolean | null
           updated_at?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
         }
         Relationships: []
       }

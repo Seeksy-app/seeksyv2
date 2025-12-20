@@ -31,15 +31,12 @@ export default function VeteranBenefitsOpportunity() {
       const { error } = await supabase
         .from("veteran_leads")
         .insert({
-          name: "Demo Investor Lead",
+          full_name: "Demo Investor Lead",
           email: "demo@example.com",
           source: "investor-demo",
-          notes: "Sample claim packet generated for investor demo",
-          branch_of_service: "Army",
-          service_dates: "2010-2018",
-          conditions: ["Back Pain", "PTSD", "Hearing Loss"],
-          existing_rating: 30,
-          status: "demo"
+          branch: "Army",
+          intent_type: "new_claim",
+          status: "prepared"
         });
 
       if (error) throw error;

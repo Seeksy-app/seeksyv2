@@ -33,11 +33,17 @@ export default function LeadIntelligencePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("veteran_leads")
-        .select("id, name, email, created_at, source")
+        .select("id, full_name, email, created_at, source")
         .order("created_at", { ascending: false })
         .limit(100);
       if (error) throw error;
-      return (data || []).map((l) => ({ ...l, source: "veteran" as const }));
+      return (data || []).map((l) => ({ 
+        id: l.id,
+        name: l.full_name,
+        email: l.email,
+        created_at: l.created_at,
+        source: "veteran" as const 
+      }));
     },
   });
 
