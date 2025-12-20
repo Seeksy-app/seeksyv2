@@ -31584,6 +31584,69 @@ export type Database = {
         }
         Relationships: []
       }
+      vso_representatives: {
+        Row: {
+          accreditation_type: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean | null
+          last_verified: string | null
+          organization_name: string | null
+          phone: string | null
+          raw_data: Json | null
+          source_name: string | null
+          source_url: string | null
+          state: string | null
+          street_address: string | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          accreditation_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean | null
+          last_verified?: string | null
+          organization_name?: string | null
+          phone?: string | null
+          raw_data?: Json | null
+          source_name?: string | null
+          source_url?: string | null
+          state?: string | null
+          street_address?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          accreditation_type?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean | null
+          last_verified?: string | null
+          organization_name?: string | null
+          phone?: string | null
+          raw_data?: Json | null
+          source_name?: string | null
+          source_url?: string | null
+          state?: string | null
+          street_address?: string | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       wallets: {
         Row: {
           balance: number | null
