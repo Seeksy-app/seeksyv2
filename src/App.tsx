@@ -358,9 +358,8 @@ import KeysVault from "./pages/KeysVault";
 import ManageInvestorSpreadsheets from "./pages/ManageInvestorSpreadsheets";
 import ModuleSelector from "./pages/ModuleSelector";
 import Modules from "./pages/Modules";
-import Apps from "./pages/Apps";
+// Legacy Apps.tsx and ModuleCenter are retired - AppsRouter is the single source of truth
 import AppsRouter from "./pages/AppsRouter";
-import ModuleCenter from "./pages/ModuleCenter";
 import Spark from "./pages/Spark";
 import ComingSoon from "./pages/ComingSoon";
 import WorkspaceDashboard from "./pages/WorkspaceDashboard";
@@ -890,7 +889,7 @@ const AppContent = () => {
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/onboarding/complete" element={<OnboardingComplete />} />
               
-              <Route path="/seekies" element={<Apps />} />
+              <Route path="/seekies" element={<Navigate to="/apps?view=modules" replace />} />
               
               {/* Integrations */}
               <Route path="/dropbox/callback" element={<DropboxCallback />} />
@@ -1154,8 +1153,9 @@ const AppContent = () => {
           <Route path="/module-selector" element={<ModuleSelector />} />
           <Route path="/modules" element={<Modules />} />
           <Route path="/apps" element={<AppsRouter />} />
-          <Route path="/apps-legacy" element={<Apps />} />
-          <Route path="/module-center" element={<ModuleCenter />} />
+          {/* Legacy routes redirect to single source of truth */}
+          <Route path="/apps-legacy" element={<Navigate to="/apps?view=modules" replace />} />
+          <Route path="/module-center" element={<Navigate to="/apps?view=modules" replace />} />
           <Route path="/workspace" element={<WorkspaceDashboard />} />
           <Route path="/influencehub" element={<InfluenceHub />} />
           <Route path="/influencehub/connect" element={<InfluenceHubConnect />} />

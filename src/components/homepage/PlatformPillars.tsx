@@ -10,7 +10,7 @@ const pillars = [
     description:
       "Record podcasts, generate clips, edit videos, and create content with AI assistance. Our studio handles transcription, captions, and distribution automatically.",
     icon: Video,
-    link: "/apps",
+    link: "/apps?view=modules",
     linkText: "Explore Creator Tools",
     gradient: "from-blue-500/10 to-cyan-500/10",
     borderColor: "border-blue-500/20",
@@ -24,7 +24,7 @@ const pillars = [
     description:
       "Manage contacts, send emails and SMS, schedule meetings, and host events. Everything you need to grow and engage your community in one place.",
     icon: Users,
-    link: "/apps",
+    link: "/apps?view=modules",
     linkText: "See Engagement Tools",
     gradient: "from-emerald-500/10 to-teal-500/10",
     borderColor: "border-emerald-500/20",
@@ -38,7 +38,7 @@ const pillars = [
     description:
       "Accept payments, sell tickets, manage sponsorships, and track revenue. Verified voice identity unlocks premium ad opportunities with brands.",
     icon: DollarSign,
-    link: "/apps",
+    link: "/apps?view=modules",
     linkText: "Learn About Monetization",
     gradient: "from-amber-500/10 to-orange-500/10",
     borderColor: "border-amber-500/20",
