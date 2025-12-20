@@ -118,6 +118,8 @@ export default function ClaimsAgent() {
   const [searchParams] = useSearchParams();
   const conversationIdParam = searchParams.get('conversation');
   const isNewParam = searchParams.get('new') === 'true';
+  const initialQuestion = searchParams.get('q');
+  const actionParam = searchParams.get('action');
   const navigate = useNavigate();
 
   const [user, setUser] = useState<any>(null);
@@ -250,6 +252,32 @@ export default function ClaimsAgent() {
 
     loadConversation();
   }, [conversationIdParam, isNewParam, user]);
+
+  // Handle initial question or action from URL params
+  const [hasProcessedUrlParams, setHasProcessedUrlParams] = useState(false);
+  useEffect(() => {
+    if (!isLoadingConversation && !hasProcessedUrlParams && messages.length > 0) {
+      if (initialQuestion) {
+        // Auto-send the question from URL
+        setHasProcessedUrlParams(true);
+        setTimeout(() => {
+          setInput(initialQuestion);
+          // Trigger send after setting input
+          const event = new CustomEvent('auto-send-message', { detail: initialQuestion });
+          window.dispatchEvent(event);
+        }, 500);
+      } else if (actionParam === 'start-claim') {
+        // Auto-trigger "File an Intent to File" flow
+        setHasProcessedUrlParams(true);
+        setTimeout(() => {
+          const event = new CustomEvent('auto-send-message', { detail: 'File an Intent to File (protect my date)' });
+          window.dispatchEvent(event);
+        }, 500);
+      } else {
+        setHasProcessedUrlParams(true);
+      }
+    }
+  }, [isLoadingConversation, hasProcessedUrlParams, initialQuestion, actionParam, messages.length]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -478,6 +506,17 @@ export default function ClaimsAgent() {
       setIsSubmittingLead(false);
     }
   };
+
+  // Listen for auto-send events from URL params
+  useEffect(() => {
+    const handleAutoSend = (event: CustomEvent) => {
+      sendMessage(event.detail);
+    };
+    window.addEventListener('auto-send-message', handleAutoSend as EventListener);
+    return () => {
+      window.removeEventListener('auto-send-message', handleAutoSend as EventListener);
+    };
+  }, [messages, notes, userName, profile, conversationId]);
 
   const isEmptyChat = messages.length <= 1 && messages[0]?.role === 'assistant';
 

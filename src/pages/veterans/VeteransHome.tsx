@@ -126,38 +126,79 @@ export default function VeteransHome() {
         </div>
       </section>
 
-      {/* AI Benefits Agent Featured - Improved transition */}
+      {/* AI Benefits Agent Featured - Combined entry with actions + input */}
       <section className="py-16 container mx-auto px-4 -mt-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold mb-2">Get Started with AI-Powered Guidance</h2>
             <p className="text-muted-foreground">Let our AI Benefits Agent walk you through the claims process step by step</p>
           </div>
-          <Link to="/yourbenefits/claims-agent">
-            <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-orange-500/5 transition-all hover:shadow-xl hover:border-primary/50 hover:-translate-y-1">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg">
-                    <MessageSquare className="w-8 h-8" />
-                  </div>
-                  <span className="text-xs font-semibold bg-primary text-primary-foreground px-3 py-1.5 rounded-full">
-                    AI-POWERED
-                  </span>
+          <Card className="border-2 border-primary/30 bg-gradient-to-r from-primary/5 to-orange-500/5">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 text-white shadow-lg">
+                  <MessageSquare className="w-8 h-8" />
                 </div>
-                <CardTitle className="text-2xl mt-4">AI Benefits Agent</CardTitle>
-                <CardDescription className="text-base">
-                  Get personalized guidance on filing your VA disability claim with Intent to File support. 
-                  Our AI walks you through each step and helps you gather the right documentation.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 text-primary font-medium">
-                  <span>Start Your Claim</span>
-                  <span className="text-lg">→</span>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                <span className="text-xs font-semibold bg-primary text-primary-foreground px-3 py-1.5 rounded-full">
+                  AI-POWERED
+                </span>
+              </div>
+              <CardTitle className="text-2xl mt-4">AI Benefits Agent</CardTitle>
+              <CardDescription className="text-base">
+                Get personalized guidance on filing your VA disability claim with Intent to File support. 
+                Our AI walks you through each step and helps you gather the right documentation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Quick Action Buttons */}
+              <div className="flex flex-wrap gap-3">
+                <Button asChild variant="default" size="lg">
+                  <Link to="/yourbenefits/claims-agent?action=start-claim">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Start Your Claim
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" size="lg">
+                  <Link to="/yourbenefits/intent-to-file">
+                    <Clock className="w-4 h-4 mr-2" />
+                    Intent to File
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" size="lg">
+                  <Link to="/yourbenefits/claims-agent">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Ask Any Question
+                  </Link>
+                </Button>
+              </div>
+
+              {/* Mini Chat Input */}
+              <div className="pt-4 border-t">
+                <form 
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const input = e.currentTarget.querySelector('input') as HTMLInputElement;
+                    if (input?.value.trim()) {
+                      window.location.href = `/yourbenefits/claims-agent?q=${encodeURIComponent(input.value.trim())}`;
+                    }
+                  }}
+                  className="flex gap-2"
+                >
+                  <input
+                    type="text"
+                    placeholder="Type your question here..."
+                    className="flex-1 px-4 py-3 rounded-lg border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                  />
+                  <Button type="submit" size="lg">
+                    Ask AI
+                  </Button>
+                </form>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Example: "What conditions qualify for VA disability?" or "How do I increase my rating?"
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
