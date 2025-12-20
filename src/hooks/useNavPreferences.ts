@@ -95,8 +95,8 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', path: '/dashboard', isHome: true, level: 0 },
   { id: 'creator_hub', label: 'Creator Hub', path: '/creator-hub', isHome: true, level: 0 },
   { id: 'settings', label: 'Settings', path: '/settings', level: 0 },
-  { id: 'my_workspaces', label: 'My Workspaces', path: '/module-center?filter=my-workspaces', level: 0 },
-  { id: 'seekies', label: 'Module Center', path: '/module-center', level: 0 },
+  { id: 'my_workspaces', label: 'My Workspaces', path: '/apps?filter=my-workspaces', level: 0 },
+  { id: 'seekies', label: 'Module Center', path: '/apps?view=modules', level: 0 },
   
   // Standalone module items (top-level when activated)
   { id: 'meetings', label: 'Meetings', path: '/meetings', level: 0, moduleId: 'meetings' },
