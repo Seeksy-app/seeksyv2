@@ -600,6 +600,7 @@ import SBPCalculator from "./pages/veterans/calculators/SBPCalculator";
 import COLACalculator from "./pages/veterans/calculators/COLACalculator";
 import VATravelCalculator from "./pages/veterans/calculators/VATravelCalculator";
 import VeteranClaimsAgent from "./pages/veterans/ClaimsAgent";
+import IntentToFilePage from "./pages/veterans/IntentToFilePage";
 import ReferralPartnersPage from "./pages/veterans/ReferralPartnersPage";
 import GIBillCalculator from "./pages/veterans/calculators/GIBillCalculator";
 import InsuranceNeedsCalculator from "./pages/veterans/calculators/InsuranceNeedsCalculator";
@@ -795,6 +796,7 @@ const AppContent = () => {
         <Route path="/yourbenefits/dashboard" element={<VeteransLayout><VeteransDashboard /></VeteransLayout>} />
         <Route path="/yourbenefits/settings" element={<VeteransLayout><VeteransSettings /></VeteransLayout>} />
         <Route path="/yourbenefits/claims-agent" element={<VeteransLayout><VeteranClaimsAgent /></VeteransLayout>} />
+        <Route path="/yourbenefits/intent-to-file" element={<IntentToFilePage />} />
         <Route path="/yourbenefits/calculators/military-buyback" element={<VeteransLayout><MilitaryBuyBackCalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/mra" element={<VeteransLayout><MRACalculator /></VeteransLayout>} />
         <Route path="/yourbenefits/calculators/sick-leave" element={<VeteransLayout><SickLeaveCalculator /></VeteransLayout>} />
