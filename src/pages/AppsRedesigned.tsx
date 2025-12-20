@@ -41,7 +41,8 @@ export default function AppsRedesigned() {
     createWorkspace, 
     setCurrentWorkspace, 
     addModule,
-    isLoading: workspaceLoading 
+    isLoading: workspaceLoading,
+    hasFetchedOnce
   } = useWorkspace();
   
   // Derive installed module IDs from workspace modules
@@ -93,7 +94,7 @@ export default function AppsRedesigned() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
-  const [sparkMessage, setSparkMessage] = useState<string | null>(null);
+  // sparkMessage removed - now using toast.success for workspace creation notifications
   
   // Modals
   const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
@@ -107,24 +108,28 @@ export default function AppsRedesigned() {
     }
   }, [isExplicitOnboarding, canShowOnboarding, viewMode]);
 
-  // Auto-create workspace if user has none
+  // Auto-create workspace if user has none - ONLY after fetch is complete
   useEffect(() => {
     const autoCreateWorkspace = async () => {
-      // Wait for loading to finish, then check if no workspaces
-      if (workspaceLoading || isCreatingWorkspace) return;
+      // CRITICAL: Wait until we've actually fetched workspaces at least once
+      // This prevents race conditions where we create a workspace before knowing if one exists
+      if (!hasFetchedOnce) return;
+      if (workspaceLoading) return;
+      if (isCreatingWorkspace) return;
       if (workspaces.length > 0) return;
       
+      console.log('[AppsRedesigned] No workspaces after fetch, creating "My Workspace"');
       setIsCreatingWorkspace(true);
       try {
         const newWorkspace = await createWorkspace("My Workspace");
         if (newWorkspace) {
           setCurrentWorkspace(newWorkspace);
-          setSparkMessage("I've set up a workspace for you — you can rename it anytime!");
-          // Clear message after display
-          setTimeout(() => setSparkMessage(null), 5000);
+          toast.success("Workspace created", {
+            description: "I've set up \"My Workspace\" for you — you can rename it anytime!",
+          });
         }
       } catch (error) {
-        console.error("Failed to auto-create workspace:", error);
+        console.error("[AppsRedesigned] Failed to auto-create workspace:", error);
         toast.error("Failed to create workspace. Please try again.");
       } finally {
         setIsCreatingWorkspace(false);
@@ -132,7 +137,7 @@ export default function AppsRedesigned() {
     };
     
     autoCreateWorkspace();
-  }, [workspaceLoading, workspaces.length, createWorkspace, setCurrentWorkspace, isCreatingWorkspace]);
+  }, [hasFetchedOnce, workspaceLoading, workspaces.length, createWorkspace, setCurrentWorkspace, isCreatingWorkspace]);
 
   // Filter modules based on search and category
   const filteredModules = useMemo(() => {
@@ -247,14 +252,15 @@ export default function AppsRedesigned() {
     return collection.includedApps.every(id => installedModuleIds.includes(id));
   };
 
-  // Show loading state while creating workspace
-  if (workspaceLoading || isCreatingWorkspace) {
+  // Show loading state while workspace is being fetched or created
+  // IMPORTANT: Only show loading if we haven't fetched yet, or if actively creating
+  if (!hasFetchedOnce || isCreatingWorkspace) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
           <p className="text-muted-foreground">
-            {isCreatingWorkspace ? "Setting up your workspace..." : "Loading..."}
+            {isCreatingWorkspace ? "Setting up your workspace..." : "Loading your apps..."}
           </p>
         </div>
       </div>
@@ -266,22 +272,7 @@ export default function AppsRedesigned() {
       {/* Header section - always constrained */}
       <div className="px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* Spark auto-create message */}
-          <AnimatePresence>
-            {sparkMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6 p-4 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200/50 dark:border-amber-800/30"
-              >
-                <div className="flex items-center gap-3">
-                  <Sparkles className="w-5 h-5 text-amber-500" />
-                  <p className="text-sm text-foreground">{sparkMessage}</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Workspace creation notifications now use toast.success */}
 
           {/* Header */}
           <motion.div

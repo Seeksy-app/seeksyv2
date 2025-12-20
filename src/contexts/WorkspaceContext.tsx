@@ -30,6 +30,7 @@ interface WorkspaceContextType {
   currentWorkspace: Workspace | null;
   workspaceModules: WorkspaceModule[];
   isLoading: boolean;
+  hasFetchedOnce: boolean; // True after first fetch completes (even if empty)
   setCurrentWorkspace: (workspace: Workspace | null) => void;
   createWorkspace: (name: string, templateModules?: string[]) => Promise<Workspace | null>;
   updateWorkspace: (id: string, updates: Partial<Workspace>) => Promise<void>;
@@ -49,6 +50,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [currentWorkspace, setCurrentWorkspaceState] = useState<Workspace | null>(null);
   const [workspaceModules, setWorkspaceModules] = useState<WorkspaceModule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false); // Track if we've completed at least one fetch
   const queryClient = useQueryClient();
 
   const fetchWorkspaces = useCallback(async (forceFetch = false) => {
@@ -126,6 +128,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       console.error('Error fetching workspaces:', err);
     } finally {
       setIsLoading(false);
+      setHasFetchedOnce(true); // Mark that we've completed a fetch (even if empty results)
     }
   }, []);
 
@@ -556,6 +559,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         currentWorkspace,
         workspaceModules,
         isLoading,
+        hasFetchedOnce, // Expose this for components that need to know if fetch completed
         setCurrentWorkspace,
         createWorkspace,
         updateWorkspace,
