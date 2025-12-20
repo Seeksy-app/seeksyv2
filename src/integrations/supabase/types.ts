@@ -30318,6 +30318,60 @@ export type Database = {
         }
         Relationships: []
       }
+      veteran_kb_articles: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          helpful_count: number | null
+          id: string
+          is_published: boolean
+          not_helpful_count: number | null
+          slug: string
+          source_name: string | null
+          source_url: string | null
+          summary: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_published?: boolean
+          not_helpful_count?: number | null
+          slug: string
+          source_name?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          helpful_count?: number | null
+          id?: string
+          is_published?: boolean
+          not_helpful_count?: number | null
+          slug?: string
+          source_name?: string | null
+          source_url?: string | null
+          summary?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       veteran_leads: {
         Row: {
           branch_of_service: string | null
