@@ -7884,41 +7884,150 @@ export type Database = {
           },
         ]
       }
+      claim_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      claim_handoffs: {
+        Row: {
+          clicked_accessva: boolean | null
+          clicked_accessva_at: string | null
+          created_at: string
+          downloaded_docs: boolean | null
+          downloaded_docs_at: string | null
+          handoff_type: string
+          id: string
+          lead_id: string
+          requested_rep: boolean | null
+          requested_rep_at: string | null
+          target_url: string | null
+          updated_at: string
+          user_reported_uploaded: boolean | null
+          user_reported_uploaded_at: string | null
+        }
+        Insert: {
+          clicked_accessva?: boolean | null
+          clicked_accessva_at?: string | null
+          created_at?: string
+          downloaded_docs?: boolean | null
+          downloaded_docs_at?: string | null
+          handoff_type?: string
+          id?: string
+          lead_id: string
+          requested_rep?: boolean | null
+          requested_rep_at?: string | null
+          target_url?: string | null
+          updated_at?: string
+          user_reported_uploaded?: boolean | null
+          user_reported_uploaded_at?: string | null
+        }
+        Update: {
+          clicked_accessva?: boolean | null
+          clicked_accessva_at?: string | null
+          created_at?: string
+          downloaded_docs?: boolean | null
+          downloaded_docs_at?: string | null
+          handoff_type?: string
+          id?: string
+          lead_id?: string
+          requested_rep?: boolean | null
+          requested_rep_at?: string | null
+          target_url?: string | null
+          updated_at?: string
+          user_reported_uploaded?: boolean | null
+          user_reported_uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "claim_handoffs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "veteran_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claim_intents: {
         Row: {
           body_systems: string[] | null
+          branch: string | null
           claim_category: string
           conditions: string[]
+          confidence: number | null
           created_at: string
           effective_date: string | null
+          goal: string | null
           id: string
           is_secondary: boolean | null
+          needs_rep: boolean | null
           notes: string | null
           primary_condition_id: string | null
+          rep_preference: string | null
+          service_era: string | null
           veteran_lead_id: string
         }
         Insert: {
           body_systems?: string[] | null
+          branch?: string | null
           claim_category: string
           conditions?: string[]
+          confidence?: number | null
           created_at?: string
           effective_date?: string | null
+          goal?: string | null
           id?: string
           is_secondary?: boolean | null
+          needs_rep?: boolean | null
           notes?: string | null
           primary_condition_id?: string | null
+          rep_preference?: string | null
+          service_era?: string | null
           veteran_lead_id: string
         }
         Update: {
           body_systems?: string[] | null
+          branch?: string | null
           claim_category?: string
           conditions?: string[]
+          confidence?: number | null
           created_at?: string
           effective_date?: string | null
+          goal?: string | null
           id?: string
           is_secondary?: boolean | null
+          needs_rep?: boolean | null
           notes?: string | null
           primary_condition_id?: string | null
+          rep_preference?: string | null
+          service_era?: string | null
           veteran_lead_id?: string
         }
         Relationships: [
@@ -30550,15 +30659,20 @@ export type Database = {
         Row: {
           branch: string | null
           confirmation_number: string | null
+          consent_to_contact: boolean | null
           created_at: string
           discharge_type: string | null
           dob: string | null
           email: string
+          first_name: string | null
           full_name: string
           id: string
           intent_type: string
           is_first_time_filer: boolean | null
+          last_name: string | null
           phone: string | null
+          preferred_contact: string | null
+          readiness_score: number | null
           service_end_date: string | null
           service_start_date: string | null
           source: string | null
@@ -30572,19 +30686,25 @@ export type Database = {
           utm_campaign: string | null
           utm_medium: string | null
           utm_source: string | null
+          zip: string | null
         }
         Insert: {
           branch?: string | null
           confirmation_number?: string | null
+          consent_to_contact?: boolean | null
           created_at?: string
           discharge_type?: string | null
           dob?: string | null
           email: string
+          first_name?: string | null
           full_name: string
           id?: string
           intent_type: string
           is_first_time_filer?: boolean | null
+          last_name?: string | null
           phone?: string | null
+          preferred_contact?: string | null
+          readiness_score?: number | null
           service_end_date?: string | null
           service_start_date?: string | null
           source?: string | null
@@ -30598,19 +30718,25 @@ export type Database = {
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          zip?: string | null
         }
         Update: {
           branch?: string | null
           confirmation_number?: string | null
+          consent_to_contact?: boolean | null
           created_at?: string
           discharge_type?: string | null
           dob?: string | null
           email?: string
+          first_name?: string | null
           full_name?: string
           id?: string
           intent_type?: string
           is_first_time_filer?: boolean | null
+          last_name?: string | null
           phone?: string | null
+          preferred_contact?: string | null
+          readiness_score?: number | null
           service_end_date?: string | null
           service_start_date?: string | null
           source?: string | null
@@ -30624,6 +30750,7 @@ export type Database = {
           utm_campaign?: string | null
           utm_medium?: string | null
           utm_source?: string | null
+          zip?: string | null
         }
         Relationships: []
       }

@@ -41,20 +41,19 @@ interface VeteranProfile {
 
 const WELCOME_MESSAGE: Message = {
   role: "assistant",
-  content: "Hi there! I'm your VA benefits guide. I can help you understand your benefits, prepare claims, run calculations, and answer questions about VA disability compensation.\n\nHow can I help you today?",
+  content: "Hi — I can help you prepare an **Intent to File** and organize your claim. I can't submit to the VA for you, but I'll get everything ready and walk you through the upload.\n\nWhat would you like to do?",
   quickReplies: [
-    "Help me file a VA claim",
-    "Calculate my VA compensation",
-    "What is Intent to File?",
-    "Estimate my TSP growth"
+    "File an Intent to File (protect my date)",
+    "Get help choosing what to file",
+    "Connect with an accredited representative"
   ]
 };
 
 const SUGGESTION_PROMPTS = [
-  { title: "File a Claim", description: "Get step-by-step guidance", icon: FileText },
+  { title: "Intent to File", description: "Protect your effective date", icon: Clock },
+  { title: "Find a Rep", description: "Connect with accredited help", icon: Shield },
   { title: "Calculate Benefits", description: "Estimate your compensation", icon: DollarSign },
-  { title: "Intent to File", description: "Preserve your effective date", icon: Clock },
-  { title: "TSP Calculator", description: "Project retirement savings", icon: TrendingUp },
+  { title: "Help Me Choose", description: "Guide me through options", icon: FileText },
 ];
 
 const createSystemPrompt = (notes: ClaimsNote[], userName?: string, profile?: VeteranProfile | null) => {

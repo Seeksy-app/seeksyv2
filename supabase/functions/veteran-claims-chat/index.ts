@@ -6,44 +6,76 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface KBArticle {
-  title: string;
+// PM Spec: Global system prompt
+const SYSTEM_PROMPT = `You are a VA claims preparation assistant called YourBenefits VA Guide. You help veterans prepare an Intent to File and organize claim details. 
+
+CRITICAL CONSTRAINTS:
+- You do NOT claim to be the VA or ID.me
+- You do NOT submit claims on behalf of users
+- You do NOT access VA systems
+- You do NOT provide legal advice
+- You do NOT request passwords or 2FA codes
+- You NEVER ask users to share verification codes in chat
+
+CAPABILITIES:
+- Help veterans prepare Intent to File forms
+- Generate summaries, checklists, and pre-fill forms as downloadable outputs
+- Connect veterans with accredited VSO representatives
+- Guide veterans through the AccessVA/QuickSubmit handoff process
+
+TONE:
+- Empathetic and clear
+- Plain English (avoid jargon)
+- Brief and action-oriented
+- If user seems distressed, slow down and offer resources
+
+Always be transparent about limitations. Ask only the minimum questions needed.`;
+
+interface Message {
+  role: "user" | "assistant" | "system";
   content: string;
-  category: string;
-  source_name: string | null;
 }
 
-interface VSORepresentative {
-  full_name: string;
-  organization_name: string | null;
-  city: string | null;
-  state: string | null;
+interface LeadData {
+  lead_id?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
+  zip?: string;
+  state?: string;
+  consent_to_contact?: boolean;
+  preferred_contact?: string;
 }
 
-// Fetch relevant KB articles based on user query
+interface ClaimIntentData {
+  intent_id?: string;
+  lead_id?: string;
+  goal?: string;
+  claim_type?: string;
+  conditions?: string[];
+  service_era?: string;
+  branch?: string;
+  confidence?: number;
+  needs_rep?: boolean;
+  rep_preference?: string;
+}
+
+// Fetch relevant KB articles
 async function getRelevantKBContext(query: string, supabaseUrl: string, serviceKey: string): Promise<string> {
   try {
     const supabase = createClient(supabaseUrl, serviceKey);
-    
-    // Simple keyword matching for now - could be enhanced with embeddings later
     const keywords = query.toLowerCase().split(/\s+/).filter(w => w.length > 3);
     
-    // Search for relevant articles
     const { data, error } = await supabase
       .from('veteran_kb_articles')
       .select('title, content, category, source_name')
       .eq('is_published', true)
       .limit(5);
 
-    if (error || !data || data.length === 0) {
-      console.log("No KB articles found or error:", error);
-      return "";
-    }
+    if (error || !data || data.length === 0) return "";
 
-    const articles = data as KBArticle[];
-
-    // Score articles by keyword relevance
-    const scoredArticles = articles.map(article => {
+    const scoredArticles = data.map(article => {
       const text = `${article.title} ${article.content}`.toLowerCase();
       let score = 0;
       keywords.forEach(keyword => {
@@ -52,70 +84,100 @@ async function getRelevantKBContext(query: string, supabaseUrl: string, serviceK
       return { ...article, score };
     }).filter(a => a.score > 0).sort((a, b) => b.score - a.score).slice(0, 2);
 
-    if (scoredArticles.length === 0) {
-      // If no keyword matches, return general DAV info
-      const davArticle = articles.find(a => a.category === 'organization' || a.category === 'claims');
-      if (davArticle) {
-        return `\n\nREFERENCE KNOWLEDGE (from ${davArticle.source_name || 'DAV'}):\n${davArticle.content.slice(0, 1500)}`;
-      }
-      return "";
-    }
+    if (scoredArticles.length === 0) return "";
 
     const contextParts = scoredArticles.map(article => 
-      `### ${article.title} (Source: ${article.source_name || 'DAV'})\n${article.content.slice(0, 1200)}`
+      `### ${article.title}\n${article.content.slice(0, 1200)}`
     );
 
-    return `\n\nREFERENCE KNOWLEDGE (use this to inform your responses):\n${contextParts.join('\n\n')}`;
+    return `\n\nKNOWLEDGE BASE:\n${contextParts.join('\n\n')}`;
   } catch (error) {
-    console.error("Error fetching KB context:", error);
+    console.error("KB fetch error:", error);
     return "";
   }
 }
 
-// Fetch VSO representatives based on location or query
-async function getVSORepresentatives(query: string, supabaseUrl: string, serviceKey: string): Promise<string> {
+// Search accredited reps by zip/state
+async function searchAccreditedReps(zip: string | null, state: string | null, repType: string, supabaseUrl: string, serviceKey: string): Promise<string> {
   try {
     const supabase = createClient(supabaseUrl, serviceKey);
-    const queryLower = query.toLowerCase();
     
-    // Check if user is asking about VSO reps, representatives, or help finding one
-    const isVSOQuery = /vso|representative|rep|help|find|locate|near|local|office/i.test(query);
-    if (!isVSOQuery) return "";
-    
-    // Try to extract state from query
-    const stateMatches = query.match(/\b([A-Z]{2})\b/) || 
-                         query.match(/\b(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming|guam|puerto rico)\b/i);
-    
-    let vsoQuery = supabase
+    let query = supabase
       .from('vso_representatives')
-      .select('full_name, organization_name, city, state')
+      .select('id, full_name, organization_name, city, state, phone, email, accreditation_type')
       .eq('is_active', true)
       .limit(5);
     
-    if (stateMatches) {
-      const stateCode = stateMatches[1].length === 2 ? stateMatches[1].toUpperCase() : null;
-      if (stateCode) {
-        vsoQuery = vsoQuery.eq('state', stateCode);
+    if (state) {
+      query = query.eq('state', state.toUpperCase());
+    }
+    
+    if (repType && repType !== 'any') {
+      const typeMap: Record<string, string> = {
+        'vso': 'Accredited VSO Representative',
+        'attorney': 'Accredited Attorney',
+        'claims_agent': 'Accredited Claims Agent'
+      };
+      if (typeMap[repType]) {
+        query = query.eq('accreditation_type', typeMap[repType]);
       }
     }
     
-    const { data, error } = await vsoQuery;
+    const { data, error } = await query;
     
     if (error || !data || data.length === 0) {
-      console.log("No VSO reps found or error:", error);
-      return "";
+      return "No accredited representatives found for your criteria.";
     }
     
-    const reps = data as VSORepresentative[];
-    const repList = reps.map(r => 
-      `- ${r.full_name} (${r.organization_name || 'VSO'}) - ${r.city || ''}, ${r.state || ''}`
+    const repList = data.map(r => 
+      `- **${r.full_name}** (${r.organization_name || r.accreditation_type}) - ${r.city || ''}, ${r.state || ''}${r.phone ? ` | ${r.phone}` : ''}`
     ).join('\n');
     
-    return `\n\nACCREDITED VSO REPRESENTATIVES:\nThe following are accredited VSO representatives who can assist veterans:\n${repList}\n\nNote: For a complete list of accredited representatives, visit: https://www.va.gov/ogc/apps/accreditation/index.asp`;
+    return `Found ${data.length} accredited representatives:\n${repList}`;
   } catch (error) {
-    console.error("Error fetching VSO reps:", error);
-    return "";
+    console.error("Rep search error:", error);
+    return "Unable to search representatives at this time.";
   }
+}
+
+// Track events for analytics
+async function trackEvent(leadId: string, eventName: string, metadata: Record<string, unknown>, supabaseUrl: string, serviceKey: string): Promise<void> {
+  try {
+    const supabase = createClient(supabaseUrl, serviceKey);
+    await supabase.from('claim_events').insert({
+      lead_id: leadId || null,
+      event_name: eventName,
+      metadata: metadata
+    });
+    console.log(`Tracked event: ${eventName}`);
+  } catch (error) {
+    console.error("Event tracking error:", error);
+  }
+}
+
+// Calculate readiness score
+function calculateReadinessScore(lead: LeadData, claimIntent: ClaimIntentData): number {
+  let score = 0;
+  
+  // Contact info (30 points)
+  if (lead.email) score += 15;
+  if (lead.phone) score += 10;
+  if (lead.first_name) score += 5;
+  
+  // Claim details (40 points)
+  if (claimIntent.claim_type && claimIntent.claim_type !== 'unknown') score += 15;
+  if (claimIntent.conditions && claimIntent.conditions.length > 0) score += 15;
+  if (claimIntent.branch) score += 5;
+  if (claimIntent.service_era) score += 5;
+  
+  // Rep preference (20 points)
+  if (claimIntent.rep_preference && claimIntent.rep_preference !== 'unknown') score += 10;
+  if (lead.consent_to_contact) score += 10;
+  
+  // Location (10 points)
+  if (lead.zip || lead.state) score += 10;
+  
+  return Math.min(100, score);
 }
 
 serve(async (req) => {
@@ -124,7 +186,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, systemPrompt } = await req.json();
+    const { messages, leadId, claimIntentId } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -133,30 +195,64 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Get the latest user message for KB search
-    const latestUserMessage = messages.filter((m: { role: string }) => m.role === 'user').pop();
+    // Get latest user message for context
+    const latestUserMessage = messages.filter((m: Message) => m.role === 'user').pop();
     const userQuery = latestUserMessage?.content || "";
 
-    // Fetch relevant KB context and VSO representatives
+    // Fetch KB context
     let kbContext = "";
-    let vsoContext = "";
+    let repContext = "";
+    
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && userQuery) {
-      [kbContext, vsoContext] = await Promise.all([
-        getRelevantKBContext(userQuery, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY),
-        getVSORepresentatives(userQuery, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-      ]);
+      kbContext = await getRelevantKBContext(userQuery, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      
+      // Check if asking about reps
+      if (/vso|representative|rep|attorney|agent|help|find/i.test(userQuery)) {
+        // Try to extract state
+        const stateMatch = userQuery.match(/\b([A-Z]{2})\b/);
+        if (stateMatch) {
+          repContext = await searchAccreditedReps(null, stateMatch[1], 'any', SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+        }
+      }
+      
+      // Track session
+      if (leadId) {
+        await trackEvent(leadId, 'ai_message_sent', { query_length: userQuery.length }, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      }
     }
 
-    // Enhance system prompt with KB context and VSO data
-    const enhancedPrompt = systemPrompt + kbContext + vsoContext + `
+    // Build enhanced prompt
+    const enhancedPrompt = `${SYSTEM_PROMPT}
 
-IMPORTANT: When answering questions, reference the knowledge base information above when relevant. 
-You can mention "According to DAV..." or "The Disabled American Veterans organization..." when citing information.
-If the user asks about finding help or representatives, provide the VSO representative information above.
-If asked about specific resources, direct them to dav.org or their local DAV office.
-For a complete list of accredited VSO representatives, direct them to: https://www.va.gov/ogc/apps/accreditation/index.asp`;
+${kbContext}
 
-    console.log("Sending request to Lovable AI with", messages.length, "messages", kbContext ? "(with KB context)" : "");
+${repContext ? `\nACCREDITED REPRESENTATIVES:\n${repContext}` : ''}
+
+FLOW GUIDANCE:
+When a user wants to file Intent to File, guide them through:
+1. Ask for ZIP code (for rep matching)
+2. Ask claim type: new claim, increase, secondary, or not sure
+3. Ask for conditions in their own words
+4. Collect contact info (first name, email, optional phone)
+5. Ask if they want an accredited representative
+6. Provide AccessVA QuickSubmit handoff
+
+UI COPY TO USE:
+- Handoff: "We can't submit to the VA for you. You'll sign in through the VA's secure system (ID.me) and upload your prepared documents there."
+- Privacy: "Never share passwords or verification codes in chat. Enter them only on official VA/ID.me pages."
+- Consent: "Is it okay if an accredited representative contacts you about your claim preparation?"
+
+When ready to handoff, tell them:
+"All set. Next step is uploading through the VA's secure tool (you'll sign in with ID.me).
+
+I can't log in or submit for you, but here's the smooth path:
+1. Click **Open AccessVA QuickSubmit** 
+2. Sign in with ID.me
+3. Upload the Intent to File PDF I prepared
+
+The AccessVA QuickSubmit link is: https://eauth.va.gov/accessva/?cspSelectFor=quicksubmit"`;
+
+    console.log("Sending request to Lovable AI with", messages.length, "messages");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -196,7 +292,7 @@ For a complete list of accredited VSO representatives, direct them to: https://w
     const data = await response.json();
     const message = data.choices?.[0]?.message?.content || "I couldn't generate a response.";
 
-    console.log("Successfully received response from AI");
+    console.log("Successfully received AI response");
 
     return new Response(
       JSON.stringify({ message }),
