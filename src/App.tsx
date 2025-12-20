@@ -299,6 +299,7 @@ import ProForma from "./pages/ProForma";
 import TechStack from "./pages/TechStack";
 import Onboarding from "./pages/Onboarding";
 import PlatformOnePager from "./pages/PlatformOnePager";
+import YourBenefitsPlatform from "./pages/public/YourBenefitsPlatform";
 
 import OnboardingComplete from "./pages/OnboardingComplete";
 import SalesDashboard from "./pages/SalesDashboard";
@@ -894,6 +895,7 @@ const AppContent = () => {
               <Route path="/" element={<Index />} />
               <Route path="/logo-asset" element={<LogoAsset />} />
               <Route path="/platform" element={<PlatformOnePager />} />
+              <Route path="/yourbenefits-platform" element={<YourBenefitsPlatform />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/signup-select" element={<SignupSelect />} />
               <Route path="/onboarding" element={<Onboarding />} />
