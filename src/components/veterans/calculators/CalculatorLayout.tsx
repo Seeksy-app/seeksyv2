@@ -1,6 +1,6 @@
-import { ReactNode, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft, Save, LogIn, Clock, Trash2, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { ReactNode, useState, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Save, LogIn, Clock, Trash2, ChevronDown, ChevronUp, AlertCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -21,6 +21,7 @@ interface CalculatorLayoutProps {
   resultSummary?: string;
   hasResults?: boolean;
   onReset?: () => void;
+  onLoadSaved?: (inputs: Record<string, any>, outputs: Record<string, any>) => void;
 }
 
 export function CalculatorLayout({
@@ -36,14 +37,29 @@ export function CalculatorLayout({
   resultSummary,
   hasResults,
   onReset,
+  onLoadSaved,
 }: CalculatorLayoutProps) {
-  const { results, loading, save, deleteResult, isLoggedIn } = useVeteranCalculatorResults(calculatorId);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { results, loading, save, deleteResult, isLoggedIn, loadSavedResult } = useVeteranCalculatorResults(calculatorId);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [showSavedResults, setShowSavedResults] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Get icon component dynamically
   const IconComponent = (LucideIcons as any)[icon] || LucideIcons.Calculator;
+
+  // Handle loading saved result from URL
+  useEffect(() => {
+    const savedId = searchParams.get('saved');
+    if (savedId && onLoadSaved && results.length > 0) {
+      const savedResult = loadSavedResult(savedId);
+      if (savedResult) {
+        onLoadSaved(savedResult.input_json, savedResult.output_json);
+        // Clear the URL param after loading
+        setSearchParams({});
+      }
+    }
+  }, [searchParams, results, onLoadSaved, loadSavedResult, setSearchParams]);
 
   const handleSave = async () => {
     if (!inputs || !outputs) return;
@@ -66,12 +82,18 @@ export function CalculatorLayout({
     setShowLoginPrompt(false);
   };
 
+  const handleLoadResult = (result: typeof results[0]) => {
+    if (onLoadSaved) {
+      onLoadSaved(result.input_json, result.output_json);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-5xl">
-        <Link to="/veterans" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
+        <Link to="/yourbenefits" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Veterans Home
+          Back to Benefits Hub
         </Link>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -119,7 +141,7 @@ export function CalculatorLayout({
                             Access your calculations from any device and track your benefit estimates over time.
                           </p>
                           <Button asChild size="sm" className="mt-3">
-                            <Link to="/veterans/auth">Sign Up Free</Link>
+                            <Link to="/yourbenefits/auth">Sign Up Free</Link>
                           </Button>
                         </div>
                       </div>
@@ -179,9 +201,10 @@ export function CalculatorLayout({
                 ) : (
                   <div className="space-y-3">
                     {results.map((result) => (
-                      <div 
+                      <button 
                         key={result.id} 
-                        className="p-3 bg-muted/50 rounded-lg text-sm group relative"
+                        onClick={() => handleLoadResult(result)}
+                        className="w-full text-left p-3 bg-muted/50 rounded-lg text-sm group relative hover:bg-muted transition-colors cursor-pointer"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1 min-w-0">
@@ -191,17 +214,24 @@ export function CalculatorLayout({
                             {result.summary && (
                               <p className="font-medium mt-1 truncate">{result.summary}</p>
                             )}
+                            <div className="flex items-center gap-1 mt-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ExternalLink className="w-3 h-3" />
+                              <span>Load this result</span>
+                            </div>
                           </div>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => deleteResult(result.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteResult(result.id);
+                            }}
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -230,7 +260,7 @@ export function CalculatorLayout({
               Save to browser only
             </Button>
             <Button asChild>
-              <Link to="/veterans/auth">
+              <Link to="/yourbenefits/auth">
                 <LogIn className="w-4 h-4 mr-2" />
                 Create Account
               </Link>

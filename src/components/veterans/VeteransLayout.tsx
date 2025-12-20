@@ -1,12 +1,13 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Shield, MessageSquare, Calculator, Clock, Plus, ChevronRight, User, LogOut, Menu, X, Trash2 } from "lucide-react";
+import { Shield, MessageSquare, Calculator, Plus, User, LogOut, Menu, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { User as SupabaseUser } from "@supabase/supabase-js";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useSavedCalculationsStore, CALC_DISPLAY_NAMES, CALCULATOR_ROUTES } from "@/hooks/useSavedCalculationsStore";
 
 interface VeteransLayoutProps {
   children: ReactNode;
@@ -19,20 +20,15 @@ interface Conversation {
   created_at: string;
 }
 
-interface SavedCalc {
-  id: string;
-  calculator_id: string;
-  summary: string | null;
-  created_at: string;
-}
-
 export function VeteransLayout({ children }: VeteransLayoutProps) {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [savedCalcs, setSavedCalcs] = useState<SavedCalc[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+
+  // Use global store for saved calculations (real-time updates)
+  const { calculations: savedCalcs, setUserId, loadCalculations } = useSavedCalculationsStore();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,6 +36,9 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        // Set user ID for store (triggers load)
+        setUserId(session.user.id);
+        
         // Load conversations
         const { data: convos } = await supabase
           .from('veteran_conversations')
@@ -50,26 +49,21 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
           .limit(20);
         
         if (convos) setConversations(convos);
-
-        // Load saved calculations
-        const { data: calcs } = await supabase
-          .from('veteran_calculator_results')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .order('created_at', { ascending: false })
-          .limit(10);
-        
-        if (calcs) setSavedCalcs(calcs as SavedCalc[]);
       }
     };
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        setUserId(session.user.id);
+      } else {
+        setUserId(null);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [setUserId]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -87,15 +81,12 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
     setConversations(prev => prev.filter(c => c.id !== id));
   };
 
-  const CALC_NAMES: Record<string, string> = {
-    'military_buyback': 'Military Buy-Back',
-    'mra_calculator': 'MRA Calculator',
-    'sick_leave_calculator': 'Sick Leave Credit',
-    'va_combined_rating': 'VA Combined Rating',
-    'va_compensation_estimator': 'VA Compensation',
-    'fers_pension_estimator': 'FERS Pension',
-    'tsp_growth_calculator': 'TSP Growth',
-    'gi_bill_estimator': 'GI Bill',
+  const handleCalcClick = (calc: typeof savedCalcs[0]) => {
+    const route = CALCULATOR_ROUTES[calc.calculator_id];
+    if (route) {
+      navigate(`${route}?saved=${calc.id}`);
+    }
+    setMobileMenuOpen(false);
   };
 
   return (
@@ -226,17 +217,18 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
                     ) : (
                       <div className="space-y-1">
                         {savedCalcs.map((calc) => (
-                          <div
+                          <button
                             key={calc.id}
-                            className="p-2 rounded-md hover:bg-muted text-sm cursor-pointer"
+                            onClick={() => handleCalcClick(calc)}
+                            className="w-full text-left p-2 rounded-md hover:bg-muted text-sm cursor-pointer transition-colors"
                           >
                             <p className="font-medium">
-                              {CALC_NAMES[calc.calculator_id] || calc.calculator_id}
+                              {CALC_DISPLAY_NAMES[calc.calculator_id] || calc.calculator_id}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                               {calc.summary || format(new Date(calc.created_at), 'MMM d, yyyy')}
                             </p>
-                          </div>
+                          </button>
                         ))}
                       </div>
                     )}
@@ -296,9 +288,16 @@ export function VeteransLayout({ children }: VeteransLayoutProps) {
                           Saved Calculations
                         </h3>
                         {savedCalcs.map((calc) => (
-                          <div key={calc.id} className="p-2 rounded-md hover:bg-muted text-sm">
-                            <p className="font-medium">{CALC_NAMES[calc.calculator_id] || calc.calculator_id}</p>
-                          </div>
+                          <button
+                            key={calc.id}
+                            onClick={() => handleCalcClick(calc)}
+                            className="w-full text-left p-2 rounded-md hover:bg-muted text-sm"
+                          >
+                            <p className="font-medium">{CALC_DISPLAY_NAMES[calc.calculator_id] || calc.calculator_id}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {calc.summary || format(new Date(calc.created_at), 'MMM d')}
+                            </p>
+                          </button>
                         ))}
                       </div>
                     </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,17 @@ export default function VACompensationCalculator() {
     setShowSample(false);
   };
 
+  // Handle loading saved result
+  const handleLoadSaved = useCallback((inputs: Record<string, any>, outputs: Record<string, any>) => {
+    setFormData({
+      combinedRating: inputs.combinedRating?.toString() || '',
+      maritalStatus: inputs.maritalStatus || '',
+      hasDependentParents: inputs.hasDependentParents || false,
+      childCount: inputs.childCount?.toString() || '',
+    });
+    setResults(outputs as VACompensationResult);
+  }, []);
+
   const displayResults = showSample ? SAMPLE_RESULTS : results;
 
   return (
@@ -63,6 +74,7 @@ export default function VACompensationCalculator() {
       resultSummary={displayResults ? `$${displayResults.estimatedMonthlyCompensation.toLocaleString()}/mo` : undefined}
       hasResults={!!displayResults}
       onReset={handleReset}
+      onLoadSaved={handleLoadSaved}
     >
       {!displayResults ? (
         <Card>
