@@ -19,8 +19,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { RequireAdmin } from "@/components/auth/RequireAdmin";
 
-export default function AdminSeoAssets() {
+function AdminSeoAssetsContent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -261,5 +262,14 @@ export default function AdminSeoAssets() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+}
+
+// Wrap with admin guard
+export default function AdminSeoAssets() {
+  return (
+    <RequireAdmin>
+      <AdminSeoAssetsContent />
+    </RequireAdmin>
   );
 }
