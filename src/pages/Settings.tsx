@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Mail, User as UserIcon, Phone, Lock, Bell, FileText, Puzzle, Shield, Palette, Check, Eye, MessageSquare, Settings as SettingsIcon, Info, Save, X, Upload, UserCog } from "lucide-react";
+import { DevOnboardingResetButton } from "@/components/dev/DevOnboardingResetButton";
 import { NotificationPreferencesDialog } from "@/components/NotificationPreferencesDialog";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1001,10 +1002,13 @@ const Settings = () => {
               <CardTitle>Account ID</CardTitle>
               <CardDescription>Use this when contacting support</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <code className="text-xs bg-muted px-3 py-2 rounded block font-mono">
                 {user.id}
               </code>
+              
+              {/* Dev-only reset button */}
+              <DevOnboardingResetButton />
             </CardContent>
           </Card>
 

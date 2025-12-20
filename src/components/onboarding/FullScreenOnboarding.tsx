@@ -149,13 +149,40 @@ export function FullScreenOnboarding() {
   const [firstName, setFirstName] = useState('');
   const [googleConnected, setGoogleConnected] = useState(false);
   
+  // Check if force mode is active (dev testing)
+  const isForceMode = searchParams.get('force') === 'true';
+  
+  // If force mode, clear any previous localStorage data to start fresh
+  useEffect(() => {
+    if (isForceMode) {
+      console.log('[FullScreenOnboarding] Force mode active - clearing stored data');
+      localStorage.removeItem('onboarding_step');
+      localStorage.removeItem('onboarding_data');
+    }
+  }, [isForceMode]);
+  
   // Restore step and data from localStorage to persist across OAuth redirects
+  // But reset if force mode is active
   const [step, setStep] = useState(() => {
+    if (isForceMode) return 1;
     const saved = localStorage.getItem('onboarding_step');
     return saved ? parseInt(saved, 10) : 1;
   });
   
   const [data, setData] = useState<OnboardingData>(() => {
+    // Reset if force mode
+    if (searchParams.get('force') === 'true') {
+      return {
+        purpose: null,
+        role: null,
+        teamSize: null,
+        companySize: null,
+        manageFocus: null,
+        workflowFocus: null,
+        howHeard: [],
+        integrationType: null,
+      };
+    }
     const saved = localStorage.getItem('onboarding_data');
     if (saved) {
       try {

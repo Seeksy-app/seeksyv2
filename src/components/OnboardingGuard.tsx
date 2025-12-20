@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAccountType } from '@/hooks/useAccountType';
 import { useUserRoles } from '@/hooks/useUserRoles';
 import { clearRecoveryFlag } from '@/utils/bootRecovery';
 import { AppLoading } from '@/components/ui/AppLoading';
+import { isForceOnboardingMode, isDevUser } from '@/utils/devOnboardingReset';
 
 /**
  * OnboardingGuard - Blocking bootstrap gate for auth + preferences
@@ -11,15 +12,23 @@ import { AppLoading } from '@/components/ui/AppLoading';
  * CRITICAL: This component ensures:
  * 1. Auth state is fully resolved before rendering children
  * 2. Onboarding state is checked - users without completed onboarding go to /onboarding
- * 3. Users WITH completed onboarding never see onboarding again
+ * 3. Users WITH completed onboarding never see onboarding again (unless force=true)
  * 4. Only onboarding OR dashboard renders - never both
+ * 5. Support for ?force=true for dev testing
  */
 export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const { onboardingCompleted, isLoading, accountType, error: accountError } = useAccountType();
   const { isAdmin, isBoardMember, isLoading: rolesLoading, error: rolesError } = useUserRoles();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [isDevUserAllowed, setIsDevUserAllowed] = useState(false);
+
+  // Check if this is a dev user (for force mode)
+  useEffect(() => {
+    isDevUser().then(setIsDevUserAllowed);
+  }, []);
 
   // Clear recovery flag on successful load
   useEffect(() => {
@@ -56,6 +65,13 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
     // If user just completed onboarding, don't redirect back
     if (sessionStorage.getItem('onboarding_just_completed')) return;
     
+    // Check for force mode - if force=true and on /onboarding, always allow
+    const forceMode = searchParams.get('force') === 'true';
+    if (forceMode && location.pathname === '/onboarding' && isDevUserAllowed) {
+      console.log('[OnboardingGuard] Force mode active - allowing onboarding');
+      return;
+    }
+    
     // Public paths that don't require onboarding check
     const publicPaths = [
       '/auth', '/onboarding', '/signup-select', '/', '/pricing', '/comparison',
@@ -72,7 +88,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
       location.pathname.startsWith('/veterans') || 
       location.pathname.startsWith('/invest/') || 
       location.pathname.startsWith('/videos') ||
-      location.pathname.startsWith('/meet/')
+      location.pathname.startsWith('/meet/') ||
+      location.pathname.startsWith('/yourbenefits')
     );
     const isBoardPath = location.pathname.startsWith('/board');
     
@@ -103,7 +120,7 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
         navigate('/onboarding', { replace: true });
       }
     }
-  }, [onboardingCompleted, accountType, isLoading, rolesLoading, isBootstrapping, isAdmin, isBoardMember, navigate, location.pathname]);
+  }, [onboardingCompleted, accountType, isLoading, rolesLoading, isBootstrapping, isAdmin, isBoardMember, navigate, location.pathname, searchParams, isDevUserAllowed]);
 
   // Board routes render immediately without any loading state or guards
   const isBoardRoute = location.pathname.startsWith('/board');
@@ -115,7 +132,8 @@ export function OnboardingGuard({ children }: { children: React.ReactNode }) {
   const publicRoutes = ['/', '/auth', '/pricing', '/about', '/terms', '/privacy', '/cookies', '/security', '/apps-and-tools'];
   const isPublicRoute = publicRoutes.includes(location.pathname) || 
                         location.pathname.startsWith('/meet/') ||
-                        location.pathname.startsWith('/videos');
+                        location.pathname.startsWith('/videos') ||
+                        location.pathname.startsWith('/yourbenefits');
   
   // For public routes, render immediately
   if (isPublicRoute) {
