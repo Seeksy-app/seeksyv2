@@ -581,3 +581,6 @@ verify_jwt = false
 
 [functions.import-vso-representatives]
 verify_jwt = true
+
+[functions.import-va-representatives]
+verify_jwt = true
