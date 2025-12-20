@@ -23,6 +23,7 @@ import { AnimatedCollectionCard } from "@/components/apps/AnimatedCollectionCard
 import { ModuleRelationshipGraph } from "@/components/apps/ModuleRelationshipGraph";
 import { IntentConfirmationModal } from "@/components/apps/IntentConfirmationModal";
 import { CollectionPreviewModal } from "@/components/apps/CollectionPreviewModal";
+import { WorkspaceSelectionDialog } from "@/components/apps/WorkspaceSelectionDialog";
 
 // Data
 import { SEEKSY_COLLECTIONS, SeeksyCollection } from "@/components/modules/collectionData";
@@ -100,6 +101,11 @@ export default function AppsRedesigned() {
   const [selectedIntent, setSelectedIntent] = useState<UserIntent | null>(null);
   const [intentModalOpen, setIntentModalOpen] = useState(false);
   const [previewCollection, setPreviewCollection] = useState<SeeksyCollection | null>(null);
+  
+  // Workspace selection dialog state
+  const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
+  const [pendingModuleId, setPendingModuleId] = useState<string | null>(null);
+  const [pendingModuleName, setPendingModuleName] = useState<string>('');
   
   // If spark is blocked but URL requested it, redirect to modules view
   useEffect(() => {
@@ -186,12 +192,21 @@ export default function AppsRedesigned() {
 
 
   const handleInstallModule = async (moduleId: string) => {
-    // Guardrail: Block if no workspace
+    // Guardrail: Block if no workspace - offer to create one
     if (!currentWorkspace) {
-      toast.error("No workspace available. Please create a workspace first.");
+      // Open workspace selection dialog
+      const module = SEEKSY_MODULES.find(m => m.id === moduleId);
+      setPendingModuleId(moduleId);
+      setPendingModuleName(module?.name || 'App');
+      setWorkspaceDialogOpen(true);
       return;
     }
     
+    await installModuleToWorkspace(moduleId, currentWorkspace.id);
+  };
+
+  // Actual install logic - shared between direct and dialog install
+  const installModuleToWorkspace = async (moduleId: string, workspaceId: string) => {
     // Check for required dependencies
     const required = getRequiredModules(moduleId);
     const missingRequired = required.filter(r => !installedModuleIds.includes(r.moduleId));
@@ -211,9 +226,10 @@ export default function AppsRedesigned() {
       // Show success confirmation with workspace name
       const module = SEEKSY_MODULES.find(m => m.id === moduleId);
       toast.success("App added!", {
-        description: `${module?.name || 'App'} added to ${currentWorkspace.name} — now visible in sidebar & My Day.`,
+        description: `${module?.name || 'App'} added to ${currentWorkspace?.name || 'your workspace'} — now visible in sidebar & My Day.`,
       });
     } catch (error) {
+      console.error('[AppsRedesigned] Install error:', error);
       toast.error("Failed to add app", {
         description: "Please try again.",
       });
@@ -569,6 +585,22 @@ export default function AppsRedesigned() {
           onInstallComplete={() => setPreviewCollection(null)}
         />
       )}
+
+      {/* Workspace Selection Dialog */}
+      <WorkspaceSelectionDialog
+        isOpen={workspaceDialogOpen}
+        onClose={() => {
+          setWorkspaceDialogOpen(false);
+          setPendingModuleId(null);
+        }}
+        moduleId={pendingModuleId || ''}
+        moduleName={pendingModuleName}
+        onInstall={async (workspaceId) => {
+          if (pendingModuleId) {
+            await installModuleToWorkspace(pendingModuleId, workspaceId);
+          }
+        }}
+      />
     </div>
   );
 }

@@ -217,7 +217,7 @@ export function AdaptiveDashboard({ userId, userName }: AdaptiveDashboardProps) 
           </h1>
           <p className="text-muted-foreground">{config.subtitle}</p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => navigate("/seekies")}>
+        <Button variant="outline" size="sm" onClick={() => navigate("/apps?view=modules")}>
           <Settings2 className="h-4 w-4 mr-2" />
           Customize Apps
         </Button>

@@ -1,6 +1,12 @@
 /**
  * Full-Screen Onboarding Flow
  * Complete redesign with real images, no dashboard/sidebar visible
+ * 
+ * CRITICAL FLOW:
+ * 1. User completes onboarding steps
+ * 2. On completion: Create workspace FIRST based on manageFocus
+ * 3. THEN install selected Seekies into that workspace
+ * 4. THEN redirect to /my-day with workspace active
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -9,13 +15,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ArrowLeft, ChevronRight, Check, CheckCircle, Shield } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Check, CheckCircle, Shield, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { GoogleVerifiedBadge } from '@/components/ui/google-verified-badge';
 import confetti from 'canvas-confetti';
 import { ONBOARDING_IMAGES, getImageForFocus } from './OnboardingImages';
-import { OnboardingWelcomeScreen } from './OnboardingWelcomeScreen';
 import { OnboardingFeedbackWidget } from '@/components/feedback/OnboardingFeedbackWidget';
+import { getSeeksyConfigForFocus } from '@/utils/onboardingSeeksyMapper';
 
 // Types
 type Purpose = 'work' | 'personal' | 'school' | 'nonprofits' | null;
@@ -144,7 +150,6 @@ export function FullScreenOnboarding() {
   const [searchParams, setSearchParams] = useSearchParams();
   const containerRef = useRef<HTMLDivElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
   const [confettiPlayed, setConfettiPlayed] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [googleConnected, setGoogleConnected] = useState(false);
@@ -329,28 +334,88 @@ export function FullScreenOnboarding() {
       else if (data.role === 'team_leader' || data.role === 'director') accountType = 'agency';
       else if (data.role === 'freelancer' || data.role === 'creator') accountType = 'creator';
 
-      // Save onboarding data
+      // CRITICAL: Get workspace config based on manageFocus
+      const seeksyConfig = getSeeksyConfigForFocus(data.manageFocus);
+      
+      console.log('[Onboarding] Creating workspace:', seeksyConfig.workspaceName);
+      console.log('[Onboarding] Installing modules:', seeksyConfig.moduleIds);
+
+      // Step 1: Create workspace FIRST
+      const { data: workspaceData, error: workspaceError } = await supabase
+        .from('custom_packages')
+        .insert({
+          user_id: user.id,
+          name: seeksyConfig.workspaceName,
+          slug: `${seeksyConfig.workspaceName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString(36)}`,
+          modules: seeksyConfig.moduleIds,
+          is_default: true,
+          icon_color: '#2C6BED',
+        })
+        .select()
+        .single();
+
+      if (workspaceError) {
+        console.error('[Onboarding] Workspace creation error:', workspaceError);
+        throw workspaceError;
+      }
+
+      console.log('[Onboarding] Workspace created:', workspaceData.id);
+
+      // Step 2: Install Seekies (workspace_modules)
+      if (seeksyConfig.moduleIds.length > 0 && workspaceData) {
+        const moduleInserts = seeksyConfig.moduleIds.map((moduleId, index) => ({
+          workspace_id: workspaceData.id,
+          module_id: moduleId,
+          position: index,
+        }));
+
+        const { error: modulesError } = await supabase
+          .from('workspace_modules')
+          .insert(moduleInserts);
+
+        if (modulesError) {
+          console.error('[Onboarding] Modules install error:', modulesError);
+          // Don't throw - workspace is created, modules can be added later
+        } else {
+          console.log('[Onboarding] Modules installed:', seeksyConfig.moduleIds.length);
+        }
+      }
+
+      // Step 3: Save active workspace ID to user preferences
+      await supabase.from('user_preferences').upsert({
+        user_id: user.id,
+        onboarding_completed: true,
+        user_type: accountType,
+        active_workspace_id: workspaceData.id,
+      }, { onConflict: 'user_id' });
+      
+      // Also save to localStorage for immediate context pickup
+      localStorage.setItem('currentWorkspaceId', workspaceData.id);
+
+      // Step 4: Save onboarding data to profile
       const { error: profileError } = await supabase.from('profiles').update({
         onboarding_completed: true,
         account_type: accountType,
         onboarding_data: {
           ...data,
+          workspaceId: workspaceData.id,
+          workspaceName: seeksyConfig.workspaceName,
+          installedModules: seeksyConfig.moduleIds,
           completedAt: new Date().toISOString(),
         }
       }).eq('id', user.id);
 
-      if (profileError) throw profileError;
-
-      // Save to user_preferences
-      await supabase.from('user_preferences').upsert({
-        user_id: user.id,
-        onboarding_completed: true,
-        user_type: accountType,
-      }, { onConflict: 'user_id' });
+      if (profileError) {
+        console.error('[Onboarding] Profile update error:', profileError);
+        // Don't throw - non-critical
+      }
 
       // Clear localStorage after successful completion
       localStorage.removeItem('onboarding_step');
       localStorage.removeItem('onboarding_data');
+      
+      // Set a flag to prevent OnboardingGuard from redirecting back
+      sessionStorage.setItem('onboarding_just_completed', 'true');
 
       // Trigger confetti only once
       if (!confettiPlayed) {
@@ -362,8 +427,14 @@ export function FullScreenOnboarding() {
         setConfettiPlayed(true);
       }
 
-      // Show welcome screen instead of navigating away
-      setShowWelcome(true);
+      // Show success toast
+      toast.success(`Welcome to Seeksy!`, {
+        description: `Your ${seeksyConfig.workspaceName} is ready with ${seeksyConfig.moduleIds.length} apps installed.`,
+      });
+
+      // CRITICAL: Navigate directly to /my-day - no intermediate screen
+      // Use window.location for a full page reload to ensure fresh WorkspaceContext
+      window.location.href = '/my-day';
       
     } catch (error) {
       console.error('Onboarding error:', error);
@@ -372,27 +443,8 @@ export function FullScreenOnboarding() {
     }
   };
 
-  const handleWelcomeContinue = () => {
-    // Handle integration redirect if selected
-    if (data.integrationType === 'google_email') {
-      navigate('/integrations/google?scope=email');
-    } else if (data.integrationType === 'google_calendar') {
-      navigate('/integrations/google?scope=calendar');
-    } else {
-      navigate('/dashboard');
-    }
-  };
-
-  // Show welcome screen after completion
-  if (showWelcome) {
-    return (
-      <OnboardingWelcomeScreen
-        firstName={firstName}
-        onboardingData={data}
-        onContinue={handleWelcomeContinue}
-      />
-    );
-  }
+  // Removed handleWelcomeContinue - no longer needed
+  // Removed showWelcome screen - we go directly to /my-day
 
   // Step renderers
   const renderStep1 = () => (

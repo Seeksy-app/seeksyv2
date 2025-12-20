@@ -187,7 +187,7 @@ export function OnboardingWizard() {
             advertiser: '/advertiser',
             agency: '/agency',
             event_planner: '/events',
-            brand: '/seekies',
+            brand: '/apps?view=modules',
             studio_team: '/studio',
             admin: '/admin',
             influencer: '/dashboard',
