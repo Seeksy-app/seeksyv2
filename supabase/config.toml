@@ -587,3 +587,6 @@ verify_jwt = true
 
 [functions.google-business-callback]
 verify_jwt = false
+
+[functions.google-business-auth]
+verify_jwt = true
