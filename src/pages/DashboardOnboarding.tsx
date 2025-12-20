@@ -75,7 +75,7 @@ export default function DashboardOnboarding() {
         description: "Your personalized workspace is set up.",
       });
 
-      navigate("/dashboard-v2");
+      navigate("/my-day");
     } catch (error) {
       console.error("Failed to save dashboard:", error);
       toast({

@@ -51,10 +51,10 @@ const WELCOME_MESSAGE: Message = {
 };
 
 const SUGGESTION_PROMPTS = [
-  { title: "Intent to File", description: "Protect your effective date", icon: Clock },
-  { title: "Find a Rep", description: "Connect with accredited help", icon: Users },
-  { title: "Evidence Help", description: "What you need to prove your claim", icon: ClipboardList },
-  { title: "Help Me Choose", description: "Guide me through options", icon: FileText },
+  { title: "Intent to File", description: "Protect your effective date", icon: Clock, action: "File an Intent to File" },
+  { title: "Find a Rep", description: "Connect with accredited help", icon: Users, action: "Find me an accredited representative" },
+  { title: "Evidence Help", description: "What you need to prove your claim", icon: ClipboardList, action: "What evidence do I need for my claim?" },
+  { title: "Help Me Choose", description: "Guide me through options", icon: FileText, action: "Help me decide what to file" },
 ];
 
 // Intent patterns that should trigger handoff to the structured form
@@ -317,16 +317,32 @@ export default function ClaimsAgent() {
     return { cleanContent: content, prompts: [] };
   };
 
-  const createOrGetConversation = async (): Promise<string | null> => {
+  // Generate a descriptive title from the first user message
+  const generateSessionTitle = (firstMessage: string): string => {
+    const lower = firstMessage.toLowerCase();
+    if (/intent\s*to\s*file/i.test(lower)) return "Intent to File Preparation";
+    if (/find.*(rep|representative|vso|attorney)/i.test(lower)) return "Find a Representative";
+    if (/evidence/i.test(lower)) return "Evidence & Documentation Help";
+    if (/compensation|rating|percentage/i.test(lower)) return "Compensation Questions";
+    if (/claim\s*status/i.test(lower)) return "Claim Status Help";
+    if (/appeal/i.test(lower)) return "Appeals Guidance";
+    if (/condition|disability|pain|injury/i.test(lower)) return "Condition Discussion";
+    // Truncate to first 40 chars as fallback
+    const truncated = firstMessage.slice(0, 40).trim();
+    return truncated.length < firstMessage.length ? `${truncated}...` : truncated;
+  };
+
+  const createOrGetConversation = async (firstMessage?: string): Promise<string | null> => {
     if (!user) return null;
     if (conversationId) return conversationId;
 
     try {
+      const title = firstMessage ? generateSessionTitle(firstMessage) : 'New Conversation';
       const { data, error } = await supabase
         .from('veteran_conversations')
         .insert({
           user_id: user.id,
-          title: userName ? `Chat with ${userName}` : 'Benefits Discussion',
+          title,
           context_json: { userName, notes: [] },
         })
         .select()
@@ -355,12 +371,12 @@ export default function ClaimsAgent() {
 
       const contextData = { userName: userName || null, notes: (currentNotes || notes).map(n => ({ category: n.category, value: n.value })) };
 
+      // Only update context and timestamp, don't overwrite title
       await supabase
         .from('veteran_conversations')
         .update({
           last_message_at: new Date().toISOString(),
           context_json: contextData,
-          title: userName ? `Chat with ${userName}` : 'Benefits Discussion',
         })
         .eq('id', convoId);
     } catch (error) {
@@ -445,10 +461,10 @@ export default function ClaimsAgent() {
     setMessages(prev => [...prev, newUserMessage]);
     setIsLoading(true);
 
-    // Create conversation if needed
+    // Create conversation if needed (pass first message for title generation)
     let activeConvoId = conversationId;
     if (user && !activeConvoId) {
-      activeConvoId = await createOrGetConversation();
+      activeConvoId = await createOrGetConversation(userMessage);
     }
 
     // Save user message
@@ -881,17 +897,17 @@ export default function ClaimsAgent() {
         <div className="flex-1 flex flex-col min-w-0">
           {/* Messages Area */}
           <ScrollArea className="flex-1" ref={scrollAreaRef}>
-            <div className="max-w-3xl mx-auto px-4 py-6">
+            <div className="max-w-2xl mx-auto px-3 py-4">
               {/* Welcome Header for empty chat */}
               {isEmptyChat && (
-                <div className="text-center mb-8 pt-8">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-500/10 mb-4">
-                    <MessageSquare className="w-8 h-8 text-orange-500" />
+                <div className="text-center mb-6 pt-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-orange-500/10 mb-3">
+                    <MessageSquare className="w-6 h-6 text-orange-500" />
                   </div>
-                  <h1 className="text-2xl font-bold mb-2">
+                  <h1 className="text-xl font-bold mb-1">
                     {userName ? `Hi ${userName}! How can I help?` : 'How can I help you today?'}
                   </h1>
-                  <p className="text-muted-foreground max-w-md mx-auto">
+                  <p className="text-sm text-muted-foreground max-w-sm mx-auto">
                     I'm your VA benefits guide. Ask me about claims, compensation, or use a calculator.
                   </p>
                 </div>
@@ -899,22 +915,20 @@ export default function ClaimsAgent() {
 
               {/* Suggestion Cards for empty chat */}
               {isEmptyChat && (
-                <div className="grid grid-cols-2 gap-3 mb-8 max-w-lg mx-auto">
+                <div className="grid grid-cols-2 gap-2 mb-6 max-w-md mx-auto">
                   {SUGGESTION_PROMPTS.map((prompt) => (
                     <Card 
                       key={prompt.title}
                       className="cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all"
-                      onClick={() => handleSuggestionClick(prompt.title === "File a Claim" ? "Help me file a VA claim" : 
-                        prompt.title === "Calculate Benefits" ? "Calculate my VA compensation" :
-                        prompt.title === "Intent to File" ? "What is Intent to File?" : "Estimate my TSP growth")}
+                      onClick={() => handleSuggestionClick(prompt.action)}
                     >
-                      <CardContent className="p-4 flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-muted">
-                          <prompt.icon className="w-4 h-4 text-muted-foreground" />
+                      <CardContent className="p-3 flex items-start gap-2">
+                        <div className="p-1.5 rounded-md bg-muted">
+                          <prompt.icon className="w-3.5 h-3.5 text-muted-foreground" />
                         </div>
                         <div>
-                          <p className="font-medium text-sm">{prompt.title}</p>
-                          <p className="text-xs text-muted-foreground">{prompt.description}</p>
+                          <p className="font-medium text-sm leading-tight">{prompt.title}</p>
+                          <p className="text-xs text-muted-foreground leading-tight">{prompt.description}</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -923,7 +937,7 @@ export default function ClaimsAgent() {
               )}
 
               {/* Messages */}
-              <div className="space-y-6">
+              <div className="space-y-4">
               {messages.map((message, index) => {
                 // Hide initial welcome message when showing suggestion cards
                 if (isEmptyChat && index === 0) return null;
@@ -964,8 +978,8 @@ export default function ClaimsAgent() {
           </ScrollArea>
 
           {/* Input Area - Fixed at bottom */}
-          <div className="flex-shrink-0 border-t bg-background p-4">
-            <div className="max-w-3xl mx-auto">
+          <div className="flex-shrink-0 border-t bg-background p-3">
+            <div className="max-w-2xl mx-auto">
               <form onSubmit={(e) => { e.preventDefault(); sendMessage(); }} className="relative">
                 <Input
                   value={input}
