@@ -578,3 +578,6 @@ verify_jwt = true
 
 [functions.firecrawl-batch-import]
 verify_jwt = false
+
+[functions.import-vso-representatives]
+verify_jwt = true

@@ -13,6 +13,13 @@ interface KBArticle {
   source_name: string | null;
 }
 
+interface VSORepresentative {
+  full_name: string;
+  organization_name: string | null;
+  city: string | null;
+  state: string | null;
+}
+
 // Fetch relevant KB articles based on user query
 async function getRelevantKBContext(query: string, supabaseUrl: string, serviceKey: string): Promise<string> {
   try {
@@ -65,6 +72,52 @@ async function getRelevantKBContext(query: string, supabaseUrl: string, serviceK
   }
 }
 
+// Fetch VSO representatives based on location or query
+async function getVSORepresentatives(query: string, supabaseUrl: string, serviceKey: string): Promise<string> {
+  try {
+    const supabase = createClient(supabaseUrl, serviceKey);
+    const queryLower = query.toLowerCase();
+    
+    // Check if user is asking about VSO reps, representatives, or help finding one
+    const isVSOQuery = /vso|representative|rep|help|find|locate|near|local|office/i.test(query);
+    if (!isVSOQuery) return "";
+    
+    // Try to extract state from query
+    const stateMatches = query.match(/\b([A-Z]{2})\b/) || 
+                         query.match(/\b(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|georgia|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming|guam|puerto rico)\b/i);
+    
+    let vsoQuery = supabase
+      .from('vso_representatives')
+      .select('full_name, organization_name, city, state')
+      .eq('is_active', true)
+      .limit(5);
+    
+    if (stateMatches) {
+      const stateCode = stateMatches[1].length === 2 ? stateMatches[1].toUpperCase() : null;
+      if (stateCode) {
+        vsoQuery = vsoQuery.eq('state', stateCode);
+      }
+    }
+    
+    const { data, error } = await vsoQuery;
+    
+    if (error || !data || data.length === 0) {
+      console.log("No VSO reps found or error:", error);
+      return "";
+    }
+    
+    const reps = data as VSORepresentative[];
+    const repList = reps.map(r => 
+      `- ${r.full_name} (${r.organization_name || 'VSO'}) - ${r.city || ''}, ${r.state || ''}`
+    ).join('\n');
+    
+    return `\n\nACCREDITED VSO REPRESENTATIVES:\nThe following are accredited VSO representatives who can assist veterans:\n${repList}\n\nNote: For a complete list of accredited representatives, visit: https://www.va.gov/ogc/apps/accreditation/index.asp`;
+  } catch (error) {
+    console.error("Error fetching VSO reps:", error);
+    return "";
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -84,18 +137,24 @@ serve(async (req) => {
     const latestUserMessage = messages.filter((m: { role: string }) => m.role === 'user').pop();
     const userQuery = latestUserMessage?.content || "";
 
-    // Fetch relevant KB context
+    // Fetch relevant KB context and VSO representatives
     let kbContext = "";
+    let vsoContext = "";
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY && userQuery) {
-      kbContext = await getRelevantKBContext(userQuery, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      [kbContext, vsoContext] = await Promise.all([
+        getRelevantKBContext(userQuery, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY),
+        getVSORepresentatives(userQuery, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+      ]);
     }
 
-    // Enhance system prompt with KB context
-    const enhancedPrompt = systemPrompt + kbContext + `
+    // Enhance system prompt with KB context and VSO data
+    const enhancedPrompt = systemPrompt + kbContext + vsoContext + `
 
 IMPORTANT: When answering questions, reference the knowledge base information above when relevant. 
 You can mention "According to DAV..." or "The Disabled American Veterans organization..." when citing information.
-If asked about specific resources, direct them to dav.org or their local DAV office.`;
+If the user asks about finding help or representatives, provide the VSO representative information above.
+If asked about specific resources, direct them to dav.org or their local DAV office.
+For a complete list of accredited VSO representatives, direct them to: https://www.va.gov/ogc/apps/accreditation/index.asp`;
 
     console.log("Sending request to Lovable AI with", messages.length, "messages", kbContext ? "(with KB context)" : "");
 
