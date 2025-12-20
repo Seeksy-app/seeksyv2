@@ -23257,6 +23257,132 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_assets: {
+        Row: {
+          alt_text: string | null
+          bucket: string
+          content_type: string | null
+          created_at: string
+          created_by: string | null
+          height: number | null
+          id: string
+          path: string
+          public_url: string
+          size_bytes: number | null
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          bucket?: string
+          content_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          height?: number | null
+          id?: string
+          path: string
+          public_url: string
+          size_bytes?: number | null
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          bucket?: string
+          content_type?: string | null
+          created_at?: string
+          created_by?: string | null
+          height?: number | null
+          id?: string
+          path?: string
+          public_url?: string
+          size_bytes?: number | null
+          width?: number | null
+        }
+        Relationships: []
+      }
+      seo_pages: {
+        Row: {
+          canonical_url: string | null
+          created_at: string
+          h1_override: string | null
+          id: string
+          json_ld: string | null
+          meta_description: string | null
+          meta_title: string | null
+          og_description: string | null
+          og_image_alt: string | null
+          og_image_url: string | null
+          og_title: string | null
+          page_name: string
+          project_id: string | null
+          robots: string | null
+          route_path: string
+          score: number
+          score_breakdown: Json
+          status: string
+          twitter_card_type: string | null
+          twitter_description: string | null
+          twitter_image_alt: string | null
+          twitter_image_url: string | null
+          twitter_title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          created_at?: string
+          h1_override?: string | null
+          id?: string
+          json_ld?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image_alt?: string | null
+          og_image_url?: string | null
+          og_title?: string | null
+          page_name: string
+          project_id?: string | null
+          robots?: string | null
+          route_path: string
+          score?: number
+          score_breakdown?: Json
+          status?: string
+          twitter_card_type?: string | null
+          twitter_description?: string | null
+          twitter_image_alt?: string | null
+          twitter_image_url?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          created_at?: string
+          h1_override?: string | null
+          id?: string
+          json_ld?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          og_description?: string | null
+          og_image_alt?: string | null
+          og_image_url?: string | null
+          og_title?: string | null
+          page_name?: string
+          project_id?: string | null
+          robots?: string | null
+          route_path?: string
+          score?: number
+          score_breakdown?: Json
+          status?: string
+          twitter_card_type?: string | null
+          twitter_description?: string | null
+          twitter_image_alt?: string | null
+          twitter_image_url?: string | null
+          twitter_title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       session_destinations: {
         Row: {
           created_at: string
