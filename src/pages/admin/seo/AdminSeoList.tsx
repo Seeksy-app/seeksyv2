@@ -25,10 +25,11 @@ import {
 import { Search, Plus, Image, Edit2, Loader2, Globe } from "lucide-react";
 import { getScoreProgressColor } from "@/lib/seo/seoScoring";
 import { formatDistanceToNow } from "date-fns";
+import { RequireAdmin } from "@/components/auth/RequireAdmin";
 
 type SeoStatus = 'all' | 'draft' | 'published' | 'archived';
 
-export default function AdminSeoList() {
+function AdminSeoListContent() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<SeoStatus>("all");
@@ -196,5 +197,14 @@ export default function AdminSeoList() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+// Wrap with admin guard
+export default function AdminSeoList() {
+  return (
+    <RequireAdmin>
+      <AdminSeoListContent />
+    </RequireAdmin>
   );
 }

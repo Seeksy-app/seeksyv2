@@ -24,13 +24,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, Loader2, Upload, AlertCircle, ChevronDown, Check, X } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Upload, AlertCircle, ChevronDown, Check, X, FileQuestion } from "lucide-react";
 import { 
   computeSeoScore, 
   getScoreProgressColor, 
   JSON_LD_TEMPLATES,
   SeoPageData 
 } from "@/lib/seo/seoScoring";
+import { RequireAdmin } from "@/components/auth/RequireAdmin";
 
 interface FormData {
   route_path: string;
@@ -60,7 +61,7 @@ const ROBOTS_OPTIONS = [
   'noindex, nofollow',
 ];
 
-export default function AdminSeoEdit() {
+function AdminSeoEditContent() {
   const { seo_page_id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -246,6 +247,29 @@ export default function AdminSeoEdit() {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  // Handle not found case (non-new page that doesn't exist)
+  if (!isNew && !page) {
+    return (
+      <div className="container max-w-2xl py-12">
+        <Card className="text-center py-12">
+          <CardContent className="space-y-4">
+            <FileQuestion className="h-16 w-16 text-muted-foreground mx-auto" />
+            <div>
+              <h2 className="text-xl font-semibold">SEO Page Not Found</h2>
+              <p className="text-muted-foreground mt-1">
+                The SEO page you're looking for doesn't exist or may have been deleted.
+              </p>
+            </div>
+            <Button onClick={() => navigate('/admin/seo')} className="mt-4">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to SEO Manager
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -674,5 +698,14 @@ export default function AdminSeoEdit() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrap with admin guard
+export default function AdminSeoEdit() {
+  return (
+    <RequireAdmin>
+      <AdminSeoEditContent />
+    </RequireAdmin>
   );
 }
