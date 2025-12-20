@@ -136,7 +136,7 @@ export default function WorkspaceDashboard() {
             <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
             <h2 className="text-xl font-semibold mb-2">Workspace Not Found</h2>
             <p className="text-muted-foreground mb-4">The workspace you're looking for doesn't exist.</p>
-            <Button onClick={() => navigate('/apps?new_apps=true')}>
+            <Button onClick={() => navigate('/apps?view=modules')}>
               Browse Apps & Tools
             </Button>
           </CardContent>

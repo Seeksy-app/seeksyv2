@@ -303,7 +303,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         
         setCurrentWorkspace(createdWorkspace);
         await fetchWorkspaces();
-        return { navigateTo: '/apps?new_apps=true', createdWorkspace };
+        return { navigateTo: '/apps?view=modules', createdWorkspace };
       }
     } catch (err) {
       console.error('Error deleting workspace:', err);

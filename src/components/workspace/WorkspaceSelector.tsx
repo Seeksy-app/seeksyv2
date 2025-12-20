@@ -349,7 +349,7 @@ export function WorkspaceSelector() {
             <Button 
               onClick={() => {
                 setShowRecoveryDialog(false);
-                navigate('/apps?new_apps=true');
+                navigate('/apps?view=modules');
               }}
             >
               Add Seekies

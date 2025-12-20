@@ -339,7 +339,7 @@ export default function CreatorHub() {
                 <p className="text-sm">No tools activated yet</p>
                 <p className="text-xs mt-1 mb-4">Browse Apps & Tools to activate your first module</p>
                 <div className="flex items-center justify-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => navigate('/apps?new_apps=true')}>
+                  <Button variant="outline" size="sm" onClick={() => navigate('/apps?view=modules')}>
                     Browse Apps & Tools
                   </Button>
                   <Button variant="default" size="sm" onClick={() => setShowPackageBuilder(true)}>
@@ -434,7 +434,7 @@ export default function CreatorHub() {
                 id="creatorhub-browse-apps-button"
                 variant="default" 
                 size="sm" 
-                onClick={() => navigate('/apps?new_apps=true')}
+                onClick={() => navigate('/apps?view=modules')}
               >
                 Browse Apps & Tools <ArrowRight className="h-3 w-3 ml-1" />
               </Button>

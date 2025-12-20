@@ -1,37 +1,37 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Layers, Package } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Layers, Grid3X3 } from "lucide-react";
 
 interface AppsViewToggleProps {
-  value: "collections" | "individual";
-  onValueChange: (value: "collections" | "individual") => void;
+  value: "bundles" | "individual";
+  onValueChange: (value: "bundles" | "individual") => void;
   className?: string;
 }
 
 /**
- * Toggle between Collections view and Individual Seekies view in the App Store.
+ * Toggle between App Bundles view and Individual Seekies (All Modules) view.
+ * Default is Individual Seekies (All Modules).
  */
 export function AppsViewToggle({ value, onValueChange, className }: AppsViewToggleProps) {
   return (
     <Tabs 
       value={value} 
-      onValueChange={(v) => onValueChange(v as "collections" | "individual")} 
+      onValueChange={(v) => onValueChange(v as "bundles" | "individual")} 
       className={className}
     >
       <TabsList className="grid grid-cols-2 w-[280px] h-10">
         <TabsTrigger 
-          value="collections" 
-          className="flex items-center gap-2 text-sm"
-        >
-          <Layers className="h-4 w-4" />
-          Collections
-        </TabsTrigger>
-        <TabsTrigger 
           value="individual" 
           className="flex items-center gap-2 text-sm"
         >
-          <Package className="h-4 w-4" />
-          Individual Seekies
+          <Grid3X3 className="h-4 w-4" />
+          All Modules
+        </TabsTrigger>
+        <TabsTrigger 
+          value="bundles" 
+          className="flex items-center gap-2 text-sm"
+        >
+          <Layers className="h-4 w-4" />
+          App Bundles
         </TabsTrigger>
       </TabsList>
     </Tabs>
