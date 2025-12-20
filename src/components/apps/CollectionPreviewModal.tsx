@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Check, Package, AlertCircle, Loader2 } from "lucide-react";
+import { Check, Package, AlertCircle, Loader2, ChevronRight } from "lucide-react";
 import { useCollectionInstallation } from "@/hooks/useCollectionInstallation";
 import { SEEKSY_MODULES } from "@/components/modules/moduleData";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 interface CollectionPreviewModalProps {
   open: boolean;
@@ -23,8 +24,9 @@ interface CollectionPreviewModalProps {
 }
 
 /**
- * Modal that shows which modules will be installed when installing a collection.
- * User must confirm before installation proceeds.
+ * Modal that shows which modules will be installed when installing an App Bundle.
+ * User must explicitly confirm before installation proceeds.
+ * Bundles NEVER auto-install.
  */
 export function CollectionPreviewModal({
   open,
@@ -33,6 +35,7 @@ export function CollectionPreviewModal({
   onInstallComplete,
 }: CollectionPreviewModalProps) {
   const { previewCollectionInstall, installCollection } = useCollectionInstallation();
+  const { currentWorkspace } = useWorkspace();
   const [isInstalling, setIsInstalling] = useState(false);
 
   const { newModules, alreadyInstalled, collection } = previewCollectionInstall(collectionId);
@@ -42,7 +45,7 @@ export function CollectionPreviewModal({
     return SEEKSY_MODULES.find(m => m.id === moduleId);
   };
 
-  const handleInstall = async () => {
+  const handleInstallBundle = async () => {
     setIsInstalling(true);
     try {
       const success = await installCollection(collectionId);
@@ -85,13 +88,23 @@ export function CollectionPreviewModal({
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Workspace target indicator */}
+          {currentWorkspace && (
+            <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-center gap-3">
+              <Package className="h-5 w-5 text-primary" />
+              <span className="text-sm">
+                Installing to: <strong>{currentWorkspace.name}</strong>
+              </span>
+            </div>
+          )}
+
           {/* Summary */}
           <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
             <Package className="h-5 w-5 text-muted-foreground" />
             <span className="text-sm">
               {newModules.length > 0 
                 ? `${newModules.length} Seeksy${newModules.length > 1 ? 's' : ''} will be installed`
-                : 'All Seekies from this collection are already installed'}
+                : 'All Seekies from this bundle are already installed'}
             </span>
           </div>
 
@@ -163,23 +176,27 @@ export function CollectionPreviewModal({
           )}
         </div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button 
-            onClick={handleInstall} 
+            onClick={handleInstallBundle} 
             disabled={isInstalling || newModules.length === 0}
+            className="w-full sm:w-auto gap-2"
           >
             {isInstalling ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Installing...
               </>
             ) : newModules.length === 0 ? (
               'Already Installed'
             ) : (
-              `Install ${newModules.length} Seeksy${newModules.length > 1 ? 's' : ''}`
+              <>
+                Install bundle to workspace
+                <ChevronRight className="h-4 w-4" />
+              </>
             )}
           </Button>
         </DialogFooter>

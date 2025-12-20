@@ -15,14 +15,12 @@ interface AnimatedCollectionCardProps {
   collection: SeeksyCollection;
   isInstalled: boolean;
   onPreview: () => void;
-  onInstall: () => void;
 }
 
 export function AnimatedCollectionCard({
   collection,
   isInstalled,
   onPreview,
-  onInstall,
 }: AnimatedCollectionCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -220,38 +218,23 @@ export function AnimatedCollectionCard({
               <span>{collection.usersCount?.toLocaleString() || 0} users</span>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPreview();
-                }}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                Preview
-              </Button>
-              
-              {!isInstalled && (
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onInstall();
-                  }}
-                  style={{ 
-                    backgroundColor: collection.color,
-                    color: "white"
-                  }}
-                  className="hover:opacity-90"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Install
-                </Button>
-              )}
-            </div>
+            {/* Always show Preview button - bundles never auto-install */}
+            <Button
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview();
+              }}
+              style={{ 
+                backgroundColor: isInstalled ? undefined : collection.color,
+                color: isInstalled ? undefined : "white"
+              }}
+              variant={isInstalled ? "outline" : "default"}
+              className={isInstalled ? "" : "hover:opacity-90"}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              {isInstalled ? "View Bundle" : "View & Install"}
+            </Button>
           </div>
         </div>
       </Card>

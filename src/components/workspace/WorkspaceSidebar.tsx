@@ -612,7 +612,7 @@ export function WorkspaceSidebar() {
                   {/* Add Seeksy Button - ALWAYS VISIBLE, PROMINENT */}
                   <SidebarMenuItem>
                     <SidebarMenuButton
-                      onClick={() => navigate('/apps?new_apps=true')}
+                      onClick={() => navigate('/apps?view=modules')}
                       tooltip="Add Seeksy"
                       className="text-primary hover:text-primary hover:bg-primary/10 font-medium"
                     >

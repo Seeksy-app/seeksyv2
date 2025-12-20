@@ -304,6 +304,15 @@ export default function AppsRedesigned() {
           <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)} className="mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <TabsList className="bg-muted/50">
+                {/* Tab order: All Modules (default), App Bundles, AI Guide (conditional) */}
+                <TabsTrigger value="modules" className="gap-2">
+                  <Grid3X3 className="w-4 h-4" />
+                  All Modules
+                </TabsTrigger>
+                <TabsTrigger value="collections" className="gap-2">
+                  <Layers className="w-4 h-4" />
+                  App Bundles
+                </TabsTrigger>
                 {/* Only show AI Guide tab if onboarding is allowed */}
                 {canShowOnboarding && (
                   <TabsTrigger value="spark" className="gap-2">
@@ -311,14 +320,6 @@ export default function AppsRedesigned() {
                     AI Guide
                   </TabsTrigger>
                 )}
-                <TabsTrigger value="modules" className="gap-2">
-                  <Grid3X3 className="w-4 h-4" />
-                  Individual Seekies
-                </TabsTrigger>
-                <TabsTrigger value="collections" className="gap-2">
-                  <Layers className="w-4 h-4" />
-                  Collections
-                </TabsTrigger>
               </TabsList>
 
               {/* Search - only show for collections/modules */}
@@ -356,8 +357,13 @@ export default function AppsRedesigned() {
               </Card>
             </TabsContent>
 
-            {/* Collections - constrained width */}
+            {/* App Bundles - constrained width */}
             <TabsContent value="collections" className="mt-8">
+              <div className="mb-6">
+                <p className="text-muted-foreground text-sm">
+                  Pre-built groups of Seekies for common workflows.
+                </p>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredCollections.map((collection, index) => (
                   <motion.div
@@ -370,7 +376,6 @@ export default function AppsRedesigned() {
                       collection={collection}
                       isInstalled={isCollectionInstalled(collection)}
                       onPreview={() => setPreviewCollection(collection)}
-                      onInstall={() => handleInstallCollection(collection)}
                     />
                   </motion.div>
                 ))}
@@ -379,7 +384,7 @@ export default function AppsRedesigned() {
               {filteredCollections.length === 0 && (
                 <div className="text-center py-12">
                   <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="font-semibold text-foreground mb-2">No collections found</h3>
+                  <h3 className="font-semibold text-foreground mb-2">No app bundles found</h3>
                   <p className="text-muted-foreground text-sm">
                     Try a different search term
                   </p>
