@@ -35,6 +35,8 @@ import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { LinkedGbpPanel } from "@/components/admin/seo/LinkedGbpPanel";
 import { SeoAiSuggestionsPanel } from "@/components/admin/seo/SeoAiSuggestionsPanel";
 import { SeoPerformancePanel } from "@/components/admin/seo/SeoPerformancePanel";
+import { SeoBaselinePanel } from "@/components/admin/seo/SeoBaselinePanel";
+import { useSeoPageMetrics } from "@/hooks/useSeoAnalyticsMetrics";
 
 interface FormData {
   route_path: string;

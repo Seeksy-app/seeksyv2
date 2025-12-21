@@ -23876,6 +23876,62 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_metric_baselines: {
+        Row: {
+          baseline_clicks: number | null
+          baseline_ctr: number | null
+          baseline_impressions: number | null
+          baseline_position: number | null
+          baseline_sessions: number | null
+          baseline_users: number | null
+          captured_at: string
+          created_at: string
+          id: string
+          reset_at: string | null
+          reset_by: string | null
+          seo_page_id: string
+          source: string
+        }
+        Insert: {
+          baseline_clicks?: number | null
+          baseline_ctr?: number | null
+          baseline_impressions?: number | null
+          baseline_position?: number | null
+          baseline_sessions?: number | null
+          baseline_users?: number | null
+          captured_at?: string
+          created_at?: string
+          id?: string
+          reset_at?: string | null
+          reset_by?: string | null
+          seo_page_id: string
+          source: string
+        }
+        Update: {
+          baseline_clicks?: number | null
+          baseline_ctr?: number | null
+          baseline_impressions?: number | null
+          baseline_position?: number | null
+          baseline_sessions?: number | null
+          baseline_users?: number | null
+          captured_at?: string
+          created_at?: string
+          id?: string
+          reset_at?: string | null
+          reset_by?: string | null
+          seo_page_id?: string
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_metric_baselines_seo_page_id_fkey"
+            columns: ["seo_page_id"]
+            isOneToOne: false
+            referencedRelation: "seo_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seo_pages: {
         Row: {
           canonical_url: string | null

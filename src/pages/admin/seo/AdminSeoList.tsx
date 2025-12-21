@@ -28,12 +28,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Search, Plus, Image, Edit2, Loader2, Globe, ArrowUpDown, ExternalLink, Info } from "lucide-react";
+import { Search, Plus, Image, Edit2, Loader2, Globe, ArrowUpDown, ExternalLink, Info, Sparkles } from "lucide-react";
 import { getScoreProgressColor } from "@/lib/seo/seoScoring";
 import { formatDistanceToNow } from "date-fns";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { SeoLinkStatusChip } from "@/components/admin/shared/SeoLinkStatusChip";
-import { useSeoAnalyticsConnection, useSeoListMetrics, TimeRange } from "@/hooks/useSeoAnalyticsMetrics";
+import { useSeoAnalyticsConnection, useSeoListMetrics, useSeoPageMetrics, TimeRange } from "@/hooks/useSeoAnalyticsMetrics";
+import { useSeoBaselinesForList } from "@/hooks/useSeoBaselines";
+import { useSeoViewMode } from "@/hooks/useSeoViewMode";
+import { SeoPerformanceAlertBadges } from "@/components/admin/seo/SeoPerformanceAlerts";
+import { SeoExplainChangeDialog } from "@/components/admin/seo/SeoExplainChangeDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type SeoStatus = 'all' | 'draft' | 'published' | 'archived';
