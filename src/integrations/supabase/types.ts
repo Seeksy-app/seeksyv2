@@ -34843,6 +34843,14 @@ export type Database = {
       is_adm: { Args: never; Returns: boolean }
       is_gbp_admin: { Args: never; Returns: boolean }
       is_lead_intel_admin: { Args: never; Returns: boolean }
+      is_lead_workspace_member: {
+        Args: { p_user_id: string; p_workspace_id: string }
+        Returns: boolean
+      }
+      is_lead_workspace_owner: {
+        Args: { p_user_id: string; p_workspace_id: string }
+        Returns: boolean
+      }
       is_load_shared_with_user: {
         Args: { _load_id: string; _user_id: string }
         Returns: boolean
