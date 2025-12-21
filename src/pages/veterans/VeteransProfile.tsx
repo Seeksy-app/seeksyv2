@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { 
   Shield, ArrowLeft, Save, User, Flag, ClipboardList, 
-  Download, Calculator, Mail, Phone, MapPin, FileText, Settings
+  Download, Calculator, Mail, Phone, MapPin, FileText, Settings, Camera, Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,11 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Helmet } from "react-helmet";
 import { format } from "date-fns";
 import { useSavedCalculationsStore, CALC_DISPLAY_NAMES, CALCULATOR_ROUTES } from "@/hooks/useSavedCalculationsStore";
+import { VeteransHeader } from "@/components/veterans/VeteransHeader";
 
 const STATUS_OPTIONS = [
   { value: "veteran", label: "Veteran" },
@@ -71,8 +73,11 @@ export default function VeteransProfile() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [serviceEra, setServiceEra] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [profile, setProfile] = useState<Partial<UserProfile>>({
     service_status: "",
     branch_of_service: "",
@@ -87,6 +92,7 @@ export default function VeteransProfile() {
     photo_url: "",
   });
   const [downloads, setDownloads] = useState<DownloadItem[]>([]);
+
 
   const { calculations: savedCalcs, setUserId } = useSavedCalculationsStore();
 
@@ -105,6 +111,7 @@ export default function VeteransProfile() {
 
       setUserEmail(user.email || "");
       setUserId(user.id);
+      setCurrentUserId(user.id);
 
       const { data } = await supabase
         .from('veteran_profiles')
@@ -181,6 +188,70 @@ export default function VeteransProfile() {
     }
   };
 
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !currentUserId) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please select an image file");
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${currentUserId}/profile.${fileExt}`;
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('veteran-photos')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('veteran-photos')
+        .getPublicUrl(fileName);
+
+      // Update profile with new URL
+      setProfile(p => ({ ...p, photo_url: publicUrl }));
+      
+      // Save to database
+      await supabase
+        .from('veteran_profiles')
+        .upsert({
+          user_id: currentUserId,
+          photo_url: publicUrl,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' });
+
+      toast.success("Profile photo updated!");
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast.error("Failed to upload photo. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const getInitials = () => {
+    if (profile.full_name) {
+      return profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    if (userEmail) {
+      return userEmail[0].toUpperCase();
+    }
+    return "U";
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -195,15 +266,7 @@ export default function VeteransProfile() {
         <title>Profile | Military & Federal Benefits Hub</title>
       </Helmet>
 
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/yourbenefits" className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" />
-            <span className="font-semibold">Military & Federal Benefits Hub</span>
-          </Link>
-        </div>
-      </header>
+      <VeteransHeader variant="dashboard" />
 
       <div className="container mx-auto px-4 py-6 max-w-4xl">
         <Link to="/yourbenefits/dashboard" className="inline-flex items-center text-muted-foreground hover:text-foreground mb-6">
@@ -211,9 +274,33 @@ export default function VeteransProfile() {
           Back to Dashboard
         </Link>
 
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-6 h-6 text-primary" />
+        <div className="flex items-center gap-4 mb-6">
+          {/* Profile Photo with Upload */}
+          <div className="relative group">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={profile.photo_url || undefined} alt="Profile" />
+              <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                {getInitials()}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              {uploading ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+              ) : (
+                <Camera className="w-5 h-5 text-white" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
           </div>
           <div>
             <h1 className="text-2xl font-bold">Profile & Settings</h1>

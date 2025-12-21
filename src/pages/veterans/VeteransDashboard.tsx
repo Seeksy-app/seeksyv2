@@ -11,6 +11,7 @@ import { User } from "@supabase/supabase-js";
 import { format } from "date-fns";
 import { Helmet } from "react-helmet";
 import { CALCULATORS } from "@/lib/veteranCalculatorRegistry";
+import { VeteransHeader } from "@/components/veterans/VeteransHeader";
 
 interface Conversation {
   id: string;
@@ -143,6 +144,8 @@ export default function VeteransDashboard() {
       <Helmet>
         <title>Dashboard | Veterans Benefits Hub</title>
       </Helmet>
+
+      <VeteransHeader variant="dashboard" />
 
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Welcome Header */}

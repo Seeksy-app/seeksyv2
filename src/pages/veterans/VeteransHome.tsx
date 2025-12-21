@@ -7,7 +7,8 @@ import { VeteransFaq } from "@/components/veterans/VeteransFaq";
 import { FloatingBenefitsChat } from "@/components/veterans/FloatingBenefitsChat";
 import { Helmet } from "react-helmet";
 import { CALCULATORS, CALCULATOR_CATEGORIES } from "@/lib/veteranCalculatorRegistry";
-import veteransHeroImage from "@/assets/veterans-hero-professionals-mature.jpg";
+import veteransHeroImage from "@/assets/veterans-hero-coffee-social.jpg";
+import { VeteransHeader } from "@/components/veterans/VeteransHeader";
 
 const ICON_MAP: Record<string, any> = {
   DollarSign, Clock, Calculator, MessageSquare, Shield, Award, TrendingUp, Heart, 
@@ -37,34 +38,7 @@ export default function VeteransHome() {
         <meta name="description" content="Your all-in-one guide to maximizing federal and VA benefits — calculators, claim prep, and AI-powered support." />
       </Helmet>
 
-      {/* Header with Login/Signup */}
-      <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <Link to="/yourbenefits" className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-primary" />
-            <span className="font-semibold">Military & Federal Benefits Hub</span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <button onClick={scrollToCalculators} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Calculators
-            </button>
-            <Link to="/yourbenefits/referral-partners" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Referral Program
-            </Link>
-            <Link to="/yourbenefits/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-              About Us
-            </Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/yourbenefits/auth">Login</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/yourbenefits/auth">Sign Up Free</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <VeteransHeader variant="landing" />
 
       {/* Hero Section with Real People */}
       <section className="relative w-full min-h-[70vh] overflow-hidden">
