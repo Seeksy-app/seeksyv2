@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Users, Shield, Megaphone, Sparkles, 
   Search, Filter, UserPlus, TrendingUp,
-  DollarSign, Clock
+  DollarSign, Clock, Settings
 } from "lucide-react";
 
 interface UnifiedLead {
@@ -24,6 +25,7 @@ interface UnifiedLead {
 }
 
 export default function LeadIntelligencePage() {
+  const navigate = useNavigate();
   const [sourceFilter, setSourceFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -154,11 +156,17 @@ export default function LeadIntelligencePage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Lead Intelligence</h1>
-        <p className="text-muted-foreground">
-          Unified view of all leads across Veterans, CampaignStaff, and Seeksy
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Lead Intelligence</h1>
+          <p className="text-muted-foreground">
+            Unified view of all leads across Veterans, CampaignStaff, and Seeksy
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => navigate("/admin/leads/settings")}>
+          <Settings className="h-4 w-4 mr-2" />
+          Settings
+        </Button>
       </div>
 
       {/* Stats Cards */}
