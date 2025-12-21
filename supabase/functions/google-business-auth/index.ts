@@ -8,13 +8,15 @@ const corsHeaders = {
 const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_BUSINESS_CLIENT_ID');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 
-// Read-only scopes for Google Business Profile
+// GBP Scopes - read-only for now, plus openid for user info
 const SCOPES = [
-  'https://www.googleapis.com/auth/business.manage', // Read-only access to business info
+  'https://www.googleapis.com/auth/business.manage',
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'openid',
 ].join(' ');
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -37,15 +39,13 @@ serve(async (req) => {
       });
     }
 
-    // Encode state with user_id and redirect URL
     const state = btoa(JSON.stringify({
       user_id,
-      redirect_url: redirect_url || 'https://seeksy.io/integrations'
+      redirect_url: redirect_url || 'https://preview--seeksy.lovable.app/admin/gbp'
     }));
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/google-business-callback`;
 
-    // Build Google OAuth URL
     const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
     authUrl.searchParams.set('redirect_uri', redirectUri);
@@ -55,7 +55,7 @@ serve(async (req) => {
     authUrl.searchParams.set('prompt', 'consent');
     authUrl.searchParams.set('state', state);
 
-    console.log('Generated OAuth URL for user:', user_id);
+    console.log('Generated GBP OAuth URL for user:', user_id);
 
     return new Response(JSON.stringify({ auth_url: authUrl.toString() }), {
       status: 200,
@@ -64,7 +64,7 @@ serve(async (req) => {
 
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    console.error('Google Business auth error:', errorMessage);
+    console.error('GBP Auth error:', errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -590,3 +590,9 @@ verify_jwt = false
 
 [functions.google-business-auth]
 verify_jwt = true
+
+[functions.gbp-sync]
+verify_jwt = true
+
+[functions.gbp-write]
+verify_jwt = true

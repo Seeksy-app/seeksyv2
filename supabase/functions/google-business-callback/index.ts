@@ -22,10 +22,10 @@ serve(async (req) => {
   try {
     // Check if this is an OAuth callback (has code parameter)
     const code = url.searchParams.get('code');
-    const state = url.searchParams.get('state'); // Contains user_id
+    const state = url.searchParams.get('state');
     const error = url.searchParams.get('error');
 
-    console.log('Google Business callback received:', { 
+    console.log('GBP OAuth callback received:', { 
       hasCode: !!code, 
       hasState: !!state, 
       error 
@@ -33,7 +33,7 @@ serve(async (req) => {
 
     if (error) {
       console.error('OAuth error from Google:', error);
-      return Response.redirect(`${SUPABASE_URL?.replace('.supabase.co', '')}/integrations?error=${encodeURIComponent(error)}`);
+      return Response.redirect(`https://preview--seeksy.lovable.app/admin/gbp?error=${encodeURIComponent(error)}`);
     }
 
     if (!code || !state) {
@@ -48,7 +48,7 @@ serve(async (req) => {
     try {
       stateData = JSON.parse(atob(state));
     } catch {
-      stateData = { user_id: state, redirect_url: 'https://seeksy.io/integrations' };
+      stateData = { user_id: state, redirect_url: 'https://preview--seeksy.lovable.app/admin/gbp' };
     }
 
     const { user_id, redirect_url } = stateData;
@@ -82,44 +82,100 @@ serve(async (req) => {
 
     if (tokenData.error) {
       console.error('Token exchange error:', tokenData);
-      return Response.redirect(`${redirect_url || 'https://seeksy.io/integrations'}?error=${encodeURIComponent(tokenData.error_description || tokenData.error)}`);
+      return Response.redirect(`${redirect_url || 'https://preview--seeksy.lovable.app/admin/gbp'}?error=${encodeURIComponent(tokenData.error_description || tokenData.error)}`);
     }
 
-    console.log('Token exchange successful, storing tokens...');
+    console.log('Token exchange successful');
 
     // Calculate expiry time
     const expiresAt = new Date(Date.now() + (tokenData.expires_in * 1000)).toISOString();
 
-    // Store tokens in database
-    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
-
-    const { error: upsertError } = await supabase
-      .from('google_business_tokens')
-      .upsert({
-        user_id,
-        access_token: tokenData.access_token,
-        refresh_token: tokenData.refresh_token,
-        token_type: tokenData.token_type || 'Bearer',
-        expires_at: expiresAt,
-        scope: tokenData.scope,
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'user_id',
+    // Get user info from Google (email and sub)
+    let googleEmail = '';
+    let googleSub = '';
+    
+    try {
+      const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
       });
-
-    if (upsertError) {
-      console.error('Error storing tokens:', upsertError);
-      return Response.redirect(`${redirect_url || 'https://seeksy.io/integrations'}?error=${encodeURIComponent('Failed to store tokens')}`);
+      
+      if (userInfoResponse.ok) {
+        const userInfo = await userInfoResponse.json();
+        googleEmail = userInfo.email || '';
+        googleSub = userInfo.sub || '';
+        console.log('Got Google user info:', { email: googleEmail, sub: googleSub });
+      }
+    } catch (err) {
+      console.warn('Could not fetch user info:', err);
     }
 
-    console.log('Tokens stored successfully, redirecting user...');
+    // Store tokens in gbp_connections table
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
 
-    // Redirect back to the app
-    return Response.redirect(`${redirect_url || 'https://seeksy.io/integrations'}?gbp_connected=true`);
+    // Check if connection already exists for this Google account
+    const { data: existingConnection } = await supabase
+      .from('gbp_connections')
+      .select('id')
+      .eq('google_subject', googleSub)
+      .single();
+
+    if (existingConnection) {
+      // Update existing connection
+      const { error: updateError } = await supabase
+        .from('gbp_connections')
+        .update({
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token || undefined, // Only update if provided
+          expires_at: expiresAt,
+          scopes: tokenData.scope,
+          status: 'connected',
+          google_account_email: googleEmail,
+        })
+        .eq('id', existingConnection.id);
+
+      if (updateError) {
+        console.error('Error updating connection:', updateError);
+        return Response.redirect(`${redirect_url}?error=${encodeURIComponent('Failed to update connection')}`);
+      }
+    } else {
+      // Create new connection
+      const { error: insertError } = await supabase
+        .from('gbp_connections')
+        .insert({
+          created_by: user_id,
+          google_account_email: googleEmail,
+          google_subject: googleSub,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_at: expiresAt,
+          scopes: tokenData.scope,
+          status: 'connected',
+        });
+
+      if (insertError) {
+        console.error('Error creating connection:', insertError);
+        return Response.redirect(`${redirect_url}?error=${encodeURIComponent('Failed to store connection')}`);
+      }
+    }
+
+    // Log the connection in audit log
+    await supabase
+      .from('gbp_audit_log')
+      .insert({
+        actor_user_id: user_id,
+        action_type: 'OAUTH_CONNECT',
+        status: 'success',
+        request_json: { email: googleEmail },
+      });
+
+    console.log('Connection stored successfully, redirecting...');
+
+    // Redirect back to the GBP Manager
+    return Response.redirect(`${redirect_url || 'https://preview--seeksy.lovable.app/admin/gbp'}?gbp_connected=true`);
 
   } catch (err: unknown) {
     const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-    console.error('Google Business callback error:', errorMessage);
+    console.error('GBP OAuth callback error:', errorMessage);
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

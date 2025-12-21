@@ -14143,6 +14143,272 @@ export type Database = {
         }
         Relationships: []
       }
+      gbp_admin_settings: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          write_mode_enabled: boolean
+          write_mode_enabled_at: string | null
+          write_mode_enabled_by: string | null
+          write_mode_reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          write_mode_enabled?: boolean
+          write_mode_enabled_at?: string | null
+          write_mode_enabled_by?: string | null
+          write_mode_reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          write_mode_enabled?: boolean
+          write_mode_enabled_at?: string | null
+          write_mode_enabled_by?: string | null
+          write_mode_reason?: string | null
+        }
+        Relationships: []
+      }
+      gbp_audit_log: {
+        Row: {
+          action_type: string
+          actor_user_id: string | null
+          connection_id: string | null
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          location_id: string | null
+          request_json: Json | null
+          response_json: Json | null
+          status: string
+          target_google_resource: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_user_id?: string | null
+          connection_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          location_id?: string | null
+          request_json?: Json | null
+          response_json?: Json | null
+          status?: string
+          target_google_resource?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_user_id?: string | null
+          connection_id?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          location_id?: string | null
+          request_json?: Json | null
+          response_json?: Json | null
+          status?: string
+          target_google_resource?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gbp_audit_log_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "gbp_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gbp_audit_log_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "gbp_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gbp_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          google_account_email: string
+          google_subject: string | null
+          id: string
+          refresh_token: string | null
+          scopes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          google_account_email: string
+          google_subject?: string | null
+          id?: string
+          refresh_token?: string | null
+          scopes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          google_account_email?: string
+          google_subject?: string | null
+          id?: string
+          refresh_token?: string | null
+          scopes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gbp_locations: {
+        Row: {
+          address_json: Json | null
+          connection_id: string
+          created_at: string
+          description: string | null
+          google_account_name: string | null
+          google_location_name: string
+          id: string
+          last_synced_at: string | null
+          phone: string | null
+          primary_category: string | null
+          regular_hours_json: Json | null
+          special_hours_json: Json | null
+          store_code: string | null
+          title: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address_json?: Json | null
+          connection_id: string
+          created_at?: string
+          description?: string | null
+          google_account_name?: string | null
+          google_location_name: string
+          id?: string
+          last_synced_at?: string | null
+          phone?: string | null
+          primary_category?: string | null
+          regular_hours_json?: Json | null
+          special_hours_json?: Json | null
+          store_code?: string | null
+          title: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address_json?: Json | null
+          connection_id?: string
+          created_at?: string
+          description?: string | null
+          google_account_name?: string | null
+          google_location_name?: string
+          id?: string
+          last_synced_at?: string | null
+          phone?: string | null
+          primary_category?: string | null
+          regular_hours_json?: Json | null
+          special_hours_json?: Json | null
+          store_code?: string | null
+          title?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gbp_locations_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "gbp_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gbp_reviews: {
+        Row: {
+          comment: string | null
+          connection_id: string
+          create_time: string | null
+          created_at: string
+          google_review_name: string
+          has_reply: boolean | null
+          id: string
+          location_id: string
+          reply_comment: string | null
+          reply_update_time: string | null
+          reviewer_display_name: string | null
+          reviewer_profile_photo_url: string | null
+          star_rating: number | null
+          update_time: string | null
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          connection_id: string
+          create_time?: string | null
+          created_at?: string
+          google_review_name: string
+          has_reply?: boolean | null
+          id?: string
+          location_id: string
+          reply_comment?: string | null
+          reply_update_time?: string | null
+          reviewer_display_name?: string | null
+          reviewer_profile_photo_url?: string | null
+          star_rating?: number | null
+          update_time?: string | null
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          connection_id?: string
+          create_time?: string | null
+          created_at?: string
+          google_review_name?: string
+          has_reply?: boolean | null
+          id?: string
+          location_id?: string
+          reply_comment?: string | null
+          reply_update_time?: string | null
+          reviewer_display_name?: string | null
+          reviewer_profile_photo_url?: string | null
+          star_rating?: number | null
+          update_time?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gbp_reviews_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "gbp_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gbp_reviews_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "gbp_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gmail_connections: {
         Row: {
           access_token: string
@@ -33259,6 +33525,7 @@ export type Database = {
         Returns: undefined
       }
       is_adm: { Args: never; Returns: boolean }
+      is_gbp_admin: { Args: never; Returns: boolean }
       is_load_shared_with_user: {
         Args: { _load_id: string; _user_id: string }
         Returns: boolean
