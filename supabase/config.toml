@@ -599,3 +599,6 @@ verify_jwt = true
 
 [functions.gbp-ai-draft-reply]
 verify_jwt = true
+
+[functions.seo-ai-suggest-from-gbp]
+verify_jwt = true

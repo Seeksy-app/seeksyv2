@@ -7,6 +7,7 @@ import { GBPLayout } from "@/components/admin/gbp/GBPLayout";
 import { GBPNotFound } from "@/components/admin/gbp/GBPNotFound";
 import { GBPSeoLinkSection } from "@/components/admin/gbp/GBPSeoLinkSection";
 import { GBPSeoDriftPanel } from "@/components/admin/gbp/GBPSeoDriftPanel";
+import { GBPAiSuggestionsPanel } from "@/components/admin/gbp/GBPAiSuggestionsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -337,6 +338,14 @@ function GBPLocationDetailContent() {
               description: location.description,
               address_json: location.address_json
             }}
+          />
+        )}
+
+        {/* AI SEO Suggestions Panel */}
+        {location.id && (
+          <GBPAiSuggestionsPanel
+            locationId={location.id}
+            gbpLocationId={location.id}
           />
         )}
 

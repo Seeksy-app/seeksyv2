@@ -23616,6 +23616,65 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_ai_suggestions: {
+        Row: {
+          applied_at: string | null
+          created_at: string
+          created_by: string | null
+          dismissed_at: string | null
+          gbp_location_id: string
+          id: string
+          include_faq: boolean
+          include_reviews: boolean
+          input_snapshot: Json | null
+          model: string
+          output_json: Json | null
+          seo_page_id: string
+          status: string
+          tone: string
+        }
+        Insert: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dismissed_at?: string | null
+          gbp_location_id: string
+          id?: string
+          include_faq?: boolean
+          include_reviews?: boolean
+          input_snapshot?: Json | null
+          model: string
+          output_json?: Json | null
+          seo_page_id: string
+          status?: string
+          tone?: string
+        }
+        Update: {
+          applied_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dismissed_at?: string | null
+          gbp_location_id?: string
+          id?: string
+          include_faq?: boolean
+          include_reviews?: boolean
+          input_snapshot?: Json | null
+          model?: string
+          output_json?: Json | null
+          seo_page_id?: string
+          status?: string
+          tone?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_ai_suggestions_seo_page_id_fkey"
+            columns: ["seo_page_id"]
+            isOneToOne: false
+            referencedRelation: "seo_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seo_assets: {
         Row: {
           alt_text: string | null
