@@ -132,6 +132,7 @@ import AdminTasks from "./pages/admin/AdminTasks";
 import AdminProjects from "./pages/admin/AdminProjects";
 import PartnersPage from "./pages/admin/PartnersPage";
 import LeadIntelligencePage from "./pages/admin/LeadIntelligencePage";
+import LeadIntelligenceSettings from "./pages/admin/LeadIntelligenceSettings";
 import PartnerPortalPage from "./pages/partner/PartnerPortalPage";
 import EventsAwardsProForma from "./pages/admin/cfo/EventsAwardsProForma";
 import CombinedProForma from "./pages/admin/cfo/CombinedProForma";
@@ -1311,6 +1312,7 @@ const AppContent = () => {
               <Route path="/admin/advertisers" element={<AdminAdvertisers />} />
               <Route path="/admin/partners" element={<PartnersPage />} />
               <Route path="/admin/lead-intelligence" element={<LeadIntelligencePage />} />
+              <Route path="/admin/leads/settings" element={<LeadIntelligenceSettings />} />
           <Route path="/partner/:slug" element={<PartnerPortalPage />} />
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
             <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
