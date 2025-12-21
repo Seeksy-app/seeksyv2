@@ -108,7 +108,7 @@ serve(async (req) => {
     const rawBody = await req.text();
     const signature = req.headers.get(SIGNATURE_HEADER);
 
-    // Verify webhook signature if secret is configured
+    // Verify webhook signature if secret is configured (optional)
     if (webhookSecret && signature) {
       const isValid = await verifyWebhookSignature(rawBody, signature, webhookSecret);
       if (!isValid) {
@@ -118,13 +118,8 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-    } else if (webhookSecret && !signature) {
-      console.error('Missing webhook signature');
-      return new Response(JSON.stringify({ error: 'Missing signature' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
     }
+    // Note: If no webhook secret configured, we accept all requests (rely on obscurity of URL)
 
     // Parse webhook payload
     let payload: any;
