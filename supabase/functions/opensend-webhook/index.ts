@@ -132,12 +132,21 @@ serve(async (req) => {
       });
     }
 
-    // Extract key fields from OpenSend webhook
-    const eventType = payload.event || payload.type || 'unknown';
-    const occurredAt = payload.occurred_at || payload.timestamp || new Date().toISOString();
-    const visitorId = payload.visitor_id || payload.anonymous_id;
-    const pageUrl = payload.page_url || payload.url;
+    // Extract key fields from OpenSend webhook (matching their actual payload structure)
+    // OpenSend fields: email, user_geolocation, source_domain, user_agent, user_ip, 
+    // source_url, timestamp, event_data, event_type, md5_email, oir_source
+    const eventType = payload.event_type || payload.event || payload.type || 'identity';
+    const occurredAt = payload.timestamp || payload.occurred_at || new Date().toISOString();
+    const visitorId = payload.visitor_id || payload.anonymous_id || payload.md5_email;
+    const pageUrl = payload.source_url || payload.page_url || payload.url;
     const accountId = payload.account_id || payload.workspace_id;
+    const sourceDomain = payload.source_domain;
+    const userGeolocation = payload.user_geolocation;
+    const userAgent = payload.user_agent;
+    const userIp = payload.user_ip;
+    const md5Email = payload.md5_email;
+    const oirSource = payload.oir_source;
+    const eventData = payload.event_data;
 
     // Contact data (email, phone, etc.)
     const contactData = {
@@ -149,6 +158,14 @@ serve(async (req) => {
     };
 
     const hasContactData = Boolean(contactData.email || contactData.phone);
+    
+    console.log('OpenSend webhook received:', { 
+      eventType, 
+      sourceDomain, 
+      hasEmail: !!contactData.email,
+      hasMd5Email: !!md5Email,
+      userGeolocation 
+    });
 
     // Find workspace by provider_account_id
     let workspaceId: string | null = null;
@@ -183,6 +200,23 @@ serve(async (req) => {
           .eq('is_active', true)
           .single();
         leadSource = source;
+      }
+    }
+
+    // If still no workspace, try to find any active opensend source (single-tenant fallback)
+    if (!workspaceId) {
+      const { data: source } = await supabase
+        .from('lead_sources')
+        .select('*')
+        .eq('provider', 'opensend')
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+      
+      if (source) {
+        workspaceId = source.workspace_id;
+        leadSource = source;
+        console.log('Using fallback workspace:', workspaceId);
       }
     }
 
