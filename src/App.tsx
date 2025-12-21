@@ -133,6 +133,13 @@ import AdminProjects from "./pages/admin/AdminProjects";
 import PartnersPage from "./pages/admin/PartnersPage";
 import LeadIntelligencePage from "./pages/admin/LeadIntelligencePage";
 import LeadIntelligenceSettings from "./pages/admin/LeadIntelligenceSettings";
+// Lead Intelligence Admin Pages
+import AdminLeadsDashboard from "./pages/admin/leads/LeadsDashboard";
+import AdminLeadsSetup from "./pages/admin/leads/LeadsSetup";
+import AdminLeadsProviders from "./pages/admin/leads/LeadsProviders";
+import AdminLeadsRules from "./pages/admin/leads/LeadsRules";
+import AdminLeadsSettings from "./pages/admin/leads/LeadsSettings";
+import { RequireAdmin } from "./components/auth/RequireAdmin";
 import PartnerPortalPage from "./pages/partner/PartnerPortalPage";
 import EventsAwardsProForma from "./pages/admin/cfo/EventsAwardsProForma";
 import CombinedProForma from "./pages/admin/cfo/CombinedProForma";
@@ -1312,7 +1319,12 @@ const AppContent = () => {
               <Route path="/admin/advertisers" element={<AdminAdvertisers />} />
               <Route path="/admin/partners" element={<PartnersPage />} />
               <Route path="/admin/lead-intelligence" element={<LeadIntelligencePage />} />
-              <Route path="/admin/leads/settings" element={<LeadIntelligenceSettings />} />
+              {/* Lead Intelligence Admin Routes */}
+              <Route path="/admin/leads" element={<RequireAdmin><AdminLeadsDashboard /></RequireAdmin>} />
+              <Route path="/admin/leads/setup" element={<RequireAdmin><AdminLeadsSetup /></RequireAdmin>} />
+              <Route path="/admin/leads/providers" element={<RequireAdmin><AdminLeadsProviders /></RequireAdmin>} />
+              <Route path="/admin/leads/rules" element={<RequireAdmin><AdminLeadsRules /></RequireAdmin>} />
+              <Route path="/admin/leads/settings" element={<RequireAdmin><AdminLeadsSettings /></RequireAdmin>} />
           <Route path="/partner/:slug" element={<PartnerPortalPage />} />
               <Route path="/admin/ad-campaigns" element={<AdminCampaigns />} />
             <Route path="/admin/ad-analytics" element={<AdminAdAnalytics />} />
