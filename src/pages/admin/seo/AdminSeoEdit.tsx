@@ -32,6 +32,7 @@ import {
   SeoPageData 
 } from "@/lib/seo/seoScoring";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { LinkedGbpPanel } from "@/components/admin/seo/LinkedGbpPanel";
 
 interface FormData {
   route_path: string;
@@ -328,6 +329,11 @@ function AdminSeoEditContent() {
           </Button>
         </div>
       </div>
+
+      {/* Linked GBP Panel - show only for existing pages */}
+      {!isNew && seo_page_id && (
+        <LinkedGbpPanel seoPageId={seo_page_id} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Left Column - Page Info & Meta */}

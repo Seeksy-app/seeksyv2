@@ -26,6 +26,7 @@ import { Search, Plus, Image, Edit2, Loader2, Globe } from "lucide-react";
 import { getScoreProgressColor } from "@/lib/seo/seoScoring";
 import { formatDistanceToNow } from "date-fns";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
+import { SeoLinkStatusChip } from "@/components/admin/shared/SeoLinkStatusChip";
 
 type SeoStatus = 'all' | 'draft' | 'published' | 'archived';
 
@@ -34,6 +35,7 @@ function AdminSeoListContent() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<SeoStatus>("all");
 
+  // Fetch SEO pages with GBP link info
   const { data: pages, isLoading } = useQuery({
     queryKey: ['seo-pages', statusFilter, search],
     queryFn: async () => {
@@ -53,6 +55,38 @@ function AdminSeoListContent() {
       const { data, error } = await query;
       if (error) throw error;
       return data;
+    }
+  });
+
+  // Fetch GBP links for all SEO pages
+  const { data: gbpLinks } = useQuery({
+    queryKey: ['seo-gbp-links-all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gbp_seo_links')
+        .select(`
+          seo_page_id,
+          gbp_location_id,
+          sync_status,
+          gbp_locations:gbp_location_id (
+            id,
+            title
+          )
+        `);
+      if (error) throw error;
+      // Create a map for quick lookup
+      const linkMap = new Map<string, { gbpLocationId: string; gbpTitle: string; syncStatus: string }>();
+      data?.forEach(link => {
+        const location = link.gbp_locations as any;
+        if (location) {
+          linkMap.set(link.seo_page_id, {
+            gbpLocationId: link.gbp_location_id,
+            gbpTitle: location.title,
+            syncStatus: link.sync_status
+          });
+        }
+      });
+      return linkMap;
     }
   });
 
@@ -145,6 +179,7 @@ function AdminSeoListContent() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">GBP</TableHead>
                   <TableHead>Page Name</TableHead>
                   <TableHead>Route Path</TableHead>
                   <TableHead className="w-32">SEO Score</TableHead>
@@ -154,43 +189,58 @@ function AdminSeoListContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pages.map((page) => (
-                  <TableRow key={page.id} className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/admin/seo/${page.id}`)}>
-                    <TableCell className="font-medium">{page.page_name}</TableCell>
-                    <TableCell className="font-mono text-sm text-muted-foreground">
-                      {page.route_path}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Progress 
-                          value={page.score} 
-                          className="h-2 flex-1"
-                          indicatorClassName={getScoreProgressColor(page.score)}
+                {pages.map((page) => {
+                  const gbpLink = gbpLinks?.get(page.id);
+                  const linkStatus = gbpLink 
+                    ? (gbpLink.syncStatus as 'linked' | 'warning' | 'out_of_sync') 
+                    : 'not_linked';
+                  
+                  return (
+                    <TableRow key={page.id} className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/admin/seo/${page.id}`)}>
+                      <TableCell>
+                        <SeoLinkStatusChip 
+                          status={linkStatus}
+                          targetType="gbp"
+                          targetId={gbpLink?.gbpLocationId}
+                          targetTitle={gbpLink?.gbpTitle}
                         />
-                        <span className={`text-sm font-medium ${getScoreColor(page.score)}`}>
-                          {page.score}%
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(page.status)}</TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/admin/seo/${page.id}`);
-                        }}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell className="font-medium">{page.page_name}</TableCell>
+                      <TableCell className="font-mono text-sm text-muted-foreground">
+                        {page.route_path}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Progress 
+                            value={page.score} 
+                            className="h-2 flex-1"
+                            indicatorClassName={getScoreProgressColor(page.score)}
+                          />
+                          <span className={`text-sm font-medium ${getScoreColor(page.score)}`}>
+                            {page.score}%
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(page.status)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/admin/seo/${page.id}`);
+                          }}
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

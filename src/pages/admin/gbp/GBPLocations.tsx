@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { SeoLinkStatusChip } from "@/components/admin/shared/SeoLinkStatusChip";
 
 function GBPLocationsContent() {
   const navigate = useNavigate();
@@ -83,6 +84,38 @@ function GBPLocationsContent() {
       return data;
     },
     enabled: !!connection?.id,
+  });
+
+  // Fetch SEO links for all GBP locations
+  const { data: seoLinks } = useQuery({
+    queryKey: ['gbp-seo-links-all'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gbp_seo_links')
+        .select(`
+          gbp_location_id,
+          seo_page_id,
+          sync_status,
+          seo_pages:seo_page_id (
+            id,
+            page_name
+          )
+        `);
+      if (error) throw error;
+      // Create a map for quick lookup
+      const linkMap = new Map<string, { seoPageId: string; seoPageName: string; syncStatus: string }>();
+      data?.forEach(link => {
+        const page = link.seo_pages as any;
+        if (page) {
+          linkMap.set(link.gbp_location_id, {
+            seoPageId: link.seo_page_id,
+            seoPageName: page.page_name,
+            syncStatus: link.sync_status
+          });
+        }
+      });
+      return linkMap;
+    }
   });
 
   // Get unique categories
@@ -190,6 +223,7 @@ function GBPLocationsContent() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">SEO</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Phone</TableHead>
@@ -199,43 +233,57 @@ function GBPLocationsContent() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {locations.map((location) => (
-                  <TableRow 
-                    key={location.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => navigate(`/admin/gbp/location/${location.id}`)}
-                  >
-                    <TableCell>
-                      <div className="font-medium">{location.title}</div>
-                      {location.store_code && (
-                        <div className="text-xs text-muted-foreground">
-                          Code: {location.store_code}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatAddress(location.address_json)}
-                    </TableCell>
-                    <TableCell>
-                      {location.phone ? (
-                        <div className="flex items-center gap-1 text-sm">
-                          <Phone className="h-3 w-3" />
-                          {location.phone}
-                        </div>
-                      ) : '—'}
-                    </TableCell>
-                    <TableCell>
-                      {location.primary_category ? (
-                        <Badge variant="secondary" className="text-xs">
-                          {location.primary_category}
-                        </Badge>
-                      ) : '—'}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {location.last_synced_at 
-                        ? formatDistanceToNow(new Date(location.last_synced_at), { addSuffix: true })
-                        : '—'}
-                    </TableCell>
+                {locations.map((location) => {
+                  const seoLink = seoLinks?.get(location.id);
+                  const linkStatus = seoLink 
+                    ? (seoLink.syncStatus as 'linked' | 'warning' | 'out_of_sync') 
+                    : 'not_linked';
+                  
+                  return (
+                    <TableRow 
+                      key={location.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/admin/gbp/location/${location.id}`)}
+                    >
+                      <TableCell>
+                        <SeoLinkStatusChip 
+                          status={linkStatus}
+                          targetType="seo"
+                          targetId={seoLink?.seoPageId}
+                          targetTitle={seoLink?.seoPageName}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{location.title}</div>
+                        {location.store_code && (
+                          <div className="text-xs text-muted-foreground">
+                            Code: {location.store_code}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatAddress(location.address_json)}
+                      </TableCell>
+                      <TableCell>
+                        {location.phone ? (
+                          <div className="flex items-center gap-1 text-sm">
+                            <Phone className="h-3 w-3" />
+                            {location.phone}
+                          </div>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell>
+                        {location.primary_category ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {location.primary_category}
+                          </Badge>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {location.last_synced_at 
+                          ? formatDistanceToNow(new Date(location.last_synced_at), { addSuffix: true })
+                          : '—'}
+                      </TableCell>
                     <TableCell>
                       {location.website && (
                         <Button
@@ -251,8 +299,9 @@ function GBPLocationsContent() {
                         </Button>
                       )}
                     </TableCell>
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
