@@ -522,17 +522,33 @@ const YourBenefitsPlatform = () => {
                     <h3 className="font-semibold">Modern Stack</h3>
                   </div>
                   <ul className="text-sm text-muted-foreground space-y-1.5">
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-slate-500 shrink-0" />
-                      React + TypeScript frontend
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">React + TypeScript frontend</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        A modern, fast user interface built for reliability, performance, and long-term maintainability.
+                      </span>
                     </li>
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-slate-500 shrink-0" />
-                      Supabase backend & auth
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Supabase backend & authentication</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Secure backend services for user authentication, data storage, and access control.
+                      </span>
                     </li>
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-slate-500 shrink-0" />
-                      Edge functions for AI
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Edge functions for AI & integrations</span>
+                      <span className="absolute left-0 -top-10 w-64 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Server-side logic that runs close to users for faster AI responses and third-party API integrations.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2 group relative">
+                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-slate-500 shrink-0" />
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Modular, API-first architecture</span>
+                      <span className="absolute left-0 -top-10 w-64 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Features are built as independent modules so the platform can evolve safely without breaking existing functionality.
+                      </span>
                     </li>
                   </ul>
                 </CardContent>
@@ -545,17 +561,33 @@ const YourBenefitsPlatform = () => {
                     <h3 className="font-semibold">Security & Privacy</h3>
                   </div>
                   <ul className="text-sm text-muted-foreground space-y-1.5">
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-amber-500 shrink-0" />
-                      SOC 2 compliant infrastructure
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Security-first infrastructure</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Built using industry best practices for secure cloud applications.
+                      </span>
                     </li>
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-amber-500 shrink-0" />
-                      Row-level security (RLS)
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Row-level security (RLS)</span>
+                      <span className="absolute left-0 -top-10 w-64 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Each user and workspace can only access their own data. No cross-account exposure is possible.
+                      </span>
                     </li>
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-amber-500 shrink-0" />
-                      No PII stored in AI calls
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Encryption in transit and at rest</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        All data is encrypted while being transmitted and while stored.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2 group relative">
+                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-amber-500 shrink-0" />
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Minimal AI data usage</span>
+                      <span className="absolute left-0 -top-10 w-64 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        AI systems only receive the information needed to assist users. No sensitive personal data is included in AI calls.
+                      </span>
                     </li>
                   </ul>
                 </CardContent>
@@ -568,17 +600,33 @@ const YourBenefitsPlatform = () => {
                     <h3 className="font-semibold">Scalability</h3>
                   </div>
                   <ul className="text-sm text-muted-foreground space-y-1.5">
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-cyan-500 shrink-0" />
-                      Edge-deployed globally
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Edge-deployed globally</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Services run close to users worldwide to reduce latency and improve performance.
+                      </span>
                     </li>
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-cyan-500 shrink-0" />
-                      Auto-scaling infrastructure
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Auto-scaling infrastructure</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        System capacity automatically adjusts as usage grows.
+                      </span>
                     </li>
-                    <li className="flex items-start gap-2">
+                    <li className="flex items-start gap-2 group relative">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-cyan-500 shrink-0" />
-                      99.9% uptime SLA
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">High-availability architecture</span>
+                      <span className="absolute left-0 -top-10 w-56 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Designed to remain online even if individual components fail.
+                      </span>
+                    </li>
+                    <li className="flex items-start gap-2 group relative">
+                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-cyan-500 shrink-0" />
+                      <span className="cursor-help border-b border-dotted border-muted-foreground/50">Built for multi-tenant growth</span>
+                      <span className="absolute left-0 -top-10 w-64 bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity z-10 pointer-events-none print:hidden">
+                        Supports many organizations securely on a shared platform without data overlap.
+                      </span>
                     </li>
                   </ul>
                 </CardContent>
