@@ -52,6 +52,7 @@ function GBPReviewsContent() {
   const [replyFilter, setReplyFilter] = useState("unreplied");
   const [selectedReview, setSelectedReview] = useState<any>(null);
   const [replyText, setReplyText] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   // Fetch connection
   const { data: connection } = useQuery({
@@ -144,16 +145,20 @@ function GBPReviewsContent() {
         }
       });
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       return data;
     },
     onSuccess: () => {
       toast.success("Reply posted successfully");
+      // Update local state immediately
       queryClient.invalidateQueries({ queryKey: ['gbp-reviews'] });
       setSelectedReview(null);
       setReplyText("");
+      setShowPreview(false);
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to post reply");
+      // Keep draft in textarea - don't clear replyText
+      toast.error(error.message || "Failed to post reply. Your draft has been preserved.");
     }
   });
 
@@ -162,17 +167,28 @@ function GBPReviewsContent() {
   const handleOpenReply = (review: any) => {
     setSelectedReview(review);
     setReplyText(review.reply_comment || "");
+    setShowPreview(false);
   };
 
-  const handleSubmitReply = () => {
+  const handlePreviewReply = () => {
     if (!replyText.trim()) {
       toast.error("Please enter a reply");
       return;
     }
+    setShowPreview(true);
+  };
+
+  const handleSubmitReply = () => {
     replyMutation.mutate({
       reviewName: selectedReview.google_review_name,
       replyText: replyText.trim()
     });
+  };
+
+  const handleCloseDrawer = () => {
+    setSelectedReview(null);
+    setReplyText("");
+    setShowPreview(false);
   };
 
   const renderStars = (rating: number) => {
@@ -332,12 +348,14 @@ function GBPReviewsContent() {
         )}
 
         {/* Reply Drawer */}
-        <Sheet open={!!selectedReview} onOpenChange={(open) => !open && setSelectedReview(null)}>
+        <Sheet open={!!selectedReview} onOpenChange={(open) => !open && handleCloseDrawer()}>
           <SheetContent className="sm:max-w-md">
             <SheetHeader>
-              <SheetTitle>Reply to Review</SheetTitle>
+              <SheetTitle>{showPreview ? 'Preview Reply' : 'Reply to Review'}</SheetTitle>
               <SheetDescription>
-                Your reply will be visible publicly on Google
+                {showPreview 
+                  ? 'Review your reply before publishing to Google'
+                  : 'Your reply will be visible publicly on Google'}
               </SheetDescription>
             </SheetHeader>
             
@@ -352,32 +370,64 @@ function GBPReviewsContent() {
                   <p className="text-sm">{selectedReview.comment || '(No comment)'}</p>
                 </div>
 
-                {/* Reply Input */}
-                <div>
-                  <Textarea
-                    placeholder="Write your reply..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    rows={5}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {replyText.length} characters
-                  </p>
-                </div>
+                {showPreview ? (
+                  /* Preview Mode */
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Your reply (preview):</p>
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm">
+                        {replyText}
+                      </div>
+                    </div>
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                      <AlertTriangle className="h-4 w-4 inline mr-2" />
+                      This reply will be published publicly on Google Business Profile.
+                    </div>
+                  </div>
+                ) : (
+                  /* Edit Mode */
+                  <div>
+                    <Textarea
+                      placeholder="Write your reply..."
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      rows={5}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {replyText.length} characters
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
             <SheetFooter className="mt-4">
-              <Button variant="outline" onClick={() => setSelectedReview(null)}>
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSubmitReply}
-                disabled={replyMutation.isPending || !replyText.trim()}
-              >
-                {replyMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Post Reply
-              </Button>
+              {showPreview ? (
+                <>
+                  <Button variant="outline" onClick={() => setShowPreview(false)}>
+                    Edit
+                  </Button>
+                  <Button 
+                    onClick={handleSubmitReply}
+                    disabled={replyMutation.isPending}
+                  >
+                    {replyMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Publish Reply
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="outline" onClick={handleCloseDrawer}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handlePreviewReply}
+                    disabled={!replyText.trim()}
+                  >
+                    Preview Reply
+                  </Button>
+                </>
+              )}
             </SheetFooter>
           </SheetContent>
         </Sheet>
