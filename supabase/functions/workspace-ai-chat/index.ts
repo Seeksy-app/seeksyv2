@@ -66,7 +66,4 @@ Be helpful, concise, and proactive. Suggest next steps when appropriate.`;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
 });
