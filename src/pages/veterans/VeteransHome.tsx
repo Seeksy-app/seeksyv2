@@ -7,7 +7,7 @@ import { VeteransFaq } from "@/components/veterans/VeteransFaq";
 import { FloatingBenefitsChat } from "@/components/veterans/FloatingBenefitsChat";
 import { Helmet } from "react-helmet";
 import { CALCULATORS, CALCULATOR_CATEGORIES } from "@/lib/veteranCalculatorRegistry";
-
+import veteransHeroImage from "@/assets/veterans-hero-diverse-group.jpg";
 
 const ICON_MAP: Record<string, any> = {
   DollarSign, Clock, Calculator, MessageSquare, Shield, Award, TrendingUp, Heart, 
@@ -72,7 +72,7 @@ export default function VeteransHome() {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{ 
-            backgroundImage: "url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=2832&auto=format&fit=crop')"
+            backgroundImage: `url(${veteransHeroImage})`
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/80 to-slate-900/60" />
@@ -112,63 +112,6 @@ export default function VeteransHome() {
               <Calculator className="w-5 h-5 mr-2" />
               Explore Calculators
             </Button>
-          </div>
-        </div>
-
-        {/* Trusted by section */}
-        <div className="relative z-10 pb-8">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-wrap items-center justify-center gap-6 text-white/60 text-sm">
-              <span>Trusted by veterans and federal employees nationwide</span>
-              <div className="flex -space-x-2">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" alt="Veteran" className="w-8 h-8 rounded-full border-2 border-white/20 object-cover" />
-                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face" alt="Veteran" className="w-8 h-8 rounded-full border-2 border-white/20 object-cover" />
-                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" alt="Veteran" className="w-8 h-8 rounded-full border-2 border-white/20 object-cover" />
-                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" alt="Veteran" className="w-8 h-8 rounded-full border-2 border-white/20 object-cover" />
-                <div className="w-8 h-8 rounded-full border-2 border-white/20 bg-primary/80 flex items-center justify-center text-xs font-medium text-white">+5k</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How We Help Section */}
-      <section className="py-12 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <h2 className="text-2xl font-bold text-center mb-8">How We Help</h2>
-            <div className="grid md:grid-cols-5 gap-4 text-center">
-              <div className="p-4">
-                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-3">
-                  <Shield className="w-6 h-6 text-blue-500" />
-                </div>
-                <p className="font-medium text-sm">Understand Eligibility</p>
-              </div>
-              <div className="p-4">
-                <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-3">
-                  <Calculator className="w-6 h-6 text-green-500" />
-                </div>
-                <p className="font-medium text-sm">Estimate Benefits</p>
-              </div>
-              <div className="p-4">
-                <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-3">
-                  <FileText className="w-6 h-6 text-orange-500" />
-                </div>
-                <p className="font-medium text-sm">Prepare Forms</p>
-              </div>
-              <div className="p-4">
-                <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center mx-auto mb-3">
-                  <User className="w-6 h-6 text-purple-500" />
-                </div>
-                <p className="font-medium text-sm">Connect with Reps</p>
-              </div>
-              <div className="p-4">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-3">
-                  <TrendingUp className="w-6 h-6 text-amber-500" />
-                </div>
-                <p className="font-medium text-sm">Track Progress</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
