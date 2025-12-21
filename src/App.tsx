@@ -781,7 +781,8 @@ const AppContent = () => {
   const isOnboardingComplete = location.pathname === '/onboarding/complete';
   
   // Veterans platform is completely standalone - no Seeksy UI
-  const isVeteransRoute = location.pathname.startsWith('/yourbenefits') || location.pathname.startsWith('/veterans');
+  // Exclude /yourbenefits-platform which is a separate marketing page
+  const isVeteransRoute = (location.pathname.startsWith('/yourbenefits') && !location.pathname.startsWith('/yourbenefits-platform')) || location.pathname.startsWith('/veterans');
   
   // CampaignStaff.ai is completely standalone - no Seeksy UI
   const isCampaignRoute = location.pathname.startsWith('/campaign-staff');
