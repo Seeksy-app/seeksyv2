@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles, TrendingUp, TrendingDown, Lightbulb } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { SeoBaseline } from "@/hooks/useSeoBaselines";
+import { SeoBaseline, BaselinesMap } from "@/hooks/useSeoBaselines";
 import { GscMetrics, Ga4Metrics } from "@/hooks/useSeoAnalyticsMetrics";
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
   seoPageId: string;
   pageName: string;
   routePath: string;
-  baseline?: { gsc: SeoBaseline | null; ga4: SeoBaseline | null };
+  baseline?: BaselinesMap;
   metrics7d?: { gsc: GscMetrics | null; ga4: Ga4Metrics | null };
   metrics28d?: { gsc: GscMetrics | null; ga4: Ga4Metrics | null };
   gbpLocationId?: string;

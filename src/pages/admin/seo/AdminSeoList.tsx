@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,10 +33,10 @@ import { getScoreProgressColor } from "@/lib/seo/seoScoring";
 import { formatDistanceToNow } from "date-fns";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { SeoLinkStatusChip } from "@/components/admin/shared/SeoLinkStatusChip";
-import { useSeoAnalyticsConnection, useSeoListMetrics, useSeoPageMetrics, TimeRange } from "@/hooks/useSeoAnalyticsMetrics";
+import { useSeoAnalyticsConnection, useSeoListMetrics, TimeRange } from "@/hooks/useSeoAnalyticsMetrics";
 import { useSeoBaselinesForList } from "@/hooks/useSeoBaselines";
 import { useSeoViewMode } from "@/hooks/useSeoViewMode";
-import { SeoPerformanceAlertBadges } from "@/components/admin/seo/SeoPerformanceAlerts";
+import { SeoPerformanceAlertBadges, detectPerformanceAlerts } from "@/components/admin/seo/SeoPerformanceAlerts";
 import { SeoExplainChangeDialog } from "@/components/admin/seo/SeoExplainChangeDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -66,6 +66,15 @@ function AdminSeoListContent() {
   const [timeRange, setTimeRange] = useState<TimeRange>("7d");
   const [sortField, setSortField] = useState<SortField>("updated_at");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  
+  // Explain dialog state
+  const [explainDialogOpen, setExplainDialogOpen] = useState(false);
+  const [explainPage, setExplainPage] = useState<{
+    id: string;
+    name: string;
+    path: string;
+    gbpLocationId?: string;
+  } | null>(null);
 
   // Fetch SEO pages with GBP link info
   const { data: pages, isLoading } = useQuery({
@@ -127,8 +136,36 @@ function AdminSeoListContent() {
   // Get route paths for metrics lookup
   const routePaths = useMemo(() => pages?.map(p => p.route_path) || [], [pages]);
   
-  // Fetch metrics for all pages
+  // Fetch metrics for selected time range (used for display)
   const { data: metricsMap, isLoading: metricsLoading } = useSeoListMetrics(routePaths, timeRange);
+  
+  // Fetch 7d metrics for alerts calculation
+  const { data: metrics7dMap } = useSeoListMetrics(routePaths, '7d');
+  
+  // Fetch 28d metrics for alerts calculation
+  const { data: metrics28dMap } = useSeoListMetrics(routePaths, '28d');
+  
+  // Fetch baselines for all pages
+  const pageIds = useMemo(() => pages?.map(p => p.id) || [], [pages]);
+  const { data: baselinesMap } = useSeoBaselinesForList(pageIds);
+  
+  // Memoized function to get alert metrics for a page
+  const getAlertMetrics = useCallback((routePath: string) => {
+    const m7d = metrics7dMap?.get(routePath);
+    const m28d = metrics28dMap?.get(routePath);
+    return {
+      metrics7d: m7d ? {
+        clicks: m7d.gsc?.clicks,
+        ctr: m7d.gsc?.ctr,
+        position: m7d.gsc?.position
+      } : null,
+      metrics28d: m28d ? {
+        clicks: m28d.gsc?.clicks,
+        ctr: m28d.gsc?.ctr,
+        position: m28d.gsc?.position
+      } : null
+    };
+  }, [metrics7dMap, metrics28dMap]);
 
   // Sort pages
   const sortedPages = useMemo(() => {
@@ -406,8 +443,27 @@ function AdminSeoListContent() {
                     </TableHead>
                   )}
                   
+                  {/* Alerts Column - only if connected */}
+                  {showAnalyticsColumns && (
+                    <TableHead className="w-20 border-l border-border/50">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-xs font-medium flex items-center gap-1">
+                              Alerts
+                              <Info className="h-3 w-3 opacity-50" />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs text-xs">
+                            Performance alerts based on 7d vs 28d metrics
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </TableHead>
+                  )}
+                  
                   <TableHead className="w-24">Updated</TableHead>
-                  <TableHead className="w-12">Actions</TableHead>
+                  <TableHead className="w-20">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -417,9 +473,12 @@ function AdminSeoListContent() {
                     ? (gbpLink.syncStatus as 'linked' | 'warning' | 'out_of_sync') 
                     : 'not_linked';
                   const metrics = metricsMap?.get(page.route_path);
+                  const alertMetrics = getAlertMetrics(page.route_path);
+                  const hasMetricsData = metrics7dMap?.get(page.route_path) || metrics28dMap?.get(page.route_path);
+                  const pageBaselines = baselinesMap?.get(page.id);
                   
                   return (
-                    <TableRow key={page.id} className="cursor-pointer hover:bg-muted/50"
+                    <TableRow key={page.id} className="cursor-pointer hover:bg-muted/50 group"
                       onClick={() => navigate(`/admin/seo/${page.id}`)}>
                       <TableCell>
                         <SeoLinkStatusChip 
@@ -503,21 +562,71 @@ function AdminSeoListContent() {
                         </TableCell>
                       )}
                       
+                      {/* Alerts column */}
+                      {showAnalyticsColumns && (
+                        <TableCell className="border-l border-border/30" onClick={(e) => e.stopPropagation()}>
+                          {metricsLoading ? (
+                            <Skeleton className="h-5 w-14" />
+                          ) : (
+                            <SeoPerformanceAlertBadges 
+                              metrics7d={alertMetrics.metrics7d}
+                              metrics28d={alertMetrics.metrics28d}
+                            />
+                          )}
+                        </TableCell>
+                      )}
+                      
                       <TableCell className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(page.updated_at), { addSuffix: true })}
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/admin/seo/${page.id}`);
-                          }}
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-0.5">
+                          {/* Explain Change button */}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className={`h-7 w-7 ${showAnalyticsColumns && hasMetricsData ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}
+                                  disabled={!showAnalyticsColumns || !hasMetricsData}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExplainPage({
+                                      id: page.id,
+                                      name: page.page_name,
+                                      path: page.route_path,
+                                      gbpLocationId: gbpLink?.gbpLocationId
+                                    });
+                                    setExplainDialogOpen(true);
+                                  }}
+                                >
+                                  <Sparkles className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                {!showAnalyticsColumns 
+                                  ? "Connect + sync GSC/GA4 to explain changes" 
+                                  : !hasMetricsData 
+                                    ? "Run sync to load metrics"
+                                    : "Explain performance changes with AI"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          
+                          {/* Edit button */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/admin/seo/${page.id}`);
+                            }}
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -527,6 +636,30 @@ function AdminSeoListContent() {
           )}
         </CardContent>
       </Card>
+      
+      {/* Explain Change Dialog */}
+      {explainPage && (
+        <SeoExplainChangeDialog
+          open={explainDialogOpen}
+          onOpenChange={(open) => {
+            setExplainDialogOpen(open);
+            if (!open) setExplainPage(null);
+          }}
+          seoPageId={explainPage.id}
+          pageName={explainPage.name}
+          routePath={explainPage.path}
+          baseline={baselinesMap?.get(explainPage.id)}
+          metrics7d={metrics7dMap?.get(explainPage.path) ? {
+            gsc: metrics7dMap.get(explainPage.path)?.gsc || null,
+            ga4: metrics7dMap.get(explainPage.path)?.ga4 || null
+          } : undefined}
+          metrics28d={metrics28dMap?.get(explainPage.path) ? {
+            gsc: metrics28dMap.get(explainPage.path)?.gsc || null,
+            ga4: metrics28dMap.get(explainPage.path)?.ga4 || null
+          } : undefined}
+          gbpLocationId={explainPage.gbpLocationId}
+        />
+      )}
     </div>
   );
 }
