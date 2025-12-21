@@ -33,6 +33,7 @@ import {
 } from "@/lib/seo/seoScoring";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { LinkedGbpPanel } from "@/components/admin/seo/LinkedGbpPanel";
+import { SeoAiSuggestionsPanel } from "@/components/admin/seo/SeoAiSuggestionsPanel";
 
 interface FormData {
   route_path: string;
@@ -333,6 +334,16 @@ function AdminSeoEditContent() {
       {/* Linked GBP Panel - show only for existing pages */}
       {!isNew && seo_page_id && (
         <LinkedGbpPanel seoPageId={seo_page_id} />
+      )}
+
+      {/* AI SEO Suggestions Panel - show only for existing pages */}
+      {!isNew && seo_page_id && (
+        <SeoAiSuggestionsPanel 
+          seoPageId={seo_page_id} 
+          onSuggestionApplied={() => {
+            queryClient.invalidateQueries({ queryKey: ['seo-page', seo_page_id] });
+          }}
+        />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
