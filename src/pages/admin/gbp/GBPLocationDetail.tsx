@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { RequireAdmin } from "@/components/auth/RequireAdmin";
 import { GBPLayout } from "@/components/admin/gbp/GBPLayout";
 import { GBPNotFound } from "@/components/admin/gbp/GBPNotFound";
+import { GBPSeoLinkSection } from "@/components/admin/gbp/GBPSeoLinkSection";
+import { GBPSeoDriftPanel } from "@/components/admin/gbp/GBPSeoDriftPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -316,6 +318,27 @@ function GBPLocationDetailContent() {
             )}
           </CardContent>
         </Card>
+
+        {/* SEO Link Section */}
+        {location.connection_id && (
+          <GBPSeoLinkSection 
+            locationId={location.id} 
+            connectionId={location.connection_id} 
+          />
+        )}
+
+        {/* SEO Drift Panel */}
+        {location.connection_id && (
+          <GBPSeoDriftPanel
+            locationId={location.id}
+            connectionId={location.connection_id}
+            gbpData={{
+              title: location.title,
+              description: location.description,
+              address_json: location.address_json
+            }}
+          />
+        )}
 
         {/* Audit Trail */}
         <Card>
