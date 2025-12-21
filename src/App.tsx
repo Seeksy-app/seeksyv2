@@ -21,6 +21,7 @@ import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useGTMTracking } from "@/hooks/useGTMTracking";
 import { RouteTransition } from "@/components/RouteTransition";
 import Index from "./pages/Index";
+import WorkspacePage from "./pages/Workspace";
 import LogoAsset from "./pages/LogoAsset";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -1189,7 +1190,8 @@ const AppContent = () => {
           {/* Legacy routes redirect to single source of truth */}
           <Route path="/apps-legacy" element={<Navigate to="/apps?view=modules" replace />} />
           <Route path="/module-center" element={<Navigate to="/apps?view=modules" replace />} />
-          <Route path="/workspace" element={<Navigate to="/my-day" replace />} />
+          <Route path="/workspace" element={<WorkspacePage />} />
+          <Route path="/workspace/:section" element={<WorkspacePage />} />
           <Route path="/influencehub" element={<InfluenceHub />} />
           <Route path="/influencehub/connect" element={<InfluenceHubConnect />} />
           <Route path="/influencehub/creators" element={<InfluenceHubCreators />} />
