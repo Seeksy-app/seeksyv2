@@ -39,10 +39,13 @@ import {
   Reply,
   CheckCircle2,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Sparkles
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow, format } from "date-fns";
+
+type TonePreset = "friendly" | "professional" | "concise";
 
 function GBPReviewsContent() {
   const navigate = useNavigate();
@@ -53,6 +56,8 @@ function GBPReviewsContent() {
   const [selectedReview, setSelectedReview] = useState<any>(null);
   const [replyText, setReplyText] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedTone, setSelectedTone] = useState<TonePreset>("friendly");
+  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
 
   // Fetch connection
   const { data: connection } = useQuery({
@@ -168,6 +173,7 @@ function GBPReviewsContent() {
     setSelectedReview(review);
     setReplyText(review.reply_comment || "");
     setShowPreview(false);
+    setSelectedTone("friendly");
   };
 
   const handlePreviewReply = () => {
@@ -189,6 +195,44 @@ function GBPReviewsContent() {
     setSelectedReview(null);
     setReplyText("");
     setShowPreview(false);
+    setSelectedTone("friendly");
+  };
+
+  const handleGenerateAIDraft = async () => {
+    if (!selectedReview || !connection?.id) return;
+    
+    setIsGeneratingDraft(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Get location info for business name
+      const locationTitle = (selectedReview as any).gbp_locations?.title || "Our business";
+      
+      const { data, error } = await supabase.functions.invoke('gbp-ai-draft-reply', {
+        body: {
+          review_comment: selectedReview.comment,
+          reviewer_name: selectedReview.reviewer_display_name,
+          star_rating: selectedReview.star_rating,
+          business_name: locationTitle,
+          tone: selectedTone,
+          use_pro_model: false, // Default to gpt-5-mini
+          connection_id: connection.id,
+          review_id: selectedReview.id,
+          actor_user_id: user?.id
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      setReplyText(data.draft);
+      toast.success(`AI draft generated (${selectedTone} tone)`);
+    } catch (error: any) {
+      console.error("AI draft error:", error);
+      toast.error(error.message || "Failed to generate AI draft");
+    } finally {
+      setIsGeneratingDraft(false);
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -386,14 +430,53 @@ function GBPReviewsContent() {
                   </div>
                 ) : (
                   /* Edit Mode */
-                  <div>
+                  <div className="space-y-3">
+                    {/* AI Draft Section */}
+                    <div className="p-3 bg-muted/50 border border-dashed rounded-lg space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium flex items-center gap-1">
+                          <Sparkles className="h-3 w-3 text-primary" />
+                          Draft with AI
+                        </span>
+                        <Select value={selectedTone} onValueChange={(v) => setSelectedTone(v as TonePreset)}>
+                          <SelectTrigger className="h-7 w-28 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="friendly">Friendly</SelectItem>
+                            <SelectItem value="professional">Professional</SelectItem>
+                            <SelectItem value="concise">Concise</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
+                        onClick={handleGenerateAIDraft}
+                        disabled={isGeneratingDraft}
+                      >
+                        {isGeneratingDraft ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3 w-3 mr-1.5" />
+                            Generate Draft
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    
                     <Textarea
-                      placeholder="Write your reply..."
+                      placeholder="Write your reply or use AI to draft..."
                       value={replyText}
                       onChange={(e) => setReplyText(e.target.value)}
                       rows={5}
                     />
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <p className="text-xs text-muted-foreground">
                       {replyText.length} characters
                     </p>
                   </div>
