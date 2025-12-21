@@ -14409,6 +14409,57 @@ export type Database = {
           },
         ]
       }
+      gbp_seo_links: {
+        Row: {
+          created_at: string
+          drift_details: Json | null
+          gbp_location_id: string
+          id: string
+          last_checked_at: string | null
+          link_type: string
+          seo_page_id: string
+          sync_status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          drift_details?: Json | null
+          gbp_location_id: string
+          id?: string
+          last_checked_at?: string | null
+          link_type?: string
+          seo_page_id: string
+          sync_status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          drift_details?: Json | null
+          gbp_location_id?: string
+          id?: string
+          last_checked_at?: string | null
+          link_type?: string
+          seo_page_id?: string
+          sync_status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gbp_seo_links_gbp_location_id_fkey"
+            columns: ["gbp_location_id"]
+            isOneToOne: false
+            referencedRelation: "gbp_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gbp_seo_links_seo_page_id_fkey"
+            columns: ["seo_page_id"]
+            isOneToOne: false
+            referencedRelation: "seo_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gmail_connections: {
         Row: {
           access_token: string
