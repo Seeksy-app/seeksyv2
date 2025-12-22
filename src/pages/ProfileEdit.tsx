@@ -7,12 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, User, Palette, Link2, QrCode, Image, Video, Settings, Upload, Plus, X, Smartphone, Tablet, Monitor, Store } from "lucide-react";
+import { ArrowLeft, Save, User, Palette, Link2, QrCode, Image, Video, Settings, Upload, Plus, X, Smartphone, Tablet, Monitor } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { ProfileQRCode } from "@/components/ProfileQRCode";
 import { supabase } from "@/integrations/supabase/client";
-import { ShopifyStoreConnection } from "@/components/profile/ShopifyStoreConnection";
+
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
@@ -123,7 +123,7 @@ export default function ProfileEdit() {
     { id: "qrcode", icon: QrCode, label: "QR Code", color: "bg-gradient-to-br from-violet-500 to-purple-600" },
     { id: "media", icon: Image, label: "Media", color: "bg-gradient-to-br from-amber-500 to-orange-500" },
     { id: "streaming", icon: Video, label: "Streaming", color: "bg-gradient-to-br from-red-500 to-pink-500" },
-    { id: "shop", icon: Store, label: "Shop", color: "bg-gradient-to-br from-green-500 to-emerald-600" },
+    
     { id: "advanced", icon: Settings, label: "Advanced", color: "bg-gradient-to-br from-slate-600 to-gray-700" },
   ];
 
@@ -878,17 +878,6 @@ export default function ProfileEdit() {
               </div>
             )}
 
-            {activeSection === "shop" && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Shopify Store</h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Connect your Shopify store to sell products on your My Page
-                  </p>
-                  <ShopifyStoreConnection />
-                </div>
-              </div>
-            )}
 
             {activeSection === "advanced" && (
               <div className="space-y-6">
