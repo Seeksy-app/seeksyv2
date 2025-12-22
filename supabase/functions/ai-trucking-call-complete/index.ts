@@ -364,9 +364,12 @@ serve(async (req) => {
     const params = body.parameters || body;
     const analysis = body.analysis || params.analysis || {};
     const callData = body.call || params.call || {};
+    const metadata = body.metadata || params.metadata || {};
+    const phoneCallData = metadata.phone_call || {};
     
     console.log('Analysis object:', JSON.stringify(analysis, null, 2));
     console.log('Call object:', JSON.stringify(callData, null, 2));
+    console.log('Metadata phone_call:', JSON.stringify(phoneCallData, null, 2));
     
     const {
       owner_id: direct_owner_id, user_id, account_id,
@@ -380,8 +383,8 @@ serve(async (req) => {
     // Extract conversation ID for ElevenLabs API fetch
     const elevenLabsConversationId = conversation_id || call_id || body.conversation_id || callData.conversation_id || null;
     
-    // Fetch summary from ElevenLabs API if not in webhook payload
-    let summary = webhookSummary || analysis.summary || analysis.call_successful_summary || null;
+    // Fetch summary - CHECK analysis.transcript_summary FIRST (ElevenLabs primary field)
+    let summary = webhookSummary || analysis.transcript_summary || analysis.summary || analysis.call_successful_summary || analysis.call_summary || null;
     console.log('Initial summary from webhook:', summary ? `${summary.substring(0, 100)}...` : 'null');
     
     if (!summary && elevenLabsConversationId) {
@@ -445,17 +448,22 @@ serve(async (req) => {
     
     console.log('Final summary value:', summary ? `${summary.substring(0, 100)}...` : 'null');
     
-    // Extract duration
+    // Extract duration - CHECK metadata.call_duration_secs FIRST (ElevenLabs primary field)
     const elevenLabsDuration = 
+      metadata.call_duration_secs || metadata.call_duration ||
       callData.call_duration_secs || callData.call_duration || callData.duration ||
       analysis.call_duration || analysis.duration || 
       body.call_duration_secs || body.call_duration || body.duration;
 
     const callOutcome = call_outcome || outcome || status || 'completed';
 
-    const callerPhone = callback_phone || contact_number || phone || 
+    // Extract caller phone - CHECK metadata.phone_call.external_number FIRST (ElevenLabs primary field)
+    const callerPhone = phoneCallData.external_number || phoneCallData.from_number ||
+                        callback_phone || contact_number || phone || 
                         caller_number || phone_number || from_number || caller_id ||
                         callData.from_number || callData.caller_id || callData.phone_number || null;
+    
+    console.log('Extracted caller phone:', callerPhone);
     
     let callDuration = elevenLabsDuration || duration_seconds || duration || call_duration;
     const callStarted = started_at || callData.started_at || callData.start_time;
@@ -805,41 +813,8 @@ serve(async (req) => {
         }
       }
 
-      // Send SMS notification
-      try {
-        const accountSid = Deno.env.get('TWILIO_ACCOUNT_SID');
-        const authToken = Deno.env.get('TWILIO_AUTH_TOKEN');
-        const fromNumber = Deno.env.get('TWILIO_PHONE_NUMBER');
-        const adminPhone = '+12026695354';
-
-        if (accountSid && authToken && fromNumber) {
-          const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
-          const credentials = btoa(`${accountSid}:${authToken}`);
-
-          let smsMessage = `🚚 AI Call | CEI: ${transcriptAnalysis.cei_score}\n`;
-          smsMessage += `Outcome: ${ceiOutcome}\n`;
-          if (callerPhone) smsMessage += `From: ${callerPhone}\n`;
-          if (callDuration) smsMessage += `Duration: ${Math.floor(callDuration / 60)}m ${callDuration % 60}s\n`;
-          if (transcriptAnalysis.handoff_requested) smsMessage += `⚠️ Handoff requested`;
-          if (lead_id) smsMessage += `\n✓ Lead created`;
-
-          await fetch(twilioUrl, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Basic ${credentials}`,
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-              To: adminPhone,
-              From: fromNumber,
-              Body: smsMessage,
-            }),
-          });
-          console.log('SMS notification sent');
-        }
-      } catch (smsError) {
-        console.log('SMS notification error (non-blocking):', smsError);
-      }
+      // SMS notifications disabled per user request
+      console.log('SMS notifications disabled - skipping SMS send');
     }
 
   } catch (error: unknown) {
