@@ -11,6 +11,7 @@ const DOMAIN_ROUTES: Record<string, string> = {
 const TRUCKING_ALLOWED_ROUTES = [
   "/trucking",
   "/auth", // Allow auth on any domain
+  "/admin", // Allow admin access
 ];
 
 export function DomainRedirect({ children }: { children: React.ReactNode }) {
