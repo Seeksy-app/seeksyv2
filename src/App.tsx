@@ -20,6 +20,7 @@ import { useAutoTheme } from "@/hooks/useAutoTheme";
 import { useScrollRestoration } from "@/hooks/useScrollRestoration";
 import { useGTMTracking } from "@/hooks/useGTMTracking";
 import { RouteTransition } from "@/components/RouteTransition";
+import { DomainRedirect } from "@/components/DomainRedirect";
 import Index from "./pages/Index";
 import WorkspacePage from "./pages/Workspace";
 import LogoAsset from "./pages/LogoAsset";
@@ -1697,14 +1698,16 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <PortalProvider>
-              <CommandPaletteProvider>
-                <AIAssistantProvider>
-                  <AppContent />
-                  <AIAssistantPanel />
-                </AIAssistantProvider>
-              </CommandPaletteProvider>
-            </PortalProvider>
+            <DomainRedirect>
+              <PortalProvider>
+                <CommandPaletteProvider>
+                  <AIAssistantProvider>
+                    <AppContent />
+                    <AIAssistantPanel />
+                  </AIAssistantProvider>
+                </CommandPaletteProvider>
+              </PortalProvider>
+            </DomainRedirect>
           </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
