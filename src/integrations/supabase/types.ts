@@ -10503,45 +10503,6 @@ export type Database = {
         }
         Relationships: []
       }
-      creator_shopify_stores: {
-        Row: {
-          admin_access_token: string | null
-          created_at: string | null
-          id: string
-          is_active: boolean | null
-          shop_domain: string
-          store_email: string | null
-          store_name: string | null
-          storefront_access_token: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          admin_access_token?: string | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          shop_domain: string
-          store_email?: string | null
-          store_name?: string | null
-          storefront_access_token: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          admin_access_token?: string | null
-          created_at?: string | null
-          id?: string
-          is_active?: boolean | null
-          shop_domain?: string
-          store_email?: string | null
-          store_name?: string | null
-          storefront_access_token?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       creator_tips: {
         Row: {
           amount: number

@@ -87,12 +87,6 @@ export const OAUTH_TOKEN_TABLES = [
     priority: "low",
     migrated: false,
   },
-  {
-    table: "creator_shopify_stores",
-    columns: ["admin_access_token"],
-    priority: "medium",
-    migrated: false,
-  },
   // Already encrypted (good pattern to follow)
   {
     table: "streaming_destinations",
