@@ -74,7 +74,7 @@ const allNavItems = [
 const adminNavItems = [
   { label: "Users", href: "/trucking/admin/users", icon: Shield },
   { label: "Rate Preferences", href: "/trucking/admin/rate-preferences", icon: Calculator },
-  { label: "Email Tracking", href: "/trucking/extension-install", icon: Mail },
+  { label: "Lead Notifications", href: "/trucking/extension-install", icon: Mail },
 ];
 
 interface TruckingLayoutProps {
