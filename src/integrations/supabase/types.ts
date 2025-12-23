@@ -29583,6 +29583,72 @@ export type Database = {
           },
         ]
       }
+      trucking_lead_notifications: {
+        Row: {
+          agency_id: string | null
+          call_sid: string | null
+          caller_number: string | null
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          lead_id: string | null
+          owner_id: string | null
+          receiver_number: string | null
+          source: string | null
+          status: string | null
+          stream_sid: string | null
+          summary: string | null
+          transcript: string | null
+        }
+        Insert: {
+          agency_id?: string | null
+          call_sid?: string | null
+          caller_number?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          owner_id?: string | null
+          receiver_number?: string | null
+          source?: string | null
+          status?: string | null
+          stream_sid?: string | null
+          summary?: string | null
+          transcript?: string | null
+        }
+        Update: {
+          agency_id?: string | null
+          call_sid?: string | null
+          caller_number?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          lead_id?: string | null
+          owner_id?: string | null
+          receiver_number?: string | null
+          source?: string | null
+          status?: string | null
+          stream_sid?: string | null
+          summary?: string | null
+          transcript?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trucking_lead_notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trucking_lead_notifications_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "trucking_carrier_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trucking_load_shares: {
         Row: {
           can_edit: boolean

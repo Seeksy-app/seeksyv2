@@ -7,13 +7,14 @@ const corsHeaders = {
 };
 
 /**
- * RELIABLE WEBHOOK INGESTION
+ * RELIABLE WEBHOOK INGESTION WITH AUTO LEAD CREATION
  * 
  * This function:
  * 1. Stores raw payload IMMEDIATELY
- * 2. Returns HTTP 200 fast
- * 3. Processes asynchronously (waitUntil)
- * 4. Uses upsert with conversation_id as unique key
+ * 2. Creates a pending lead notification if phone number exists
+ * 3. Returns HTTP 200 fast
+ * 4. Processes asynchronously (waitUntil)
+ * 5. Uses upsert with conversation_id as unique key
  */
 
 serve(async (req) => {
@@ -52,8 +53,23 @@ serve(async (req) => {
                         params.contact_number || params.phone || callData.from_number || 
                         callData.caller_id || callData.phone_number || null;
     
+    // Extract receiver phone (the AITrucking number)
+    const receiverPhone = body.receiver_number || params.receiver_number || 
+                          callData.to_number || callData.called_number || null;
+    
+    // Extract summary and transcript
+    const summary = body.analysis?.summary || body.summary || params.summary || null;
+    const transcript = body.transcript || params.transcript || null;
+    
+    // Extract Twilio identifiers
+    const callSid = body.call_sid || params.call_sid || callData.call_sid || null;
+    const streamSid = body.stream_sid || params.stream_sid || callData.stream_sid || null;
+    
     console.log('Conversation ID:', conversationId);
     console.log('Caller Phone:', callerPhone);
+    console.log('Receiver Phone:', receiverPhone);
+    console.log('Has Summary:', !!summary);
+    console.log('Has Transcript:', !!transcript);
     
     if (!conversationId) {
       // Generate a fallback ID to avoid losing data
@@ -93,18 +109,90 @@ serve(async (req) => {
 
     console.log('Webhook event stored:', webhookEvent.id);
 
-    // STEP 2: Return 200 immediately
+    // STEP 2: AUTO-CREATE PENDING LEAD NOTIFICATION if caller phone exists
+    // This is the critical piece that enables real-time lead notifications
+    let leadNotificationId: string | null = null;
+    
+    if (callerPhone) {
+      console.log('=== AUTO-CREATING PENDING LEAD NOTIFICATION ===');
+      
+      // Try to find the agency based on the receiver phone number
+      // The receiver phone is the AITrucking line which belongs to an agency
+      let agencyId: string | null = null;
+      let ownerId: string | null = null;
+      
+      // Look up agency by phone number in trucking_ai_phone_numbers table
+      const { data: phoneMapping } = await supabase
+        .from('trucking_ai_phone_numbers')
+        .select('agency_id')
+        .eq('phone_number', receiverPhone)
+        .maybeSingle();
+      
+      if (phoneMapping) {
+        agencyId = phoneMapping.agency_id;
+        console.log('Found agency from phone mapping:', agencyId);
+      } else {
+        // Fallback: Get the first/default agency (for single-tenant setups)
+        const { data: defaultAgency } = await supabase
+          .from('agencies')
+          .select('id, owner_id')
+          .limit(1)
+          .maybeSingle();
+        
+        if (defaultAgency) {
+          agencyId = defaultAgency.id;
+          ownerId = defaultAgency.owner_id;
+          console.log('Using default agency:', agencyId);
+        }
+      }
+      
+      // Create the lead notification using upsert to avoid duplicates
+      const { data: notification, error: notifError } = await supabase
+        .from('trucking_lead_notifications')
+        .upsert({
+          conversation_id: conversationId,
+          agency_id: agencyId,
+          owner_id: ownerId,
+          caller_number: callerPhone,
+          receiver_number: receiverPhone,
+          summary: summary,
+          transcript: typeof transcript === 'string' ? transcript : JSON.stringify(transcript),
+          call_sid: callSid,
+          stream_sid: streamSid,
+          source: 'elevenlabs',
+          status: 'pending',
+        }, {
+          onConflict: 'conversation_id',
+          ignoreDuplicates: false,
+        })
+        .select()
+        .single();
+      
+      if (notifError) {
+        console.error('Failed to create lead notification:', notifError);
+      } else if (notification) {
+        leadNotificationId = notification.id;
+        console.log('Lead notification created:', notification.id);
+        console.log('This will trigger realtime update to Chrome extension');
+      }
+    } else {
+      console.log('No caller phone number - skipping lead notification');
+    }
+
+    // STEP 3: Return 200 immediately
     const response = new Response(JSON.stringify({ 
       received: true, 
       stored: true,
       event_id: webhookEvent.id,
       conversation_id: conversationId,
+      lead_notification_id: leadNotificationId,
+      has_phone: !!callerPhone,
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
-    // STEP 3: Process asynchronously using waitUntil
+    // STEP 4: Process asynchronously using waitUntil
     const processAsync = async () => {
       try {
         console.log('Starting async processing for:', conversationId);
@@ -151,6 +239,28 @@ serve(async (req) => {
               post_call_webhook_status: 'success',
             })
             .eq('id', processData.call_log_id);
+          
+          // Update the lead notification with the lead_id if one was created
+          if (leadNotificationId) {
+            // Check if a lead was created from this call
+            const { data: callLog } = await supabase
+              .from('trucking_call_logs')
+              .select('lead_id')
+              .eq('id', processData.call_log_id)
+              .maybeSingle();
+            
+            if (callLog?.lead_id) {
+              await supabase
+                .from('trucking_lead_notifications')
+                .update({ 
+                  lead_id: callLog.lead_id,
+                  status: 'processed'
+                })
+                .eq('id', leadNotificationId);
+              
+              console.log('Updated lead notification with lead_id:', callLog.lead_id);
+            }
+          }
         }
 
         console.log('Async processing complete for:', conversationId);

@@ -32,6 +32,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     });
     return true;
   }
+  
+  if (request.action === 'leadNotification') {
+    console.log('Seeksy: Lead notification received', request.data);
+    // Store for popup display
+    chrome.storage.local.get(['recent_leads'], (result) => {
+      const leads = result.recent_leads || [];
+      leads.unshift({ ...request.data, received_at: new Date().toISOString() });
+      chrome.storage.local.set({ recent_leads: leads.slice(0, 20) });
+    });
+    sendResponse({ success: true });
+    return true;
+  }
 });
 
 // Login user with Seeksy/Supabase
